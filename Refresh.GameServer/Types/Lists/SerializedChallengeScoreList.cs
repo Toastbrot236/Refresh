@@ -5,15 +5,15 @@ namespace Refresh.GameServer.Types.Lists;
 
 [XmlRoot("challenge-scores")]
 [XmlType("challenge-scores")]
-public class SerializedCustomChallengeScoreboard
+public class SerializedChallengeScoreboard
 {
-    public SerializedCustomChallengeScoreboard() {}
+    public SerializedChallengeScoreboard() {}
 
-    public SerializedCustomChallengeScoreboard(IEnumerable<SerializedCustomChallengeScore> items)
+    public SerializedChallengeScoreboard(IEnumerable<SerializedChallengeScore> items)
     {
         this.Items = items.ToList();
     }
     
     [XmlElement("challenge-score")]
-    public List<SerializedCustomChallengeScore> Items { get; set; } = [];
+    public List<SerializedChallengeScore> Items { get; set; } = [];
 }

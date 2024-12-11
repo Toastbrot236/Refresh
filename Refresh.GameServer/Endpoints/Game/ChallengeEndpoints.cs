@@ -17,15 +17,16 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("user/{username}/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedCustomChallengeList? GetChallenges(RequestContext context, DataContext dataContext, string username)
+    public SerializedChallengeList? GetChallenges(RequestContext context, DataContext dataContext, string username)
     {
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        IEnumerable<GameCustomChallenge> challenges = dataContext.Database.GetChallengesByUser(user);
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user);
         
-        return new SerializedCustomChallengeList(
-            SerializedCustomChallenge.FromOldList(challenges, dataContext)
-        );
+        return new SerializedChallengeList
+        {
+            Items = SerializedChallenge.FromOldList(challenges, dataContext).ToList(),
+        };
     }
 }

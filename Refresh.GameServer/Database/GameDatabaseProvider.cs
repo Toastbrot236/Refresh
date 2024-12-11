@@ -90,9 +90,9 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(SubPlaylistRelation),
 
         // challenges
-        typeof(GameCustomChallenge),
-        typeof(GameCustomChallengeCriterion),
-        typeof(GameCustomChallengeScore),
+        typeof(GameChallenge),
+        typeof(GameChallengeCriterion),
+        typeof(GameChallengeScore),
     ];
 
     public override void Warmup()

@@ -4,10 +4,10 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public partial class GameCustomChallengeScore : IRealmObject
+public partial class GameChallengeScore : IRealmObject
 {
     public string Ghost { get; set; } = SystemUsers.UnknownUserName;
-    public GameUser Player { get; set; }
-    public GameCustomChallenge Challenge { get; set; }
+    public GameUser Publisher { get; set; }
+    public GameChallenge Challenge { get; set; }
     public long Score { get; set; }
 }

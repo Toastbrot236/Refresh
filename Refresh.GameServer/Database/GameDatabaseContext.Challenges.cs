@@ -6,9 +6,9 @@ namespace Refresh.GameServer.Database;
 
 public partial class GameDatabaseContext // Challenges
 {
-    public GameCustomChallenge CreateChallenge(SerializedCustomChallenge createInfo, GameLevel level, GameUser user)
+    public GameChallenge CreateChallenge(SerializedChallenge createInfo, GameLevel level, GameUser user)
     {
-        GameCustomChallenge challenge = new()
+        GameChallenge Challenge = new()
         {
             Name = createInfo.Name,
             Publisher = user,
@@ -20,17 +20,58 @@ public partial class GameDatabaseContext // Challenges
             ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds(createInfo.Expiration),
         };
 
+        IEnumerable<GameChallengeCriterion> Criteria = [];
+        
         this.Write(() => {
-            this.AddSequentialObject(challenge);
+            // Add challenge
+            this.AddSequentialObject(Challenge);
+            
+            // Add criteria of challenge
+            foreach(SerializedChallengeCriterion Criterion in createInfo.Criteria)
+            {
+                this.GameChallengeCriterions.Add(new GameChallengeCriterion
+                {
+                    _Type = Criterion.Type,
+                    Value = Criterion.Value,
+                    Challenge = Challenge,
+                });
+            }
         });
 
-        return challenge;
+        return Challenge;
     }
 
-    public GameCustomChallenge? GetChallengeById(int challengeId)
-        => this.GameCustomChallenges.FirstOrDefault(c => c.ChallengeId == challengeId);
+    public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user)
+    {
+        this.GameChallengeScores.RemoveRange(s => s.Publisher.UserId == user.UserId && s.Challenge == challenge);
 
-    public IEnumerable<GameCustomChallenge> GetChallengesByUser(GameUser user)
-        => this.GameCustomChallenges.Where(c => c.Publisher.UserId == user.UserId).AsEnumerable()
-            .OrderBy(c => c.PublishDate);
+        GameChallengeScore Score = new()
+        {
+            Ghost = attempt.Ghost,
+            Publisher = user,
+            Challenge = challenge,
+            Score = attempt.Score,
+        };
+
+        this.Write(() =>
+        {
+            this.GameChallengeScores.Add(Score);
+        });
+
+        return Score;
+    }
+
+    public void RemoveChallenge(GameChallenge challenge)
+    {
+
+    }
+
+    public GameChallenge? GetChallengeById(int challengeId)
+        => this.GameChallenges.FirstOrDefault(c => c.ChallengeId == challengeId);
+    public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user)
+        => this.GameChallenges.Where(c => c.Publisher.UserId == user.UserId).AsEnumerable();
+    public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level)
+        => this.GameChallenges.Where(c => c.Level == level).AsEnumerable();
+    public IEnumerable<GameChallengeScore> GetChallengeScoresForChallenge(GameChallenge challenge)
+        => this.GameChallengeScores.Where(c => c.Challenge == challenge).AsEnumerable();
 }

@@ -6,7 +6,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public partial class GameCustomChallenge : IRealmObject, ISequentialId
+public partial class GameChallenge : IRealmObject, ISequentialId
 {
     [PrimaryKey] public int ChallengeId { get; set; }
     

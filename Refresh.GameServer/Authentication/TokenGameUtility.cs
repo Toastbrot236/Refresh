@@ -50,6 +50,9 @@ public static class TokenGameUtility
         
         "BCJS30058", // JP Disc
         // missing japan digital?
+
+        "BCET70055", // LBP Hub (real title id)
+        "NPEA00449", // LBP HUB (sent title id)
     };
 
     // PS4 title ids are not here on purpose.
@@ -108,8 +111,6 @@ public static class TokenGameUtility
         
         // LBP2
         "NPUA70117", // US Private Beta
-        "BCET70055", // LBP Hub (real title id)
-        "NPEA00449", // LBP HUB (sent title id)
         
         // LBP3
         "NPUA81174", // US Private Beta

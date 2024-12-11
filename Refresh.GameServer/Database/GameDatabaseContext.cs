@@ -63,9 +63,9 @@ public partial class GameDatabaseContext : RealmDatabaseContext
     private RealmDbSet<LevelPlaylistRelation> LevelPlaylistRelations => new(this._realm);
     private RealmDbSet<SubPlaylistRelation> SubPlaylistRelations => new(this._realm);
     private RealmDbSet<GameUserVerifiedIpRelation> GameUserVerifiedIpRelations => new(this._realm);
-    private RealmDbSet<GameCustomChallenge> GameCustomChallenges => new(this._realm);
-    private RealmDbSet<GameCustomChallengeCriterion> GameCustomChallengeCriterions => new(this._realm);
-    private RealmDbSet<GameCustomChallenge> GameCustomChallengeScores => new(this._realm);
+    private RealmDbSet<GameChallenge> GameChallenges => new(this._realm);
+    private RealmDbSet<GameChallengeCriterion> GameChallengeCriterions => new(this._realm);
+    private RealmDbSet<GameChallengeScore> GameChallengeScores => new(this._realm);
     
     internal GameDatabaseContext(IDateTimeProvider time)
     {

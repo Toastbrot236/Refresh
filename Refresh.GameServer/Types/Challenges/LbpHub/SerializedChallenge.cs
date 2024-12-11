@@ -5,7 +5,9 @@ using Refresh.GameServer.Types.Photos;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public class SerializedCustomChallenge : IDataConvertableFrom<SerializedCustomChallenge, GameCustomChallenge>
+[XmlRoot("challenge")]
+[XmlType("challenge")]
+public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, GameChallenge>
 {
     [XmlElement("id")] public int ChallengeId { get; set; }
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
@@ -16,20 +18,20 @@ public class SerializedCustomChallenge : IDataConvertableFrom<SerializedCustomCh
     [XmlElement("end-checkpoint")] public int EndCheckpointId { get; set; }
     [XmlElement("published")] public long Published { get; set; }
     [XmlElement("expires")] public long Expiration { get; set; }
-    [XmlArray("criteria")] public List<SerializedCustomChallengeCriterion> Criteria { get; set; } = new();
+    [XmlArray("criteria")] public List<SerializedChallengeCriterion> Criteria { get; set; } = [];
 
 
-    public static SerializedCustomChallenge? FromOld(GameCustomChallenge? old, DataContext dataContext)
+    public static SerializedChallenge? FromOld(GameChallenge? old, DataContext dataContext)
     {
         if (old == null)
             return null;
 
-        return new SerializedCustomChallenge
+        return new SerializedChallenge
         {
             ChallengeId = old.ChallengeId,
         };
     }
 
-    public static IEnumerable<SerializedCustomChallenge> FromOldList(IEnumerable<GameCustomChallenge> oldList, DataContext dataContext)
+    public static IEnumerable<SerializedChallenge> FromOldList(IEnumerable<GameChallenge> oldList, DataContext dataContext)
         => oldList.Select(c => FromOld(c, dataContext)!);
 }
