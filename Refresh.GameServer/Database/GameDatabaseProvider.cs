@@ -18,6 +18,7 @@ using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Photos;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Challenges.LbpHub;
+using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 
 namespace Refresh.GameServer.Database;
 
@@ -35,7 +36,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         this._time = time;
     }
 
-    protected override ulong SchemaVersion => 162;
+    protected override ulong SchemaVersion => 164;
 
     protected override string Filename => "refreshGameServer.realm";
     
@@ -93,6 +94,9 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(GameChallenge),
         typeof(GameChallengeCriterion),
         typeof(GameChallengeScore),
+        typeof(GameChallengeGhostFrame),
+        typeof(GameChallengeCheckpoint),
+        typeof(GameChallengeCheckpointMetric),
     ];
 
     public override void Warmup()

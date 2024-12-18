@@ -1,4 +1,5 @@
 using Refresh.GameServer.Types.Challenges.LbpHub;
+using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.UserData;
 
@@ -8,6 +9,7 @@ public partial class GameDatabaseContext // Challenges
 {
     public GameChallenge CreateChallenge(SerializedChallenge createInfo, GameLevel level, GameUser user)
     {
+        // Create and Add challenge
         GameChallenge Challenge = new()
         {
             Name = createInfo.Name,
@@ -19,33 +21,37 @@ public partial class GameDatabaseContext // Challenges
             PublishDate = DateTimeOffset.FromUnixTimeMilliseconds(createInfo.Published),
             ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds(createInfo.Expiration),
         };
-
-        IEnumerable<GameChallengeCriterion> Criteria = [];
         
-        this.Write(() => {
-            // Add challenge
-            this.AddSequentialObject(Challenge);
-            
-            // Add criteria of challenge
-            foreach(SerializedChallengeCriterion Criterion in createInfo.Criteria)
+        this.AddSequentialObject(Challenge);
+
+        // Create and Add criteria of challenge
+        IEnumerable<GameChallengeCriterion> Criteria = [];
+
+        foreach(SerializedChallengeCriterion Criterion in createInfo.Criteria)
+        {
+            this.GameChallengeCriterions.Add(new GameChallengeCriterion
             {
-                this.GameChallengeCriterions.Add(new GameChallengeCriterion
-                {
-                    _Type = Criterion.Type,
-                    Value = Criterion.Value,
-                    Challenge = Challenge,
-                });
-            }
-        });
+                _Type = Criterion.Type,
+                Value = Criterion.Value,
+                Challenge = Challenge,
+            });
+        }
 
         return Challenge;
     }
 
+    public void RemoveChallenge(GameChallenge challenge)
+    {
+        // TODO:
+        // Remove Challenge
+        // Remove Criteria
+        // Remove Scores and other relations
+    }
+
     public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user)
     {
-        this.GameChallengeScores.RemoveRange(s => s.Publisher.UserId == user.UserId && s.Challenge == challenge);
-
-        GameChallengeScore Score = new()
+        // Create new score
+        GameChallengeScore score = new()
         {
             Ghost = attempt.Ghost,
             Publisher = user,
@@ -53,25 +59,38 @@ public partial class GameDatabaseContext // Challenges
             Score = attempt.Score,
         };
 
-        this.Write(() =>
-        {
-            this.GameChallengeScores.Add(Score);
-        });
+        this.GameChallengeScores.Add(score);
 
-        return Score;
+        return score;
     }
 
-    public void RemoveChallenge(GameChallenge challenge)
+    public void RemoveChallengeScore(GameChallengeScore score)
     {
-
+        // TODO: Remove score
     }
 
     public GameChallenge? GetChallengeById(int challengeId)
         => this.GameChallenges.FirstOrDefault(c => c.ChallengeId == challengeId);
+
     public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user)
         => this.GameChallenges.Where(c => c.Publisher.UserId == user.UserId).AsEnumerable();
     public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level)
         => this.GameChallenges.Where(c => c.Level == level).AsEnumerable();
+
+    public IEnumerable<GameChallengeCriterion> GetChallengeCriteria(GameChallenge challenge)
+        => this.GameChallengeCriterions.Where(c => c.Challenge == challenge).AsEnumerable();
+    
+    public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameChallenge challenge)
+        => this.GameChallengeScores.Where(c => c.Challenge == challenge).AsEnumerable();
     public IEnumerable<GameChallengeScore> GetChallengeScoresForChallenge(GameChallenge challenge)
         => this.GameChallengeScores.Where(c => c.Challenge == challenge).AsEnumerable();
+
+    public IEnumerable<GameChallengeCheckpoint> GetChallengeCheckpointsForScore(GameChallengeScore score)
+        => this.GameChallengeCheckpoints.Where(c => c.Score == score).AsEnumerable();
+    public IEnumerable<GameChallengeGhostFrame> GetChallengeGhostFramesByScore(GameChallengeScore score)
+        => this.GameChallengeGhostFrames.Where(c => c.Score == score).AsEnumerable();
+
+    public IEnumerable<GameChallengeGhostFrame> GetChallengeGhostFramesForScore(GameChallengeScore score)
+        => this.GameChallengeGhostFrames.Where(c => c.Score == score).AsEnumerable();
+
 }

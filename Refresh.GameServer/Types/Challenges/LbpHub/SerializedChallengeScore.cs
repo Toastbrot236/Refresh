@@ -1,25 +1,31 @@
 using System.Xml.Serialization;
 using Refresh.Common.Constants;
+using Refresh.GameServer.Endpoints.ApiV3.DataTypes;
+using Refresh.GameServer.Types.Data;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
 [XmlRoot("challenge-score")]
 [XmlType("challenge-score")]
-public class SerializedChallengeScore
+public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvertableFrom<SerializedChallengeScore, GameChallengeScore>
 {
-    [XmlElement("ghost")] public string Ghost { get; set; } = SystemUsers.UnknownUserName;
     [XmlElement("player")] public string Publisher { get; set; } = SystemUsers.DeletedUserName;
     [XmlElement("rank")] public int Rank { get; set; }
-    [XmlElement("score")] public long Score { get; set; }
 
-    public static SerializedChallengeScore FromOld(GameChallengeScore score, int rank)
+    public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)
     {
+        if (old == null)
+            return null;
+
         return new SerializedChallengeScore
         {
-            Ghost = score.Ghost,
-            Publisher = score.Publisher.Username,
-            Rank = rank,
-            Score = score.Score,
+            Ghost = old.Ghost,
+            Publisher = old.Publisher.Username,
+            Rank = 7,
+            Score = old.Score,
         };
     }
+
+    public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScore> oldList, DataContext dataContext)
+        => oldList.Select(c => FromOld(c, dataContext)!);
 }

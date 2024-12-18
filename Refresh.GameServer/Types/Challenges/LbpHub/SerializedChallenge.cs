@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes;
 using Refresh.GameServer.Types.Data;
+using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Photos;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
@@ -10,9 +11,9 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, GameChallenge>
 {
     [XmlElement("id")] public int ChallengeId { get; set; }
-    [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
     [XmlElement("name")] public string Name { get; set; } = string.Empty;
-    [XmlElement("author")] public string PublisherUsername { get; set; } = string.Empty;
+    [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
+    [XmlElement("author")] public string AuthorName { get; set; } = string.Empty;
     [XmlElement("score")] public long Score { get; set; }
     [XmlElement("start-checkpoint")] public int StartCheckpointId { get; set; }
     [XmlElement("end-checkpoint")] public int EndCheckpointId { get; set; }
@@ -29,6 +30,20 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
         return new SerializedChallenge
         {
             ChallengeId = old.ChallengeId,
+            Name = old.Name,
+            Level = new SerializedPhotoLevel
+            {
+                LevelId = old.Level.LevelId,
+                Title = old.Level.Title,
+                Type = old.Level.LevelType.ToGameString(),
+            },
+            AuthorName = old.Publisher.Username,
+            Score = old.Score,
+            StartCheckpointId = old.StartCheckpointId,
+            EndCheckpointId = old.EndCheckpointId,
+            Published = old.PublishDate.ToUnixTimeMilliseconds(),
+            Expiration = old.ExpirationDate.ToUnixTimeMilliseconds(),
+            Criteria = dataContext.Database.GetChallengeCriteria(old),
         };
     }
 

@@ -19,6 +19,7 @@ using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData;
 using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Challenges.LbpHub;
+using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 
 namespace Refresh.GameServer.Database;
 
@@ -66,6 +67,9 @@ public partial class GameDatabaseContext : RealmDatabaseContext
     private RealmDbSet<GameChallenge> GameChallenges => new(this._realm);
     private RealmDbSet<GameChallengeCriterion> GameChallengeCriterions => new(this._realm);
     private RealmDbSet<GameChallengeScore> GameChallengeScores => new(this._realm);
+    private RealmDbSet<GameChallengeGhostFrame> GameChallengeGhostFrames => new(this._realm);
+    private RealmDbSet<GameChallengeCheckpoint> GameChallengeCheckpoints => new(this._realm);
+    private RealmDbSet<GameChallengeCheckpointMetric> GameChallengeCheckpointMetrics => new(this._realm);
     
     internal GameDatabaseContext(IDateTimeProvider time)
     {

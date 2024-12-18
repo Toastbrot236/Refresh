@@ -4,7 +4,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public partial class GameChallengeScore : IRealmObject
+public partial class GameChallengeScore : IRealmObject  // Also used for ghost stuff
 {
     public string Ghost { get; set; } = SystemUsers.UnknownUserName;
     public GameUser Publisher { get; set; }
