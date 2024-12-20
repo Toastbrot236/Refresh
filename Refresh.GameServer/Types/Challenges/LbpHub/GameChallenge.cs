@@ -15,7 +15,9 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     public GameLevel Level { get; set; }
     public int StartCheckpointId { get; set; }  // Leaving this for experimenting for now
     public int EndCheckpointId { get; set; }  // Leaving this for experimenting for now
-    public DateTimeOffset PublishDate { get; set; }
+    public DateTimeOffset CreationDate { get; set; }  // Date sent by game
+    public DateTimeOffset PublishDate { get; set; }  // Date when database method is executed
+    public DateTimeOffset LastUpdateDate { get; set; }
     public DateTimeOffset ExpirationDate { get; set; }
 
     // Archive challenges when they expire, dont delete unless publisher does so

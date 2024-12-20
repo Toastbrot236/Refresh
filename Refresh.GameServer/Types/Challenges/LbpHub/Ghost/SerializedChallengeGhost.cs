@@ -8,8 +8,8 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 [XmlType("ghost")]
 public class SerializedChallengeGhost : IDataConvertableFrom<SerializedChallengeGhost, GameChallengeScore>
 {
-    [XmlElement("checkpoint")] public List<SerializedChallengeCheckpoint> Checkpoints { get; set; } = [];
-    [XmlElement("ghost_frame")] public List<SerializedChallengeGhostFrame> Frames { get; set; } = [];
+    [XmlArray("checkpoint")] public List<SerializedChallengeCheckpoint> Checkpoints { get; set; } = [];
+    [XmlArray("ghost_frame")] public List<SerializedChallengeGhostFrame> Frames { get; set; } = [];
     
     public static SerializedChallengeGhost? FromOld(GameChallengeScore? old, DataContext dataContext)
     {

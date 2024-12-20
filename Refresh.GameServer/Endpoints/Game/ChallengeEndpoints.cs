@@ -25,18 +25,19 @@ public class ChallengeEndpoints : EndpointGroup
 
         IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user);
         
-        return new SerializedChallengeList
-        {
-            Items = SerializedChallenge.FromOldList(challenges, dataContext).ToList(),
-        };
+        return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
 
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     public SerializedChallenge? UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body)
     {
-        GameLevel? level = dataContext.Database.GetLevelById(body.Level.LevelId);
+        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Sent Challenge level: {body.Level.Type}, {body.Level.LevelId}, {body.Level.Title}");
+
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(body.Level.Type, body.Level.LevelId);
         if (level == null) return null;
+
+        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Found Challenge level: {level.LevelId}, {level.Title}");
 
         GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
 
@@ -45,34 +46,30 @@ public class ChallengeEndpoints : EndpointGroup
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetMutualsChallengeScores(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId, string username)
+    public SerializedChallengeScoreList? GetMutualsChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username)
     {
         // ignore username in route parameters, privacy lol
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
         return null;
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetOwnChallengeScores(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId, string username) 
+    public SerializedChallengeScoreList? GetOwnChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
         return null;
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard//contextual", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetContextualChallengeScores(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId) 
+    public SerializedChallengeScoreList? GetContextualChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId) 
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
         return null;
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetChallengeScores(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId)
+    public SerializedChallengeScoreList? GetChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
         return null;
     }
 
@@ -86,9 +83,23 @@ public class ChallengeEndpoints : EndpointGroup
 
     [GameEndpoint("developer-challenges/scores")]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext, GameUser user, string body)
+    public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext, GameUser user)
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
+        string[]? developerChallengeIds = context.QueryString.GetValues("ids");
+        if (developerChallengeIds == null) return null;
+
+        List<GameLevel> levels = [];
+        
+        foreach (string developerChallengeIdStr in developerChallengeIds)
+        {
+            if (!int.TryParse(developerChallengeIdStr, out int developerChallengeId)) return null;
+            GameLevel? level = dataContext.Database.GetLevelById(developerChallengeId);
+
+            if (level == null) continue;
+            
+            levels.Add(level);
+        }
+
         return null;
     }
 }
