@@ -38,12 +38,12 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
                 Type = old.Level.LevelType.ToGameString(),
             },
             AuthorName = old.Publisher.Username,
-            Score = old.Score,
+            Score = dataContext.Database.GetOriginalChallengeScoreForChallenge(old).Score,
             StartCheckpointId = old.StartCheckpointId,
             EndCheckpointId = old.EndCheckpointId,
             Published = old.PublishDate.ToUnixTimeMilliseconds(),
             Expiration = old.ExpirationDate.ToUnixTimeMilliseconds(),
-            Criteria = dataContext.Database.GetChallengeCriteria(old),
+            Criteria = SerializedChallengeCriterion.FromOldList(dataContext.Database.GetChallengeCriteria(old), dataContext).ToList(),
         };
     }
 

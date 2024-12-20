@@ -5,11 +5,11 @@ namespace Refresh.GameServer.Types.Lists;
 
 [XmlRoot("challenge-scores")]
 [XmlType("challenge-scores")]
-public class SerializedChallengeScoreboard
+public class SerializedChallengeScoreList
 {
-    public SerializedChallengeScoreboard() {}
+    public SerializedChallengeScoreList() {}
 
-    public SerializedChallengeScoreboard(IEnumerable<SerializedChallengeScore> items)
+    public SerializedChallengeScoreList(IEnumerable<SerializedChallengeScore> items)
     {
         this.Items = items.ToList();
     }

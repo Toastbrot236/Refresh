@@ -18,8 +18,8 @@ public class SerializedChallengeGhost : IDataConvertableFrom<SerializedChallenge
 
         return new SerializedChallengeGhost
         {
-            Checkpoints = dataContext.Database.GetCheckpointsForChallengeScore(old),
-            Frames = dataContext.Database.GetChallengeGhostFrames(old),
+            Checkpoints = SerializedChallengeCheckpoint.FromOldList(dataContext.Database.GetChallengeCheckpointsOfScore(old), dataContext).ToList(),
+            Frames = SerializedChallengeGhostFrame.FromOldList(dataContext.Database.GetChallengeGhostFramesOfScore(old), dataContext).ToList(),
         }; 
     }
 
