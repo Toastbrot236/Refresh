@@ -94,9 +94,6 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(GameChallenge),
         typeof(GameChallengeCriterion),
         typeof(GameChallengeScore),
-        typeof(GameChallengeGhostFrame),
-        typeof(GameChallengeCheckpoint),
-        typeof(GameChallengeCheckpointMetric),
     ];
 
     public override void Warmup()

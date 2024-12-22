@@ -1,7 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.Responses;
-using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.GameServer.Types.Challenges.LbpHub;
@@ -22,13 +21,14 @@ public class ChallengeEndpoints : EndpointGroup
     [NullStatusCode(NotFound)]
     public SerializedChallenge? UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body)
     {
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Challenge info: start: {body.StartCheckpointId}, end: {body.EndCheckpointId}, score: {body.Score}, published: {body.Published}, expires: {body.Expiration}");
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Challenge info: start: {body.StartCheckpointUid}, end: {body.EndCheckpointUid}, score: {body.Score}, published: {body.Published}, expires: {body.Expires}");
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Sent Challenge level: {body.Level.Type}, {body.Level.LevelId}, {body.Level.Title}");
 
         GameLevel? level = dataContext.Database.GetLevelByIdAndType(body.Level.Type, body.Level.LevelId);
         if (level == null) return null;
-
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Found Challenge level: {level.LevelId}, {level.Title}");
+
+        
 
         GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
 
@@ -46,10 +46,7 @@ public class ChallengeEndpoints : EndpointGroup
         if (user == null) return null;
 
         string? status = context.QueryString.Get("status");
-        bool onlyActiveChallenges = status != null && status != "active";
-        bool onlyArchivedChallenges = status != null && status != "expired";
-
-        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, !onlyActiveChallenges);
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, status);
         
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
@@ -78,6 +75,8 @@ public class ChallengeEndpoints : EndpointGroup
     public Response? SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId)
     {
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Request body: {body}");
+
+        // Do not let people create challenges with 0 seconds to complete (allow same checkpoint to be start and finish, though)
         return null;
     }
 

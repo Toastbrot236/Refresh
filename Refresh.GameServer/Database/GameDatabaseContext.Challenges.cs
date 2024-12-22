@@ -1,4 +1,3 @@
-using Org.BouncyCastle.Asn1.Cmp;
 using Refresh.GameServer.Types.Challenges.LbpHub;
 using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Levels;
@@ -19,10 +18,10 @@ public partial class GameDatabaseContext // Challenges
             Name = createInfo.Name,
             Publisher = user,
             Level = level,
-            CreationDate = DateTimeOffset.FromUnixTimeMilliseconds(createInfo.Published),
+            CreationDate = SerializedChallenge.ToDateTimeOffset(createInfo.Published),
             PublishDate = now,
             LastUpdateDate = now,
-            ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds(createInfo.Expiration),
+            ExpirationDate = SerializedChallenge.ToDateTimeOffset(createInfo.Expires),
         };
         
         this.AddSequentialObject(challenge);
@@ -34,16 +33,12 @@ public partial class GameDatabaseContext // Challenges
             {
                 this.GameChallengeCriteria.Add(new GameChallengeCriterion
                 {
-                    _Type = Criterion.Type,
+                    Type = (GameChallengeType)Criterion.Type,
                     Value = Criterion.Value,
                     Challenge = challenge,
                 });
             }
         });
-        
-
-        // Create original Score
-        this.CreateChallengeScore(createInfo.Score, challenge, user);
 
         return challenge;
     }
@@ -51,11 +46,6 @@ public partial class GameDatabaseContext // Challenges
     public void RemoveChallenge(GameChallenge challenge)
     {
         this.Write(() => {
-            // Remove all other Challenge relations
-            this.GameChallengeCheckpointMetrics.RemoveRange(m => m.Checkpoint.Score.Challenge == challenge);
-            this.GameChallengeCheckpoints.RemoveRange(c => c.Score.Challenge == challenge);
-            this.GameChallengeGhostFrames.RemoveRange(f => f.Score.Challenge == challenge);
-
             // Remove Scores
             this.GameChallengeScores.RemoveRange(s => s.Challenge == challenge);
 
@@ -67,33 +57,55 @@ public partial class GameDatabaseContext // Challenges
         });
     }
 
+    public void RemoveChallengesByUser(GameUser user)
+    {
+        
+    }
+
+    public void RemoveChallengesForLevel(GameLevel level)
+    {
+        
+    }
+
+    private IEnumerable<GameChallenge> FilterChallenges(IEnumerable<GameChallenge> challenges, string? filter)
+    {
+        if (filter == null) return challenges;
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        switch (filter)
+        {
+            case "active":
+                return challenges.Where(c => c.ExpirationDate > now);
+            case "expired":
+                return challenges.Where(c => c.ExpirationDate <= now);
+            default:
+                return challenges;
+        }
+    }
 
     public GameChallenge? GetChallengeById(int challengeId)
         => this.GameChallenges.FirstOrDefault(c => c.ChallengeId == challengeId);
 
-    public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user, bool includeArchived)
+    public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user, string? filter = null)
     {
         IEnumerable<GameChallenge> challenges = this.GameChallenges.Where(c => c.Publisher == user).AsEnumerable();
-
-        return challenges;
+        return this.FilterChallenges(challenges, filter);
     } 
 
-    public int GetTotalChallengesByUser(GameUser user, bool includeArchived)
-        => this.GetChallengesByUser(user, includeArchived).Count();
+    public int GetTotalChallengesByUser(GameUser user, string? filter = null)
+        => this.GetChallengesByUser(user, filter).Count();
 
-    public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level, bool includeArchived)
+    public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level, string? filter = null)
     {
         IEnumerable<GameChallenge> challenges = this.GameChallenges.Where(c => c.Level == level).AsEnumerable();
-
-        return challenges;
+        return this.FilterChallenges(challenges, filter);
     }
 
-    public int GetTotalChallengesForLevel(GameLevel level, bool includeArchived)
-        => this.GetChallengesForLevel(level, includeArchived).Count();
+    public int GetTotalChallengesForLevel(GameLevel level, string? filter = null)
+        => this.GetChallengesForLevel(level, filter).Count();
 
     #endregion
-    
-    
+
     #region Criterion
     public IEnumerable<GameChallengeCriterion> GetChallengeCriteria(GameChallenge challenge)
         => this.GameChallengeCriteria.Where(c => c.Challenge == challenge).AsEnumerable();
@@ -102,18 +114,20 @@ public partial class GameDatabaseContext // Challenges
     
     #endregion
 
-
     #region Score
+
     public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user)
     {
+        DateTimeOffset now = DateTimeOffset.Now;
+
         // Create new score
         GameChallengeScore score = new()
         {
-            GhostDataHash = attempt.GhostDataHash,
-            Publisher = user,
             Challenge = challenge,
+            Publisher = user,
             Score = attempt.Score,
-            OriginalScore = false,
+            GhostDataHash = attempt.GhostDataHash,
+            PublishDate = now,
         };
 
         this.Write(() => 
@@ -121,25 +135,6 @@ public partial class GameDatabaseContext // Challenges
             this.GameChallengeScores.Add(score);
         });
 
-        return score;
-    }
-    public GameChallengeScore CreateChallengeScore(long scoreValue, GameChallenge challenge, GameUser user)
-    {
-        // Create new score
-        GameChallengeScore score = new()
-        {
-            GhostDataHash = user.Username,
-            Publisher = user,
-            Challenge = challenge,
-            Score = scoreValue,
-            OriginalScore = true,
-        };
-
-        this.Write(() => 
-        {
-            this.GameChallengeScores.Add(score);
-        });
-        
         return score;
     }
 
@@ -147,12 +142,6 @@ public partial class GameDatabaseContext // Challenges
     {
         this.Write(() => 
         {
-            // Remove score relations
-            this.GameChallengeCheckpointMetrics.RemoveRange(m => m.Checkpoint.Score == score);
-            this.GameChallengeCheckpoints.RemoveRange(c => c.Score == score);
-            this.GameChallengeGhostFrames.RemoveRange(f => f.Score == score);
-        
-            // Remove score
             this.GameChallengeScores.Remove(score);
         });
         
@@ -169,8 +158,8 @@ public partial class GameDatabaseContext // Challenges
         }
     }
 
-    public GameChallengeScore GetOriginalChallengeScoreForChallenge(GameChallenge challenge)
-        => this.GameChallengeScores.FirstOrDefault(s => s.Challenge == challenge && s.OriginalScore)!;
+    public GameChallengeScore SetOriginalScoreForChallenge(GameChallenge challenge)
+        => this.GameChallenges.First(c => c == challenge).OriginalScore;
 
     public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user, bool orderByScore = false)
     {
@@ -198,37 +187,6 @@ public partial class GameDatabaseContext // Challenges
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
     }
-
-    #endregion
-
-
-    #region Ghost Frame
-    public IEnumerable<GameChallengeGhostFrame> GetChallengeGhostFramesOfScore(GameChallengeScore score)
-        => this.GameChallengeGhostFrames.Where(c => c.Score == score).AsEnumerable();
-    
-    #endregion
-
-
-    #region Checkpoint
-    public IEnumerable<GameChallengeCheckpoint> GetChallengeCheckpointsOfScore(GameChallengeScore score)
-        => this.GameChallengeCheckpoints.Where(c => c.Score == score).AsEnumerable();
-    public int GetTotalChallengeCheckpointsOfScore(GameChallengeScore score)
-        => this.GameChallengeCheckpoints.Where(c => c.Score == score).Count();
-
-    public IEnumerable<GameChallengeCheckpoint> GetChallengeCheckpointsByUidInLevel(int uid, GameLevel level)
-        => this.GameChallengeCheckpoints.Where(c => c.Uid == uid && c.Score.Challenge.Level == level).AsEnumerable();
-
-    public GameChallengeCheckpoint? GetStartCheckpointOfChallengeScore(GameChallengeScore score)
-        => this.GameChallengeCheckpoints.First(c => c.Score == score && c.start);
-    public GameChallengeCheckpoint? GetFinishCheckpointOfChallengeScore(GameChallengeScore score)
-        => this.GameChallengeCheckpoints.First(c => c.Score == score && c.finish);
-
-    #endregion
-
-
-    #region Checkpoint Metric
-    public IEnumerable<GameChallengeCheckpointMetric> GetChallengeCheckpointMetrics(GameChallengeCheckpoint checkpoint)
-        => this.GameChallengeCheckpointMetrics.Where(m => m.Checkpoint == checkpoint).AsEnumerable();
 
     #endregion
 }

@@ -10,6 +10,6 @@ public partial class GameChallengeCriterion : IRealmObject
         set => this._Type = (byte)value;
     }
     public byte _Type { get; set; }
-    public long Value;
+    public long Value { get; set; }
     public GameChallenge Challenge { get; set; }
 }

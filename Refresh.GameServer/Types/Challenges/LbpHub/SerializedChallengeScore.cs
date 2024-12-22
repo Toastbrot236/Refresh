@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 [XmlType("challenge-score")]
 public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvertableFrom<SerializedChallengeScore, GameChallengeScore>
 {
-    [XmlElement("player")] public string Publisher { get; set; } = SystemUsers.DeletedUserName;
+    [XmlElement("player")] public string Player { get; set; } = SystemUsers.UnknownUserName;
     [XmlElement("rank")] public int Rank { get; set; }
 
     public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)
@@ -20,9 +20,9 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
         return new SerializedChallengeScore
         {
             GhostDataHash = old.GhostDataHash,
-            Publisher = old.Publisher.Username,
-            Rank = 7,
             Score = old.Score,
+            Player = old.Publisher.Username,
+            Rank = 7,
         };
     }
 

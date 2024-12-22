@@ -67,9 +67,6 @@ public partial class GameDatabaseContext : RealmDatabaseContext
     private RealmDbSet<GameChallenge> GameChallenges => new(this._realm);
     private RealmDbSet<GameChallengeCriterion> GameChallengeCriteria => new(this._realm);
     private RealmDbSet<GameChallengeScore> GameChallengeScores => new(this._realm);
-    private RealmDbSet<GameChallengeGhostFrame> GameChallengeGhostFrames => new(this._realm);
-    private RealmDbSet<GameChallengeCheckpoint> GameChallengeCheckpoints => new(this._realm);
-    private RealmDbSet<GameChallengeCheckpointMetric> GameChallengeCheckpointMetrics => new(this._realm);
     
     internal GameDatabaseContext(IDateTimeProvider time)
     {

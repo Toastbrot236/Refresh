@@ -1,5 +1,4 @@
 using Realms;
-using Refresh.Common.Constants;
 using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
@@ -19,8 +18,5 @@ public partial class GameChallengeScore : IRealmObject
     /// </summary>
     public string GhostDataHash { get; set; } = "";
 
-    /// <summary>
-    /// Whether this is the specified challenge's original score, which players are supposed to beat.
-    /// </summary>
-    public bool OriginalScore { get; set; }
+    public DateTimeOffset PublishDate { get; set; }
 }

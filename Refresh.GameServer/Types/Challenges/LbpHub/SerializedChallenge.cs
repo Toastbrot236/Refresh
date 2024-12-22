@@ -15,10 +15,10 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
     [XmlElement("author")] public string AuthorName { get; set; } = string.Empty;
     [XmlElement("score")] public long Score { get; set; }
-    [XmlElement("start-checkpoint")] public int StartCheckpointId { get; set; }
-    [XmlElement("end-checkpoint")] public int EndCheckpointId { get; set; }
+    [XmlElement("start-checkpoint")] public int StartCheckpointUid { get; set; }
+    [XmlElement("end-checkpoint")] public int EndCheckpointUid { get; set; }
     [XmlElement("published")] public long Published { get; set; }  // Time in days
-    [XmlElement("expires")] public long Expiration { get; set; }  // Time in days
+    [XmlElement("expires")] public long Expires { get; set; }  // Time in days
     [XmlArray("criteria")] public List<SerializedChallengeCriterion> Criteria { get; set; } = [];
 
 
@@ -39,14 +39,20 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
             },
             AuthorName = old.Publisher.Username,
             Score = dataContext.Database.GetOriginalChallengeScoreForChallenge(old).Score,
-            StartCheckpointId = old.StartCheckpointId,
-            EndCheckpointId = old.EndCheckpointId,
-            Published = old.PublishDate.ToUnixTimeMilliseconds(),
-            Expiration = old.ExpirationDate.ToUnixTimeMilliseconds(),
+            StartCheckpointUid = old.StartCheckpointId,
+            EndCheckpointUid = old.EndCheckpointId,
+            Published = ToDays(old.PublishDate),
+            Expires = ToDays(old.ExpirationDate),
             Criteria = SerializedChallengeCriterion.FromOldList(dataContext.Database.GetChallengeCriteria(old), dataContext).ToList(),
         };
     }
 
     public static IEnumerable<SerializedChallenge> FromOldList(IEnumerable<GameChallenge> oldList, DataContext dataContext)
         => oldList.Select(c => FromOld(c, dataContext)!);
+
+    public static long ToDays(DateTimeOffset dateTimeOffset)
+        => dateTimeOffset.ToUnixTimeSeconds() / 60 / 60 / 24;  // DateTimeOffset -> Seconds -> Minutes -> Hours -> Days
+    
+    public static DateTimeOffset ToDateTimeOffset(long days)
+        => DateTimeOffset.FromUnixTimeSeconds(days * 24 * 60 * 60);  // Days -> Hours -> Minutes -> Seconds -> DateTimeOffset
 }
