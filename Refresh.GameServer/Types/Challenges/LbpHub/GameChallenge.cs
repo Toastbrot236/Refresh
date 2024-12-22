@@ -20,8 +20,6 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     public DateTimeOffset LastUpdateDate { get; set; }
     public DateTimeOffset ExpirationDate { get; set; }
 
-    // Archive challenges when they expire, dont delete unless publisher does so
-    public bool Archived { get; set; } = false;
     public int SequentialId
     {
         get => this.ChallengeId;

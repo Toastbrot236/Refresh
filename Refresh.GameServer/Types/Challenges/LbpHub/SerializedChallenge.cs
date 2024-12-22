@@ -17,8 +17,8 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
     [XmlElement("score")] public long Score { get; set; }
     [XmlElement("start-checkpoint")] public int StartCheckpointId { get; set; }
     [XmlElement("end-checkpoint")] public int EndCheckpointId { get; set; }
-    [XmlElement("published")] public long Published { get; set; }
-    [XmlElement("expires")] public long Expiration { get; set; }
+    [XmlElement("published")] public long Published { get; set; }  // Time in days
+    [XmlElement("expires")] public long Expiration { get; set; }  // Time in days
     [XmlArray("criteria")] public List<SerializedChallengeCriterion> Criteria { get; set; } = [];
 
 

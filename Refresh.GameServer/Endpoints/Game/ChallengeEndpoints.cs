@@ -15,6 +15,28 @@ namespace Refresh.GameServer.Endpoints.Game;
 
 public class ChallengeEndpoints : EndpointGroup
 {
+    #region Challenges
+
+    [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
+    [NullStatusCode(NotFound)]
+    public SerializedChallenge? UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body)
+    {
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Challenge info: start: {body.StartCheckpointId}, end: {body.EndCheckpointId}, score: {body.Score}, published: {body.Published}, expires: {body.Expiration}");
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Sent Challenge level: {body.Level.Type}, {body.Level.LevelId}, {body.Level.Title}");
+
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(body.Level.Type, body.Level.LevelId);
+        if (level == null) return null;
+
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Found Challenge level: {level.LevelId}, {level.Title}");
+
+        GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
+
+        return SerializedChallenge.FromOld(challenge, dataContext);
+    }
+
+    // Above endpoint gets called when you go to past challenges, idk whats different about it
+    [GameEndpoint("user/{username}/challenges/joined", HttpMethods.Get, ContentType.Xml)]
     [GameEndpoint("user/{username}/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
@@ -23,65 +45,77 @@ public class ChallengeEndpoints : EndpointGroup
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user);
+        string? status = context.QueryString.Get("status");
+        bool onlyActiveChallenges = status != null && status != "active";
+        bool onlyArchivedChallenges = status != null && status != "expired";
+
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, !onlyActiveChallenges);
         
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
 
-    [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
+    [GameEndpoint("user/{username}/friends/challenges", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallenge? UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body)
+    public SerializedChallengeList? GetChallengesByUsersMutuals(RequestContext context, DataContext dataContext, string username)
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Sent Challenge level: {body.Level.Type}, {body.Level.LevelId}, {body.Level.Title}");
+        GameUser? user = dataContext.Database.GetUserByUsername(username);
+        if (user == null) return null;
 
-        GameLevel? level = dataContext.Database.GetLevelByIdAndType(body.Level.Type, body.Level.LevelId);
-        if (level == null) return null;
+        string? status = context.QueryString.Get("status");
+        bool onlyActiveChallenges = status != null && status != "active";
 
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Found Challenge level: {level.LevelId}, {level.Title}");
-
-        GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
-
-        return SerializedChallenge.FromOld(challenge, dataContext);
-    }
-
-    [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
-    [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetMutualsChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username)
-    {
-        // ignore username in route parameters, privacy lol
         return null;
     }
 
-    [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
-    [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetOwnChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
-    {
-        return null;
-    }
+    #endregion
 
-    [GameEndpoint("challenge/{challengeId}/scoreboard//contextual", HttpMethods.Get, ContentType.Xml)]
+    #region Challenge Scores
+
+    [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetContextualChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId) 
+    public Response? SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId)
     {
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Request body: {body}");
         return null;
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
     public SerializedChallengeScoreList? GetChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
         return null;
     }
 
-    [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
+    [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
-    public Response? SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user, string body, int challengeId)
+    public SerializedChallengeScoreList? GetChallengeScoresByUser(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
     {
-        dataContext.Logger.LogInfo(BunkumCategory.UserContent, $"Request body: {body}");
+        return null;
+    }
+
+    [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
+    [NullStatusCode(NotImplemented)]
+    public SerializedChallengeScoreList? GetChallengeScoresByUsersMutuals(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username)
+    {
+        // ignore username in route parameters, privacy lol
+        return null;
+    }
+
+    [GameEndpoint("challenge/{challengeId}/scoreboard//contextual", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
+    [NullStatusCode(NotImplemented)]
+    public SerializedChallengeScoreList? GetContextualChallengeScores(RequestContext context, DataContext dataContext, GameUser user, int challengeId) 
+    {
         return null;
     }
 
     [GameEndpoint("developer-challenges/scores")]
+    [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
     public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext, GameUser user)
     {
@@ -89,7 +123,7 @@ public class ChallengeEndpoints : EndpointGroup
         if (developerChallengeIds == null) return null;
 
         List<GameLevel> levels = [];
-        
+        /*
         foreach (string developerChallengeIdStr in developerChallengeIds)
         {
             if (!int.TryParse(developerChallengeIdStr, out int developerChallengeId)) return null;
@@ -99,7 +133,10 @@ public class ChallengeEndpoints : EndpointGroup
             
             levels.Add(level);
         }
+        */
 
         return null;
     }
+
+    #endregion
 }

@@ -19,7 +19,7 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
 
         return new SerializedChallengeScore
         {
-            Ghost = old.Ghost,
+            GhostDataHash = old.GhostDataHash,
             Publisher = old.Publisher.Username,
             Rank = 7,
             Score = old.Score,

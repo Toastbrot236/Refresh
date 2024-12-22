@@ -4,18 +4,23 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public partial class GameChallengeScore : IRealmObject  // Also used for ghost stuff
+public partial class GameChallengeScore : IRealmObject
 {
-    /// <summary>
-    /// idk lo
-    /// </summary>
-    public string Ghost { get; set; }  // Leaving this for experimenting for now
-    public GameUser Publisher { get; set; }
     public GameChallenge Challenge { get; set; }
+
+    /// <summary>
+    /// The user submitting this score.
+    /// </summary>
+    public GameUser Publisher { get; set; }
     public long Score { get; set; }
 
     /// <summary>
-    /// The score players are supposed to compete against
+    /// The hash referring to the ghost data for this score.
+    /// </summary>
+    public string GhostDataHash { get; set; } = "";
+
+    /// <summary>
+    /// Whether this is the specified challenge's original score, which players are supposed to beat.
     /// </summary>
     public bool OriginalScore { get; set; }
 }

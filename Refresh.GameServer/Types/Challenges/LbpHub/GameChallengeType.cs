@@ -19,6 +19,6 @@ public static class GameChallengeTypeExtensions
             GameChallengeType.Multiplier => 2,
             GameChallengeType.Lives => 3,
             GameChallengeType.Prizes => 4,
-            _ => throw new ArgumentOutOfRangeException(),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
         };
 }

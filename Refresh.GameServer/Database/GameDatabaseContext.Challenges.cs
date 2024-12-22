@@ -67,26 +67,29 @@ public partial class GameDatabaseContext // Challenges
         });
     }
 
-    public void ArchiveChallenge(GameChallenge challenge, bool archive)
-    {
-        this.Write(() => 
-        {
-            challenge.Archived = archive;
-        });
-    }
 
     public GameChallenge? GetChallengeById(int challengeId)
         => this.GameChallenges.FirstOrDefault(c => c.ChallengeId == challengeId);
 
-    public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user)
-        => this.GameChallenges.Where(c => c.Publisher.UserId == user.UserId).AsEnumerable();
-    public int GetTotalChallengesByUser(GameUser user)
-        => this.GameChallenges.Where(c => c.Publisher.UserId == user.UserId).Count();
+    public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user, bool includeArchived)
+    {
+        IEnumerable<GameChallenge> challenges = this.GameChallenges.Where(c => c.Publisher == user).AsEnumerable();
 
-    public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level)
-        => this.GameChallenges.Where(c => c.Level == level).AsEnumerable();
-    public int GetTotalChallengesForLevel(GameLevel level)
-        => this.GameChallenges.Where(c => c.Level == level).Count();
+        return challenges;
+    } 
+
+    public int GetTotalChallengesByUser(GameUser user, bool includeArchived)
+        => this.GetChallengesByUser(user, includeArchived).Count();
+
+    public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level, bool includeArchived)
+    {
+        IEnumerable<GameChallenge> challenges = this.GameChallenges.Where(c => c.Level == level).AsEnumerable();
+
+        return challenges;
+    }
+
+    public int GetTotalChallengesForLevel(GameLevel level, bool includeArchived)
+        => this.GetChallengesForLevel(level, includeArchived).Count();
 
     #endregion
     
@@ -106,7 +109,7 @@ public partial class GameDatabaseContext // Challenges
         // Create new score
         GameChallengeScore score = new()
         {
-            Ghost = attempt.Ghost,
+            GhostDataHash = attempt.GhostDataHash,
             Publisher = user,
             Challenge = challenge,
             Score = attempt.Score,
@@ -125,7 +128,7 @@ public partial class GameDatabaseContext // Challenges
         // Create new score
         GameChallengeScore score = new()
         {
-            Ghost = user.Username,
+            GhostDataHash = user.Username,
             Publisher = user,
             Challenge = challenge,
             Score = scoreValue,
@@ -171,7 +174,7 @@ public partial class GameDatabaseContext // Challenges
 
     public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user, bool orderByScore = false)
     {
-        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Publisher.UserId == user.UserId).AsEnumerable();
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Publisher == user).AsEnumerable();
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
@@ -184,10 +187,13 @@ public partial class GameDatabaseContext // Challenges
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
     }
+
+    public int GetTotalChallengeScoresForChallenge(GameChallenge challenge, bool orderByScore = false)
+        => this.GameChallengeScores.Where(s => s.Challenge == challenge).Count();
     
     public IEnumerable<GameChallengeScore> GetChallengeScoresForChallengeByUser(GameChallenge challenge, GameUser user, bool orderByScore = false)
     {
-        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher.UserId == user.UserId).AsEnumerable();
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).AsEnumerable();
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
