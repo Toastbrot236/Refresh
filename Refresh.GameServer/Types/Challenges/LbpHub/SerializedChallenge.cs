@@ -18,16 +18,24 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
     [XmlElement("score")] public long Score { get; set; }
     [XmlElement("start-checkpoint")] public int StartCheckpointUid { get; set; }
     [XmlElement("end-checkpoint")] public int EndCheckpointUid { get; set; }
-    [XmlElement("published")] public long Published { get; set; }  // Time in days, now - publish date
-    [XmlElement("expires")] public long Expires { get; set; }  // Time in days, now - expiration date
+
+    /// <remarks>
+    /// Sent by the game as time in days, which is normally always 0 here.
+    /// But for the response we have to send the actual milliseconds of the creation date, else lbp hub will crash.
+    /// </remarks>
+    [XmlElement("published")] public long Published { get; set; }
+
+    /// <remarks>
+    /// Sent by the game as time in days, which is usually 3, 5 or 7 here, as those are the only selectable options ingame.
+    /// But for the response we have to send the actual milliseconds of the expiration date, else lbp hub will crash.
+    /// </remarks>
+    [XmlElement("expires")] public long Expires { get; set; }
     [XmlArray("criteria")] public List<SerializedChallengeCriterion> Criteria { get; set; } = [];
 
     public static SerializedChallenge? FromOld(GameChallenge? old, DataContext dataContext)
     {
         if (old == null)
             return null;
-        
-        long nowInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
         return new SerializedChallenge
         {
@@ -37,14 +45,14 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
             {
                 LevelId = old.Level.LevelId,
                 Type = old.Level.LevelType.ToGameString(),
-                Title = "",  // does nothing if filled out
+                Title = old.Level.Title,  // does nothing if filled out
             },
             PublisherName = old.Publisher.Username,
             Score = dataContext.Database.GetOriginalScoreForChallenge(old)?.Score ?? 0,
             StartCheckpointUid = old.StartCheckpointUid,
             EndCheckpointUid = old.EndCheckpointUid,
-            Published = ToDays(old.CreationDate.ToUnixTimeMilliseconds() - nowInMilliseconds),
-            Expires = ToDays(old.ExpirationDate.ToUnixTimeMilliseconds() - nowInMilliseconds),
+            Published = old.CreationDate.ToUnixTimeMilliseconds(),
+            Expires = old.ExpirationDate.ToUnixTimeMilliseconds(),
             Criteria = SerializedChallengeCriterion.FromOldList(dataContext.Database.GetChallengeCriteria(old), dataContext).ToList(),
         };
     }
