@@ -17,10 +17,7 @@ public class SerializedChallengeGhost : IDataConvertableFrom<SerializedChallenge
             return null;
 
         return new SerializedChallengeGhost
-        {
-            Checkpoints = SerializedChallengeCheckpoint.FromOldList(dataContext.Database.GetChallengeCheckpointsOfScore(old), dataContext).ToList(),
-            Frames = SerializedChallengeGhostFrame.FromOldList(dataContext.Database.GetChallengeGhostFramesOfScore(old), dataContext).ToList(),
-        }; 
+        {}; 
     }
 
     public static IEnumerable<SerializedChallengeGhost> FromOldList(IEnumerable<GameChallengeScore> oldList, DataContext dataContext)

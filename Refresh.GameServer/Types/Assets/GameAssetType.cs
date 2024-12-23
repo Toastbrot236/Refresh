@@ -403,7 +403,7 @@ public enum GameAssetType
     /// LBP Hub ghost data, sent as XML.
     /// </summary>
     /// <remarks>
-    /// Magic: Opening XML tag for the root element, "ghost"
+    /// Magic: Opening tag for the root element, "ghost"
     /// </remarks>
     ChallengeGhost,
 }

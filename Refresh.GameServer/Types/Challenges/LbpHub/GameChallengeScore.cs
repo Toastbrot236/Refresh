@@ -17,6 +17,10 @@ public partial class GameChallengeScore : IRealmObject
     /// The hash referring to the ghost data for this score.
     /// </summary>
     public string GhostDataHash { get; set; } = "";
-
     public DateTimeOffset PublishDate { get; set; }
+
+    /// <summary>
+    /// Whether this is the score people are supposed to beat.
+    /// </summary>
+    public bool OriginalScore { get; set; } = false;
 }
