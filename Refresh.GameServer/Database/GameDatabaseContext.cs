@@ -19,7 +19,6 @@ using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData;
 using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Challenges.LbpHub;
-using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 
 namespace Refresh.GameServer.Database;
 

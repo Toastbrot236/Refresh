@@ -1,5 +1,4 @@
 using System.Xml.Serialization;
-using Refresh.Common.Constants;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 

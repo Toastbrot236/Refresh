@@ -8,17 +8,3 @@ public enum GameChallengeType : byte
     Lives = 3,
     Prizes = 4,
 }
-
-public static class GameChallengeTypeExtensions
-{
-    public static byte ToSerializedType(this GameChallengeType type)
-        => type switch
-        {
-            GameChallengeType.Time => 0,
-            GameChallengeType.Score => 1,
-            GameChallengeType.Multiplier => 2,
-            GameChallengeType.Lives => 3,
-            GameChallengeType.Prizes => 4,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
-        };
-}

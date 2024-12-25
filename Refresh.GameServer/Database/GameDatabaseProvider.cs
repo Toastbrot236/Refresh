@@ -18,7 +18,6 @@ using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Photos;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Challenges.LbpHub;
-using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 
 namespace Refresh.GameServer.Database;
 

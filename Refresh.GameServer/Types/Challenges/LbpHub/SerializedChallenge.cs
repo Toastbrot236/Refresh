@@ -43,8 +43,8 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
             Name = old.Name,
             Level = new SerializedPhotoLevel
             {
-                LevelId = old.Level.LevelId,
-                Type = old.Level.LevelType.ToGameString(),
+                LevelId = old.Level.SlotType == GameSlotType.Story ? old.Level.StoryId : old.Level.LevelId,
+                Type = old.Level.SlotType.ToGameType(),
                 Title = old.Level.Title,  // does nothing if filled out
             },
             PublisherName = old.Publisher.Username,
