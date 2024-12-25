@@ -23,7 +23,11 @@ public partial class GameDatabaseContext // Challenges
             EndCheckpointUid = createInfo.EndCheckpointUid,
             CreationDate = now,
             LastUpdateDate = now,
-            ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds(nowInMilliseconds + SerializedChallenge.ToUnixMilliseconds(createInfo.Expires)),
+            ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds
+            (
+                nowInMilliseconds + 
+                SerializedChallenge.ToUnixMilliseconds(createInfo.Expires)
+            ),
         };
         
         this.AddSequentialObject(challenge);
@@ -101,6 +105,9 @@ public partial class GameDatabaseContext // Challenges
         };
     }
 
+    public IEnumerable<GameChallenge> GetChallenges(string? filter = null)
+        => this.FilterChallenges(this.GameChallenges, filter).AsEnumerable();
+
     public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user, string? filter = null)
         => this.FilterChallenges(this.GameChallenges.Where(c => c.Publisher == user), filter).AsEnumerable();
 
@@ -111,7 +118,7 @@ public partial class GameDatabaseContext // Challenges
         => this.FilterChallenges(this.GameChallenges.Where(c => c.Publisher == user), filter).AsEnumerable();
 
     public int GetTotalChallengesByUsersMutuals(GameUser user, string? filter = null)
-        => this.FilterChallenges(this.GameChallenges.Where(c => c.Publisher == user), filter).Count();
+        => this.FilterChallenges(this.GameChallenges.Where(c => this.GetUsersMutuals(user).Contains(c.Publisher)), filter).Count();
 
     public IEnumerable<GameChallenge> GetChallengesForLevel(GameLevel level, string? filter = null)
         => this.FilterChallenges(this.GameChallenges.Where(c => c.Level == level), filter).AsEnumerable();
@@ -134,7 +141,7 @@ public partial class GameDatabaseContext // Challenges
 
     #region Score
 
-    public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user, bool originalScore = false)
+    public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user)
     {
         DateTimeOffset now = DateTimeOffset.Now;
 
@@ -146,7 +153,6 @@ public partial class GameDatabaseContext // Challenges
             Score = attempt.Score,
             GhostDataHash = attempt.GhostDataHash,
             PublishDate = now,
-            OriginalScore = originalScore,
         };
 
         this.Write(() => 
@@ -174,8 +180,8 @@ public partial class GameDatabaseContext // Challenges
         });
     }
 
-    public GameChallengeScore? GetOriginalScoreForChallenge(GameChallenge challenge)
-        => this.GameChallengeScores.FirstOrDefault(s => s.Challenge == challenge && s.OriginalScore);
+    public GameChallengeScore? GetFirstScoreForChallenge(GameChallenge challenge)
+        => this.GameChallengeScores.FirstOrDefault(s => s.Challenge == challenge);
 
     public IEnumerable<GameChallengeScore> GetScoresForChallenge(GameChallenge challenge, bool orderByScore = false)
     {
@@ -199,6 +205,17 @@ public partial class GameDatabaseContext // Challenges
     public IEnumerable<GameChallengeScore> GetScoresForChallengeByUser(GameChallenge challenge, GameUser user, bool orderByScore = false)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).AsEnumerable();
+
+        if(orderByScore) return scores.OrderByDescending(s => s.Score);
+        return scores;
+    }
+
+    public IEnumerable<GameChallengeScore> GetScoresForChallengeByUsersMutuals(GameChallenge challenge, GameUser user, bool orderByScore = false)
+    {
+        IEnumerable<GameUser> mutuals = this.GetUsersMutuals(user);
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge);
+
+        scores = scores.Where(s => mutuals.Contains(s.Publisher));
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;

@@ -48,7 +48,7 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
                 Title = old.Level.Title,  // does nothing if filled out
             },
             PublisherName = old.Publisher.Username,
-            Score = dataContext.Database.GetOriginalScoreForChallenge(old)?.Score ?? 0,
+            Score = dataContext.Database.GetFirstScoreForChallenge(old)?.Score ?? 0,
             StartCheckpointUid = old.StartCheckpointUid,
             EndCheckpointUid = old.EndCheckpointUid,
             Published = old.CreationDate.ToUnixTimeMilliseconds(),

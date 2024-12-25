@@ -49,24 +49,20 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
 
+    // There doesn't seem to be an endpoint for just getting all challenges. When you go to the Player Challenges page in the pod menu for example,
+    // the game will only get challenges from this endpoint and the one above (only yours and your mutuals). Especially considering LBP hub's
+    // current circumstances, it makes way more sense to expose all challenges through this endpoint instead of just your mutuals challenges.
     [GameEndpoint("user/{username}/friends/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
     public SerializedChallengeList? GetChallengesByUsersMutuals(RequestContext context, DataContext dataContext, string username)
     {
-        GameUser? user = dataContext.Database.GetUserByUsername(username);
-        if (user == null) return null;
-
-        /*
+        // ignore username
+        
         string? status = context.QueryString.Get("status");
-        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, status);
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallenges(status);
 
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
-        */
-        // lbp hub crashes when the list here and the one containing the users own challenge are the same,
-        // return an empty list for now
-
-        return new SerializedChallengeList();
     }
 
     #endregion
@@ -80,94 +76,60 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return NotFound;
 
-        bool isOriginalScore = dataContext.Database.GetOriginalScoreForChallenge(challenge) == null;
-        bool hasGhostData = dataContext.Database.GetAssetFromHash(body.GhostDataHash) != null;
-        bool byChallengePublisher = challenge.Publisher.UserId == user.UserId;
+        bool isFirstScore = dataContext.Database.GetFirstScoreForChallenge(challenge) == null;
+        bool noGhostData = dataContext.Database.GetAssetFromHash(body.GhostDataHash) == null;
 
-        if (isOriginalScore)
+        // If there is no valid ghost data sent with the challenge score, reject the score.
+        if (noGhostData)
         {
-            if (byChallengePublisher)
+            // If this is the first score of the challenge and uploaded by the challenge publisher (usually alongside the challenge itself),
+            // also tell them about the state of the first score, otherwise only tell them why their score was rejected.
+            if (isFirstScore && challenge.Publisher.UserId == user.UserId)
             {
-                if (!hasGhostData)
-                {
-                    // cannot prove validity of original score (which people are supposed to beat),
-                    // therefore delete the challenge
-                    dataContext.Database.RemoveChallenge(challenge);
-                    dataContext.Database.AddErrorNotification(
-                        "Challenge upload failed", 
-                        $"Your challenge '{challenge.Name}' in level '{challenge.Level.Title}' could not be uploaded "
-                        +"because the ghost data for its original score was missing.",
-                        user
-                    );
-                    dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"No ghost data for original score by publisher");
-                    return BadRequest;
-                }
-
-                else
-                {
-                    // Fallthrough, set original score
-                }
-            }
-
-            else  // not by Challenge Publisher
-            {
-                // Reject, if someone tries to submit a score for a challenge which does not have an
-                // original score, something has gone wrong. 
-                // This case should normally not happen to begin with due to the case right above.
-                // Existence of ghost data does not matter in this case.
                 dataContext.Database.AddErrorNotification(
                     "Challenge Score upload failed", 
-                    $"Your latest score for challenge '{challenge.Name}' in level '{challenge.Level.Title}' "
-                    +"could not be uploaded because there is no original score set for this challenge. "
-                    +"This is not normal and should be reported to the challenge publisher.",
+                    $"Your score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                    +"could not be uploaded because your score's ghost data was missing. "
+                    +"Whoever uploads a valid score first will have it set as the score to beat",
                     user
                 );
-                dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Original score, but not by challenge publisher");
-                return BadRequest;
+                dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"No ghost data for original score by publisher");
             }
-        }
-
-        else  // not the Original Score, but a submission
-        {
-            if (!hasGhostData)
+            else
             {
-                // Cannot prove validity of this score, reject the score.
-                // Publisher of score does not matter in this case.
                 dataContext.Database.AddErrorNotification(
                     "Challenge Score upload failed", 
-                    $"Your recent score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                    $"Your score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
                     +"could not be uploaded because your score's ghost data was missing.",
                     user
                 );
                 dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Score submission without ghost data");
-                return BadRequest;
             }
 
-            else
-            {
-                // Fallthrough, score submission
-            }
+            return BadRequest;
         }
 
         // Create score
-        dataContext.Database.CreateChallengeScore(body, challenge, user, isOriginalScore);
+        dataContext.Database.CreateChallengeScore(body, challenge, user);
         return OK;
     }
 
-    [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]
+    [GameEndpoint("challenge/{challengeId}/scoreboard/", HttpMethods.Get, ContentType.Xml)]  // Gets called in a level when playing a challenge
+    [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]  // Gets called in the pod menu when viewing a challenge
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotImplemented)]
+    [NullStatusCode(NotFound)]
     public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, int challengeId)
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        return null;
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge, false);
+        return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotImplemented)]
+    [NullStatusCode(NotFound)]
     public SerializedChallengeScoreList? GetScoresForChallengeByUser(RequestContext context, DataContext dataContext, int challengeId, string username) 
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
@@ -176,7 +138,8 @@ public class ChallengeEndpoints : EndpointGroup
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        return null;
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUser(challenge, user, false);
+        return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
@@ -187,9 +150,8 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        // Take the mutuals of the user who made the request instead of the user specified in the route parameters
-        // to not expose mutual data to other people
-        return null;
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUsersMutuals(challenge, user, false);
+        return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard//contextual" /*typo is intentional*/, HttpMethods.Get, ContentType.Xml)]
@@ -205,8 +167,8 @@ public class ChallengeEndpoints : EndpointGroup
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetContextualScoresForChallengeByUser(RequestContext context, DataContext dataContext, int challengeId, string username) 
+    [NullStatusCode(NotImplemented)]
+    public SerializedChallengeScoreList? GetContextualScoresByUserForChallenge(RequestContext context, DataContext dataContext, int challengeId, string username) 
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
@@ -217,7 +179,8 @@ public class ChallengeEndpoints : EndpointGroup
         return null;
     }
 
-    [GameEndpoint("developer-challenges/scores")]
+    // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
+    [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
     public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext)
@@ -239,6 +202,14 @@ public class ChallengeEndpoints : EndpointGroup
         */
 
         return null;
+    }
+
+    // developer-challenges/3/scores
+    [GameEndpoint("developer-challenges/{challengeId}/scores", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
+    public Response SubmitDeveloperChallengeScore(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
+    {
+        return NotImplemented;
     }
 
     #endregion
