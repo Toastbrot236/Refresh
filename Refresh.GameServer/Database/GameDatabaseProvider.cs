@@ -91,7 +91,6 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
 
         // challenges
         typeof(GameChallenge),
-        typeof(GameChallengeCriterion),
         typeof(GameChallengeScore),
     ];
 

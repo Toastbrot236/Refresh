@@ -15,21 +15,35 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
     [XmlElement("name")] public string Name { get; set; } = string.Empty;
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
     [XmlElement("author")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
+
+    /// <summary>
+    /// Probably the score you are supposed to beat. Always 0 when challenge is first uploaded by LBP hub.
+    /// </summary>
     [XmlElement("score")] public long Score { get; set; }
+
     [XmlElement("start-checkpoint")] public int StartCheckpointUid { get; set; }
+
+    /// <summary>
+    /// The Uid of the checkpoint this challenge finishes on.
+    /// </summary>
     [XmlElement("end-checkpoint")] public int EndCheckpointUid { get; set; }
 
-    /// <remarks>
+    /// <summary>
     /// Sent by the game as time in days, which is normally always 0 here.
     /// But for the response we have to send the actual milliseconds of the creation date, else lbp hub will crash.
-    /// </remarks>
+    /// </summary>
     [XmlElement("published")] public long Published { get; set; }
 
-    /// <remarks>
+    /// <summary>
     /// Sent by the game as time in days, which is usually 3, 5 or 7 here, as those are the only selectable options ingame.
     /// But for the response we have to send the actual milliseconds of the expiration date, else lbp hub will crash.
-    /// </remarks>
+    /// </summary>
     [XmlElement("expires")] public long Expires { get; set; }
+
+    /// <summary>
+    /// An array of criteria of a challenge, sent and expected by LBP hub. Appears to only ever have a single criterion.
+    /// </summary>
+    /// <seealso cref="SerializedChallengeCriterion"/>
     [XmlArray("criteria")] public List<SerializedChallengeCriterion> Criteria { get; set; } = [];
 
     public static SerializedChallenge? FromOld(GameChallenge? old, DataContext dataContext)
@@ -51,9 +65,16 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
             Score = dataContext.Database.GetFirstScoreForChallenge(old)?.Score ?? 0,
             StartCheckpointUid = old.StartCheckpointUid,
             EndCheckpointUid = old.EndCheckpointUid,
-            Published = old.CreationDate.ToUnixTimeMilliseconds(),
+            Published = old.PublishDate.ToUnixTimeMilliseconds(),
             Expires = old.ExpirationDate.ToUnixTimeMilliseconds(),
-            Criteria = SerializedChallengeCriterion.FromOldList(dataContext.Database.GetChallengeCriteria(old), dataContext).ToList(),
+            Criteria =
+            [
+                new()
+                {
+                    Type = (byte)old.Type,
+                    Value = 0,
+                }
+            ],
         };
     }
 

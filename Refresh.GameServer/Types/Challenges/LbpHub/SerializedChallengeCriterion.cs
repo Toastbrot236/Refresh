@@ -6,12 +6,16 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
 [XmlRoot("criterion")]
 [XmlType("criterion")]
-public class SerializedChallengeCriterion : IDataConvertableFrom<SerializedChallengeCriterion, GameChallengeCriterion>
+public class SerializedChallengeCriterion : IDataConvertableFrom<SerializedChallengeCriterion, GameChallenge>
 {
     [XmlAttribute("name")] public byte Type { get; set; } = 0;
+
+    /// <summary>
+    /// Appears to always be 0 when sent by the game
+    /// </summary>
     [XmlText] public long Value { get; set; }
 
-    public static SerializedChallengeCriterion? FromOld(GameChallengeCriterion? old, DataContext dataContext)
+    public static SerializedChallengeCriterion? FromOld(GameChallenge? old, DataContext dataContext)
     {
         if (old == null)
             return null;
@@ -19,10 +23,10 @@ public class SerializedChallengeCriterion : IDataConvertableFrom<SerializedChall
         return new SerializedChallengeCriterion
         {
             Type = (byte)old.Type,
-            Value = old.Value,
+            Value = 0,
         };
     }
 
-    public static IEnumerable<SerializedChallengeCriterion> FromOldList(IEnumerable<GameChallengeCriterion> oldList, DataContext dataContext)
+    public static IEnumerable<SerializedChallengeCriterion> FromOldList(IEnumerable<GameChallenge> oldList, DataContext dataContext)
         => oldList.Select(c => FromOld(c, dataContext)!);
 }

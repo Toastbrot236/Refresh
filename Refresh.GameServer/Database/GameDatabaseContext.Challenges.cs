@@ -11,7 +11,6 @@ public partial class GameDatabaseContext // Challenges
     public GameChallenge CreateChallenge(SerializedChallenge createInfo, GameLevel level, GameUser user)
     {
         DateTimeOffset now = this._time.Now;
-        long nowInMilliseconds = now.ToUnixTimeMilliseconds();
 
         // Create challenge
         GameChallenge challenge = new()
@@ -21,30 +20,17 @@ public partial class GameDatabaseContext // Challenges
             Level = level,
             StartCheckpointUid = createInfo.StartCheckpointUid,
             EndCheckpointUid = createInfo.EndCheckpointUid,
-            CreationDate = now,
+            Type = (GameChallengeType)createInfo.Criteria[0].Type,
+            PublishDate = now,
             LastUpdateDate = now,
             ExpirationDate = DateTimeOffset.FromUnixTimeMilliseconds
             (
-                nowInMilliseconds + 
+                now.ToUnixTimeMilliseconds() + 
                 SerializedChallenge.ToUnixMilliseconds(createInfo.Expires)
             ),
         };
         
         this.AddSequentialObject(challenge);
-
-        // Create criteria of challenge
-        this.Write(() => 
-        {
-            foreach(SerializedChallengeCriterion Criterion in createInfo.Criteria)
-            {
-                this.GameChallengeCriteria.Add(new GameChallengeCriterion
-                {
-                    Type = (GameChallengeType)Criterion.Type,
-                    Value = Criterion.Value,
-                    Challenge = challenge,
-                });
-            }
-        });
 
         return challenge;
     }
@@ -54,9 +40,6 @@ public partial class GameDatabaseContext // Challenges
         this.Write(() => {
             // Remove Scores
             this.GameChallengeScores.RemoveRange(s => s.Challenge == challenge);
-
-            // Remove Criteria
-            this.GameChallengeCriteria.RemoveRange(c => c.Challenge == challenge);
         
             // Remove Challenge
             this.GameChallenges.Remove(challenge);
@@ -68,9 +51,6 @@ public partial class GameDatabaseContext // Challenges
         this.Write(() => {
             // Remove Scores on challenges by the user
             this.GameChallengeScores.RemoveRange(s => s.Challenge.Publisher == user);
-
-            // Remove Criteria on challenges by user
-            this.GameChallengeCriteria.RemoveRange(c => c.Challenge.Publisher == user);
         
             // Remove Challenges by user
             this.GameChallenges.RemoveRange(c => c.Publisher == user);
@@ -83,9 +63,6 @@ public partial class GameDatabaseContext // Challenges
             // Remove Scores on challenges in the level
             this.GameChallengeScores.RemoveRange(s => s.Challenge.Level == level);
 
-            // Remove Criteria on challenges in the level
-            this.GameChallengeCriteria.RemoveRange(c => c.Challenge.Level == level);
-        
             // Remove Challenges in the level
             this.GameChallenges.RemoveRange(c => c.Level == level);
         });
@@ -108,6 +85,9 @@ public partial class GameDatabaseContext // Challenges
     public IEnumerable<GameChallenge> GetChallenges(string? filter = null)
         => this.FilterChallenges(this.GameChallenges, filter).AsEnumerable();
 
+    public IEnumerable<GameChallenge> GetNotUsersChallenges(GameUser user, string? filter = null)
+        => this.FilterChallenges(this.GameChallenges.Where(c => c.Publisher != user), filter).AsEnumerable(); 
+
     public IEnumerable<GameChallenge> GetChallengesByUser(GameUser user, string? filter = null)
         => this.FilterChallenges(this.GameChallenges.Where(c => c.Publisher == user), filter).AsEnumerable();
 
@@ -127,17 +107,7 @@ public partial class GameDatabaseContext // Challenges
         => this.FilterChallenges(this.GameChallenges.Where(c => c.Level == level), filter).Count();
 
     #endregion
-
-
-    #region Criterion
-
-    public IEnumerable<GameChallengeCriterion> GetChallengeCriteria(GameChallenge challenge)
-        => this.GameChallengeCriteria.Where(c => c.Challenge == challenge).AsEnumerable();
-    public IEnumerable<GameChallengeCriterion> GetChallengeCriteriaOfType(GameChallenge challenge, GameChallengeType type)
-        => this.GameChallengeCriteria.Where(c => c.Challenge == challenge && c.Type == type).AsEnumerable();
     
-    #endregion
-
 
     #region Score
 
@@ -183,6 +153,12 @@ public partial class GameDatabaseContext // Challenges
     public GameChallengeScore? GetFirstScoreForChallenge(GameChallenge challenge)
         => this.GameChallengeScores.FirstOrDefault(s => s.Challenge == challenge);
 
+    public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user)
+        => this.GameChallengeScores.Where(s => s.Publisher == user).AsEnumerable();
+
+    public int GetTotalScoresByUser(GameUser user)
+        => this.GameChallengeScores.Where(s => s.Publisher == user).Count();
+
     public IEnumerable<GameChallengeScore> GetScoresForChallenge(GameChallenge challenge, bool orderByScore = false)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge).AsEnumerable();
@@ -194,14 +170,6 @@ public partial class GameDatabaseContext // Challenges
     public int GetTotalScoresForChallenge(GameChallenge challenge)
         => this.GameChallengeScores.Where(s => s.Challenge == challenge).Count();
 
-    public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user, bool orderByScore = false)
-    {
-        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Publisher == user).AsEnumerable();
-
-        if(orderByScore) return scores.OrderByDescending(s => s.Score);
-        return scores;
-    }
-
     public IEnumerable<GameChallengeScore> GetScoresForChallengeByUser(GameChallenge challenge, GameUser user, bool orderByScore = false)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).AsEnumerable();
@@ -210,11 +178,13 @@ public partial class GameDatabaseContext // Challenges
         return scores;
     }
 
+    public int GetTotalScoresForChallengeByUser(GameChallenge challenge, GameUser user)
+        => this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).Count();
+
     public IEnumerable<GameChallengeScore> GetScoresForChallengeByUsersMutuals(GameChallenge challenge, GameUser user, bool orderByScore = false)
     {
         IEnumerable<GameUser> mutuals = this.GetUsersMutuals(user);
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge);
-
         scores = scores.Where(s => mutuals.Contains(s.Publisher));
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);

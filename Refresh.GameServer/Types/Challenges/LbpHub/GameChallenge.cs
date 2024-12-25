@@ -22,7 +22,18 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     /// The Uid of the checkpoint this challenge finishes on.
     /// </summary>
     public int EndCheckpointUid { get; set; }
-    public DateTimeOffset CreationDate { get; set; }
+
+    /// <summary>
+    /// Whether this is a score/time/lives etc challenge.
+    /// </summary>
+    public GameChallengeType Type
+    {
+        get => (GameChallengeType)this._Type;
+        set => this._Type = (byte)value;
+    }
+    
+    public byte _Type { get; set; }
+    public DateTimeOffset PublishDate { get; set; }
     public DateTimeOffset LastUpdateDate { get; set; }
     public DateTimeOffset ExpirationDate { get; set; }
 

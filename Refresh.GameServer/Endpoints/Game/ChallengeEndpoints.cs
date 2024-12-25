@@ -33,8 +33,6 @@ public class ChallengeEndpoints : EndpointGroup
         return SerializedChallenge.FromOld(challenge, dataContext);
     }
 
-    // Above endpoint gets called when you go to past challenges, idk whats different about it
-    [GameEndpoint("user/{username}/challenges/joined", HttpMethods.Get, ContentType.Xml)]
     [GameEndpoint("user/{username}/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
@@ -49,16 +47,37 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
 
-    // There doesn't seem to be an endpoint for just getting all challenges. When you go to the Player Challenges page in the pod menu for example,
-    // the game will only get challenges from this endpoint and the one above (only yours and your mutuals). Especially considering LBP hub's
-    // current circumstances, it makes way more sense to expose all challenges through this endpoint instead of just your mutuals challenges.
+    // There doesn't seem to be an endpoint for just getting all (active) challenges. When you go to the Player Challenges page in the pod menu for example,
+    // the game will only get challenges from this endpoint and the one above (only yours and your mutuals). Especially considering LBP hub's way
+    // higher barrier to entry, it makes way more sense to expose all challenges through this endpoint instead of just your mutuals challenges.
+    // But do still exclude the user's own challenges to prevent showing duplicates in-game.
     [GameEndpoint("user/{username}/friends/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
     public SerializedChallengeList? GetChallengesByUsersMutuals(RequestContext context, DataContext dataContext, string username)
     {
+        GameUser? user = dataContext.Database.GetUserByUsername(username);
+
+        string? status = context.QueryString.Get("status");
+        IEnumerable<GameChallenge> challenges;
+        if (user == null)
+            challenges = dataContext.Database.GetChallenges(status);
+        else
+            challenges = dataContext.Database.GetNotUsersChallenges(user, status);
+
+        return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
+    }
+
+    // This endpoint was probably intended to get both the user's and their friend's past challenges at once, as it only gets called
+    // when you go to the pod menu's Past Challenges page (even though the game also sends the "status" query parameter).
+    // Return all past challenges instead, similar reason as with the GetChallengesByUsersMutuals endpoint implementation above.
+    [GameEndpoint("user/{username}/challenges/joined", HttpMethods.Get, ContentType.Xml)]
+    [MinimumRole(GameUserRole.Restricted)]
+    [NullStatusCode(NotFound)]
+    public SerializedChallengeList? GetJoinedChallenges(RequestContext context, DataContext dataContext, string username)
+    {
         // ignore username
-        
+
         string? status = context.QueryString.Get("status");
         IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallenges(status);
 
@@ -123,7 +142,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge, false);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge, true);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
@@ -138,7 +157,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUser(challenge, user, false);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUser(challenge, user, true);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
@@ -150,7 +169,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUsersMutuals(challenge, user, false);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUsersMutuals(challenge, user, true);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
@@ -207,8 +226,9 @@ public class ChallengeEndpoints : EndpointGroup
     // developer-challenges/3/scores
     [GameEndpoint("developer-challenges/{challengeId}/scores", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    public Response SubmitDeveloperChallengeScore(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
+    public Response SubmitDeveloperChallengeScore(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string body)
     {
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"SubmitDeveloperChallengeScore body: {body}");
         return NotImplemented;
     }
 
