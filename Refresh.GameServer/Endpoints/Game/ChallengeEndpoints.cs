@@ -142,7 +142,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge, true);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
@@ -157,7 +157,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUser(challenge, user, true);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
@@ -169,34 +169,34 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUsersMutuals(challenge, user, true);
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallengeByUsersMutuals(challenge, user);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
     [GameEndpoint("challenge/{challengeId}/scoreboard//contextual" /*typo is intentional*/, HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, int challengeId) 
+    public SerializedChallengeScoreList? GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId) 
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
-        
-        return null;
-    }
+
+        GameChallengeScore? newestScore = dataContext.Database.GetNewestScoreForChallengeByUser(challenge, user);
+        if (newestScore == null) return null;
+
+        return new SerializedChallengeScoreList(dataContext.Database.GetScoresAroundChallengeScore(newestScore, 3));
+    } 
 
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotImplemented)]
+    [NullStatusCode(NotFound)]
     public SerializedChallengeScoreList? GetContextualScoresByUserForChallenge(RequestContext context, DataContext dataContext, int challengeId, string username) 
     {
-        GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
-        if (challenge == null) return null;
-
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) return null;
 
-        return null;
-    }
+        return this.GetContextualScoresForChallenge(context, dataContext, user, challengeId);
+    } 
 
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]

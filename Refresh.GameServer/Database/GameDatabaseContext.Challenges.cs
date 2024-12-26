@@ -159,7 +159,7 @@ public partial class GameDatabaseContext // Challenges
     public int GetTotalScoresByUser(GameUser user)
         => this.GameChallengeScores.Where(s => s.Publisher == user).Count();
 
-    public IEnumerable<GameChallengeScore> GetScoresForChallenge(GameChallenge challenge, bool orderByScore = false)
+    public IEnumerable<GameChallengeScore> GetScoresForChallenge(GameChallenge challenge, bool orderByScore = true)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge).AsEnumerable();
 
@@ -170,7 +170,7 @@ public partial class GameDatabaseContext // Challenges
     public int GetTotalScoresForChallenge(GameChallenge challenge)
         => this.GameChallengeScores.Where(s => s.Challenge == challenge).Count();
 
-    public IEnumerable<GameChallengeScore> GetScoresForChallengeByUser(GameChallenge challenge, GameUser user, bool orderByScore = false)
+    public IEnumerable<GameChallengeScore> GetScoresForChallengeByUser(GameChallenge challenge, GameUser user, bool orderByScore = true)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).AsEnumerable();
 
@@ -181,7 +181,7 @@ public partial class GameDatabaseContext // Challenges
     public int GetTotalScoresForChallengeByUser(GameChallenge challenge, GameUser user)
         => this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).Count();
 
-    public IEnumerable<GameChallengeScore> GetScoresForChallengeByUsersMutuals(GameChallenge challenge, GameUser user, bool orderByScore = false)
+    public IEnumerable<GameChallengeScore> GetScoresForChallengeByUsersMutuals(GameChallenge challenge, GameUser user, bool orderByScore = true)
     {
         IEnumerable<GameUser> mutuals = this.GetUsersMutuals(user);
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge);
@@ -190,6 +190,25 @@ public partial class GameDatabaseContext // Challenges
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
     }
+
+    public IEnumerable<SerializedChallengeScore> GetScoresAroundChallengeScore(GameChallengeScore score, int count)
+    {
+        if (count <= 2 || count % 2 != 1) 
+            throw new ArgumentException("The number of scores must be odd and above 2.", nameof(count));
+
+        List<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == score.Challenge)
+            .OrderByDescending(s => s.Score)
+            .ToList();
+
+        return scores.Select((s, i) => SerializedChallengeScore.FromOld(s, i + 1)!)
+            .Skip(Math.Min(scores.Count, scores.IndexOf(score) - count / 2)) // center user's score around other scores
+            .Take(count)
+            .AsEnumerable();
+    }
+
+    public GameChallengeScore? GetNewestScoreForChallengeByUser(GameChallenge challenge, GameUser user)
+        => this.GameChallengeScores.Last(s => s.Challenge == challenge && s.Publisher == user);
+            
 
     #endregion
 }
