@@ -72,7 +72,7 @@ public class ChallengeEndpoints : EndpointGroup
         if (user == null)
             challenges = dataContext.Database.GetChallenges(status);
         else
-            challenges = dataContext.Database.GetNotUsersChallenges(user, status);
+            challenges = dataContext.Database.GetChallengesNotByUser(user, status);
 
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
