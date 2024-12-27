@@ -33,6 +33,11 @@ public class ChallengeEndpoints : EndpointGroup
         return SerializedChallenge.FromOld(challenge, dataContext);
     }
 
+    /// <summary>
+    /// This endpoint is intended to return challenges by the specified user.
+    /// Usually gets called together with the GetChallengesByUsersFriends endpoint below.
+    /// The query parameter "status" indicates whether to return "active" or "expired" challenges.
+    /// </summary>
     [GameEndpoint("user/{username}/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
@@ -47,14 +52,18 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
 
-    // There doesn't seem to be an endpoint for just getting all (active) challenges. When you go to the Player Challenges page in the pod menu for example,
-    // the game will only get challenges from this endpoint and the one above (only yours and your mutuals). Especially considering LBP hub's way
-    // higher barrier to entry, it makes way more sense to expose all challenges through this endpoint instead of just your mutuals challenges.
-    // But do still exclude the user's own challenges to prevent showing duplicates in-game.
+    /// <summary>
+    /// This endpoint is intended to get challenges by the specified user's friends. 
+    /// Since probably not that many people will play LBP hub (considering its higher barrier to entry),
+    /// it makes more sense to just return all challenges through this endpoint instead,
+    /// excluding the challenges by the specified user (if found by the username in the route parameters) to prevent showing duplicates, 
+    /// since this endpoint usually gets called together with the GetChallengesByUser endpoint above.
+    /// The query parameter "status" indicates whether to return "active" or "expired" challenges.
+    /// </summary>
     [GameEndpoint("user/{username}/friends/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeList? GetChallengesByUsersMutuals(RequestContext context, DataContext dataContext, string username)
+    public SerializedChallengeList? GetChallengesByUsersFriends(RequestContext context, DataContext dataContext, string username)
     {
         GameUser? user = dataContext.Database.GetUserByUsername(username);
 
@@ -88,6 +97,11 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Challenge Scores
 
+    /// <summary>
+    /// Gets called when submitting a challenge score after either clearing a challenge or right after uploading a challenge.
+    /// Usually this endpoint only gets called after the game is done uploading the ChallengeGhost for this score and if UploadChallenge
+    /// succeeds for the latter case. Therefore, if the ChallengeGhost referenced in the body can't be found in the data store, reject the score.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user, SerializedChallengeAttempt body, int challengeId)
@@ -96,10 +110,10 @@ public class ChallengeEndpoints : EndpointGroup
         if (challenge == null) return NotFound;
 
         bool isFirstScore = dataContext.Database.GetFirstScoreForChallenge(challenge) == null;
-        bool noGhostData = dataContext.Database.GetAssetFromHash(body.GhostDataHash) == null;
+        bool noGhost = body.GhostHash == null || dataContext.Database.GetAssetFromHash(body.GhostHash) == null;
 
         // If there is no valid ghost data sent with the challenge score, reject the score.
-        if (noGhostData)
+        if (noGhost)
         {
             // If this is the first score of the challenge and uploaded by the challenge publisher (usually alongside the challenge itself),
             // also tell them about the state of the first score, otherwise only tell them why their score was rejected.
@@ -109,7 +123,7 @@ public class ChallengeEndpoints : EndpointGroup
                     "Challenge Score upload failed", 
                     $"Your score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
                     +"could not be uploaded because your score's ghost data was missing. "
-                    +"Whoever uploads a valid score first will have it set as the score to beat",
+                    +"Whoever uploads a valid score first will have it set as the first score to beat",
                     user
                 );
                 dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"No ghost data for original score by publisher");
@@ -133,6 +147,10 @@ public class ChallengeEndpoints : EndpointGroup
         return OK;
     }
 
+    /// <summary>
+    /// This endpoint returns the scores of a challenge. It usually gets called when viewing the leaderboard of a challenge in the pod menu
+    /// and the game takes care of assigning rank numbers to scores.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/", HttpMethods.Get, ContentType.Xml)]  // Gets called in a level when playing a challenge
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]  // Gets called in the pod menu when viewing a challenge
     [MinimumRole(GameUserRole.Restricted)]
@@ -146,6 +164,11 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
+    /// <summary>
+    /// This endpoint returns the scores of a challenge by a user. When you initiate a challenge against someone's ghost, the game calls
+    /// this method for both your username and the username of the challenger you are going against. Probably intended to only return a single
+    /// score with a rank assigned to it by the server.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
@@ -161,11 +184,17 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
+    /// <summary>
+    /// This endpoint returns the scores of a challenge by a user's friends, specified by that user's username.
+    /// We will just return the scores of the friends by the user calling this endpoint instead for privacy reasons.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetScoresForChallengeByUsersMutuals(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
+    public SerializedChallengeScoreList? GetScoresForChallengeByUsersFriends(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
+        // Ignore username, return scores by the 
+
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
@@ -173,6 +202,11 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
+    /// <summary>
+    /// This endpoint gets called when clearing a challenge and seeing the leaderboard, but it doesnt seem like it actually
+    /// achieves anything in-game. I decided to refactor the code from GetContextualScoresByUserForChallenge below into this method to
+    /// have both do the same.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard//contextual" /*typo is intentional*/, HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
@@ -187,6 +221,11 @@ public class ChallengeEndpoints : EndpointGroup
         return new SerializedChallengeScoreList(dataContext.Database.GetScoresAroundChallengeScore(newestScore, 3));
     } 
 
+    /// <summary>
+    /// This endpoint gets called when clearing a challenge and seeing the leaderboard. It's supposed to return the score next to and behind
+    /// the score you just submitted with SubmitChallengeScore for the leaderboard excerpt. I decided to refactor this endpoint's code into
+    /// the GetContextualScoresForChallenge endpoint above, calling it with the user belonging to the username from the route parameters.
+    /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
@@ -197,6 +236,10 @@ public class ChallengeEndpoints : EndpointGroup
 
         return this.GetContextualScoresForChallenge(context, dataContext, user, challengeId);
     } 
+
+    #endregion
+
+    #region Developer Challenge Scores
 
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]

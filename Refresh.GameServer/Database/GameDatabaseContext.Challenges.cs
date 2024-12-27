@@ -121,12 +121,13 @@ public partial class GameDatabaseContext // Challenges
             Challenge = challenge,
             Publisher = user,
             Score = attempt.Score,
-            GhostDataHash = attempt.GhostDataHash,
+            GhostHash = attempt.GhostHash,
             PublishDate = now,
         };
 
         this.Write(() => 
         {
+            // Add the new score
             this.GameChallengeScores.Add(score);
         });
 
