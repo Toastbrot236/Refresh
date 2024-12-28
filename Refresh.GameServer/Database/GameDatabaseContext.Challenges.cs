@@ -156,11 +156,8 @@ public partial class GameDatabaseContext // Challenges
             PublishDate = now,
         };
 
-        this.Write(() => 
-        {
-            // Add the new score
-            this.GameChallengeScores.Add(score);
-        });
+        // Add the score and return it
+        this.AddSequentialObject(score);
         
         return score;
     }
@@ -188,6 +185,9 @@ public partial class GameDatabaseContext // Challenges
     public GameChallengeScore? GetNewestScoreForChallengeByUser(GameChallenge challenge, GameUser user)
         => this.GameChallengeScores.LastOrDefault(s => s.Challenge == challenge && s.Publisher == user);
 
+    public GameChallengeScore? GetHighScoreForChallengeByUser(GameChallenge challenge, GameUser user)
+        => this.GameChallengeScores.LastOrDefault(s => s.Challenge == challenge && s.Publisher == user && s.GhostHash != null);
+
     public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user)
         => this.GameChallengeScores.Where(s => s.Publisher == user).AsEnumerable();
 
@@ -195,19 +195,19 @@ public partial class GameDatabaseContext // Challenges
         => this.GameChallengeScores.Where(s => s.Publisher == user).Count();
 
     /// <summary>
-    /// This method filters scores out of an IEnumerable of GameChallengeScores which are not the personal bests of their uploader by 
+    /// This method filters scores out of an IEnumerable of GameChallengeScores which are not the high score of their uploader by 
     /// filtering out scores whose GhostHash references are null. This also lets the first score of a challenge stay in the list, even if
     /// the uploader of said score also has a better score uploaded.
     /// </summary>
     /// <seealso cref="CreateChallengeScore"/>
-    private IEnumerable<GameChallengeScore> FilterChallengeScoresByPersonalBest(IEnumerable<GameChallengeScore> scores)
+    private IEnumerable<GameChallengeScore> FilterChallengeScoresByHighScore(IEnumerable<GameChallengeScore> scores)
         => scores.Where(s => s.GhostHash != null);
 
     public IEnumerable<GameChallengeScore> GetScoresForChallenge(GameChallenge challenge, bool personalBestsOnly = true, bool orderByScore = true)
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge).AsEnumerable();
 
-        if (personalBestsOnly) scores = this.FilterChallengeScoresByPersonalBest(scores);
+        if (personalBestsOnly) scores = this.FilterChallengeScoresByHighScore(scores);
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
@@ -220,10 +220,21 @@ public partial class GameDatabaseContext // Challenges
     {
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user).AsEnumerable();
 
-        if (personalBestsOnly) scores = this.FilterChallengeScoresByPersonalBest(scores);
+        if (personalBestsOnly) scores = this.FilterChallengeScoresByHighScore(scores);
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
+    }
+
+    /// <summary>
+    /// Returns how often a user has beaten the first score of a challenge (how often they have "cleared" the challenge).
+    /// </summary>
+    public int GetClearsOfChallengeByUser(GameChallenge challenge, GameUser user)
+    {
+        GameChallengeScore? firstScore = this.GetFirstScoreForChallenge(challenge);
+        if (firstScore == null) return 0;
+        // higher scores and ties both count as cleared/beaten (incase of a score which can't be beaten by a higher score for some reason)
+        return this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user && s.Score >= firstScore.Score).Count();
     }
 
     public int GetTotalScoresForChallengeByUser(GameChallenge challenge, GameUser user)
@@ -235,22 +246,22 @@ public partial class GameDatabaseContext // Challenges
         IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge);
         scores = scores.Where(s => mutuals.Contains(s.Publisher));
 
-        if (personalBestsOnly) scores = this.FilterChallengeScoresByPersonalBest(scores);
+        if (personalBestsOnly) scores = this.FilterChallengeScoresByHighScore(scores);
 
         if(orderByScore) return scores.OrderByDescending(s => s.Score);
         return scores;
     }
 
-    public IEnumerable<SerializedChallengeScore> GetScoresAroundChallengeScore(GameChallengeScore score, int count, bool personalBestsOnly = true)
+    /// <seealso cref="GetRankedScoresAroundScore"/>
+    public IEnumerable<SerializedChallengeScore> GetHighScoresAroundChallengeScore(GameChallengeScore score, int count)
     {
         if (count <= 0 || count % 2 != 1) 
             throw new ArgumentException("The number of scores must be odd and greater than 0.", nameof(count));
 
-        List<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == score.Challenge)
+        // Only keep this challenge's scores which are either the given (just submitted) score, the first score or the high score of someone
+        // This is the reason I had to introduce unique ids for challenge scores too. Thanks realm.
+        List<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == score.Challenge && s.GhostHash != null)
             .OrderByDescending(s => s.Score)
-            .ToList();
-
-        if (personalBestsOnly) scores = this.FilterChallengeScoresByPersonalBest(scores)
             .ToList();
 
         return scores.Select((s, i) => SerializedChallengeScore.FromOld(s, i + 1)!)

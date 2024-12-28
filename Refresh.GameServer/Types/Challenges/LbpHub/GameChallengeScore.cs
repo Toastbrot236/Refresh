@@ -1,10 +1,13 @@
 using Realms;
+using Refresh.GameServer.Database;
 using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
-public partial class GameChallengeScore : IRealmObject
+public partial class GameChallengeScore : IRealmObject, ISequentialId
 {
+    [PrimaryKey] public int ScoreId { get; set; }
+
     public GameChallenge Challenge { get; set; }
 
     /// <summary>
@@ -18,4 +21,10 @@ public partial class GameChallengeScore : IRealmObject
     /// </summary>
     public string? GhostHash { get; set; }
     public DateTimeOffset PublishDate { get; set; }
+
+    public int SequentialId
+    {
+        get => this.ScoreId;
+        set => this.ScoreId = value;
+    }
 }
