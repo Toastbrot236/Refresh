@@ -13,9 +13,9 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
     [XmlElement("rank")] public int Rank { get; set; }
 
     public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)
-        => FromOld(old, 0);
+        => FromOld(old);
 
-    public static SerializedChallengeScore? FromOld(GameChallengeScore? old, int rank)
+    public static SerializedChallengeScore? FromOld(GameChallengeScore? old, int rank = 1, bool fakeScore = false)
     {
         if (old == null)
             return null;
@@ -23,12 +23,18 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
         return new SerializedChallengeScore
         {
             GhostHash = old.GhostHash,
-            Score = old.Score,
+            Score = fakeScore ? 0 : old.Score,
             PublisherName = old.Publisher.Username,
             Rank = rank,
         };
     }
 
+    public static SerializedChallengeScore? FromOld(GameChallengeScoreWithRank? old, bool fakeScore = false)
+        => old == null ? null : FromOld(old.score, old.rank, fakeScore);
+
     public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScore> oldList, DataContext dataContext)
         => oldList.Select((s, i) => FromOld(s, i + 1)!);
+
+    public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScoreWithRank> oldList, bool fakeScores = false)
+        => oldList.Select((s) => FromOld(s, fakeScores)!);
 }

@@ -115,6 +115,9 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return NotFound;
 
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Start CP: {challenge.StartCheckpointUid}");
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"End CP: {challenge.EndCheckpointUid}");
+
         bool isFirstScore = dataContext.Database.GetFirstScoreForChallenge(challenge) == null;
         bool noGhost = body.GhostHash == null || dataContext.Database.GetAssetFromHash(body.GhostHash) == null;
 
@@ -161,19 +164,20 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]  // Gets called in the pod menu when viewing a challenge
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, int challengeId)
+    public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge);
+        if (!this.UserHighScoreCallees.Remove(user)) this.UserHighScoreCallees.Add(user);
 
+        IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
 
     /// <summary>
-    /// This endpoint is supposed to return the high score of a user for a challenge. If the user has not cleared the given challenge
-    /// (not beaten the first score) before and the request is for the user who uploaded the first score, return that instead of the 
+    /// This endpoint is supposed to return the high score of a user for a challenge, but we will just return the first score if
+    /// the player hasn't cleared this challenge yet, otherwise the next highest high score after the players high score. 
     /// given user's high score.
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
@@ -186,6 +190,10 @@ public class ChallengeEndpoints : EndpointGroup
 
         GameUser? requestedUser = dataContext.Database.GetUserByUsername(username);
         if (requestedUser == null) return null;
+
+        // if requesting user is not in this list, fake the score in the response
+        bool fakeScore = !this.UserHighScoreCallees.Contains(user);
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Fake score: {fakeScore}");
 
         // If user hasnt cleared the challenge yet
         if (dataContext.Database.GetClearsOfChallengeByUser(challenge, user) < 1)
@@ -206,15 +214,22 @@ public class ChallengeEndpoints : EndpointGroup
             if (firstScore.Publisher.UserId == requestedUser.UserId)
             {
                 dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Returning first score");
-                return SerializedChallengeScore.FromOld(dataContext.Database.GetFirstScoreForChallenge(challenge), 1);
+                return SerializedChallengeScore.FromOld(dataContext.Database.GetFirstScoreForChallenge(challenge), 1, fakeScore);
             }
         }
 
         // Either the user has cleared the challenge atleast once or the request is not for the one who uploaded the first score,
         // either way return the high score of the requested user.
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Returning high score");
-        return SerializedChallengeScore.FromOld(dataContext.Database.GetHighScoreForChallengeByUser(challenge, user), 1);
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Returning next high score");
+        return SerializedChallengeScore.FromOld(dataContext.Database.GetHighScoreForChallengeByUser(challenge, user), 1, fakeScore);
     }
+
+    /// <summary>
+    /// List of users to not fake the score returned in GetUsersHighScoreForChallenge's response for,
+    /// to get the game to always upload the score for a challenge, even if it doesn't beat the opponent's
+    /// score.
+    /// </summary>
+    private List<GameUser> UserHighScoreCallees = [];
 
     /// <summary>
     /// This endpoint returns the scores of a challenge by a user's friends, specified by that user's username.
@@ -225,8 +240,10 @@ public class ChallengeEndpoints : EndpointGroup
     [NullStatusCode(NotImplemented)]
     public SerializedChallengeScoreList? GetScoresForChallengeByUsersFriends(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
-        // Ignore username, return scores by the 
+        // don't fake the scores returned by GetUsersHighScoreForChallenge called by the requesting user
+        this.UserHighScoreCallees.Remove(user);
 
+        // Ignore username, return scores by the requesting user's friends
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
@@ -250,7 +267,8 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallengeScore? newestScore = dataContext.Database.GetNewestScoreForChallengeByUser(challenge, user);
         if (newestScore == null) return null;
 
-        return new SerializedChallengeScoreList(dataContext.Database.GetHighScoresAroundChallengeScore(newestScore, 3));
+        IEnumerable<GameChallengeScoreWithRank> rankedScores = dataContext.Database.GetRankedHighScoresAroundChallengeScore(newestScore, 3);
+        return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(rankedScores));
     } 
 
     /// <summary>
@@ -261,12 +279,14 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetContextualScoresByUserForChallenge(RequestContext context, DataContext dataContext, int challengeId, string username) 
+    public SerializedChallengeScoreList? GetContextualScoresByUserForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
     {
-        GameUser? user = dataContext.Database.GetUserByUsername(username);
-        if (user == null) return null;
+        GameUser? requestedUser = dataContext.Database.GetUserByUsername(username);
+        if (requestedUser == null) return null;
 
-        return this.GetContextualScoresForChallenge(context, dataContext, user, challengeId);
+        this.UserHighScoreCallees.Remove(user);
+
+        return this.GetContextualScoresForChallenge(context, dataContext, requestedUser, challengeId);
     } 
 
     #endregion
@@ -276,7 +296,7 @@ public class ChallengeEndpoints : EndpointGroup
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotImplemented)]
+    [NullStatusCode(OK)]
     public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext)
     {
         string[]? developerChallengeIds = context.QueryString.GetValues("ids");

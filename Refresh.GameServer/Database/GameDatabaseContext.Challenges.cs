@@ -182,11 +182,38 @@ public partial class GameDatabaseContext // Challenges
     public GameChallengeScore? GetFirstScoreForChallenge(GameChallenge challenge)
         => this.GameChallengeScores.FirstOrDefault(s => s.Challenge == challenge && s.GhostHash != null);
 
+    public GameChallengeScoreWithRank? GetRankedFirstScoreForChallenge(GameChallenge challenge)
+    {
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.GhostHash != null);
+        GameChallengeScore? score = scores.FirstOrDefault();
+        if (score == null) return null;
+        return new(score, scores.ToList().IndexOf(score));
+    }
+
     public GameChallengeScore? GetNewestScoreForChallengeByUser(GameChallenge challenge, GameUser user)
         => this.GameChallengeScores.LastOrDefault(s => s.Challenge == challenge && s.Publisher == user);
 
+    public GameChallengeScoreWithRank? GetRankedNewestScoreForChallengeByUser(GameChallenge challenge, GameUser user)
+    {
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user);
+        GameChallengeScore? score = scores.LastOrDefault();
+        if (score == null) return null;
+        return new(score, scores.ToList().IndexOf(score));
+    }
+
     public GameChallengeScore? GetHighScoreForChallengeByUser(GameChallenge challenge, GameUser user)
         => this.GameChallengeScores.LastOrDefault(s => s.Challenge == challenge && s.Publisher == user && s.GhostHash != null);
+
+    public GameChallengeScoreWithRank? GetRankedHighScoreForChallengeByUser(GameChallenge challenge, GameUser user)
+    {
+        IEnumerable<GameChallengeScore> scores = this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user && s.GhostHash != null);
+        GameChallengeScore? score = scores.LastOrDefault();
+        if (score == null) return null;
+        return new(score, scores.ToList().IndexOf(score));
+    }
+
+    private IEnumerable<GameChallengeScore> GetChallengeHighScoresIncludingScore(GameChallengeScore scores, GameChallengeScore scoreToInclude)
+        => this.GameChallengeScores.Where(s => s.Challenge == scoreToInclude.Challenge && (s.GhostHash != null || s.ScoreId == scoreToInclude.ScoreId));
 
     public IEnumerable<GameChallengeScore> GetChallengeScoresByUser(GameUser user)
         => this.GameChallengeScores.Where(s => s.Publisher == user).AsEnumerable();
@@ -253,7 +280,7 @@ public partial class GameDatabaseContext // Challenges
     }
 
     /// <seealso cref="GetRankedScoresAroundScore"/>
-    public IEnumerable<SerializedChallengeScore> GetHighScoresAroundChallengeScore(GameChallengeScore score, int count)
+    public IEnumerable<GameChallengeScoreWithRank> GetRankedHighScoresAroundChallengeScore(GameChallengeScore score, int count)
     {
         if (count <= 0 || count % 2 != 1) 
             throw new ArgumentException("The number of scores must be odd and greater than 0.", nameof(count));
@@ -264,7 +291,7 @@ public partial class GameDatabaseContext // Challenges
             .OrderByDescending(s => s.Score)
             .ToList();
 
-        return scores.Select((s, i) => SerializedChallengeScore.FromOld(s, i + 1)!)
+        return scores.Select((s, i) => new GameChallengeScoreWithRank(s, i + 1))
             .Skip(Math.Min(scores.Count, scores.IndexOf(score) - count / 2)) // center user's score around other scores
             .Take(count)
             .AsEnumerable();
