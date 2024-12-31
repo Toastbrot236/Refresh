@@ -1,6 +1,8 @@
 using System.Xml.Serialization;
 using Refresh.Common.Constants;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes;
+using Refresh.GameServer.Types.Assets;
+using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Data;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
@@ -29,12 +31,12 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
         };
     }
 
-    public static SerializedChallengeScore? FromOld(GameChallengeScoreWithRank? old, bool fakeScore = false)
-        => old == null ? null : FromOld(old.score, old.rank, fakeScore);
+    public static SerializedChallengeScore? FromOld(GameChallengeScoreWithRank? old)
+        => old == null ? null : FromOld(old.score, old.rank);
 
     public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScore> oldList, DataContext dataContext)
         => oldList.Select((s, i) => FromOld(s, i + 1)!);
 
-    public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScoreWithRank> oldList, bool fakeScores = false)
-        => oldList.Select((s) => FromOld(s, fakeScores)!);
+    public static IEnumerable<SerializedChallengeScore> FromOldList(IEnumerable<GameChallengeScoreWithRank> oldList)
+        => oldList.Select((s) => FromOld(s)!);
 }

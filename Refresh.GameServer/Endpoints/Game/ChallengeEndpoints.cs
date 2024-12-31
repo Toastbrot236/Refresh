@@ -1,9 +1,12 @@
+using System.Xml.Serialization;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
+using Refresh.GameServer.Types.Assets;
 using Refresh.GameServer.Types.Challenges.LbpHub;
+using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
@@ -119,10 +122,10 @@ public class ChallengeEndpoints : EndpointGroup
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"End CP: {challenge.EndCheckpointUid}");
 
         bool isFirstScore = dataContext.Database.GetFirstScoreForChallenge(challenge) == null;
-        bool noGhost = body.GhostHash == null || dataContext.Database.GetAssetFromHash(body.GhostHash) == null;
+        GameAsset? ghostAsset = body.GhostHash == null ? null : dataContext.Database.GetAssetFromHash(body.GhostHash);
 
         // If there is no valid ghost data sent with the challenge score, reject the score.
-        if (noGhost)
+        if (ghostAsset == null || ghostAsset.AssetType != GameAssetType.ChallengeGhost)
         {
             // If this is the first score of the challenge and uploaded by the challenge publisher (usually alongside the challenge itself),
             // also tell them about the state of the first score, otherwise only tell them why their score was rejected.
@@ -151,9 +154,78 @@ public class ChallengeEndpoints : EndpointGroup
             return BadRequest;
         }
 
+        // Verify and potentially fixup score and its ghost asset.
+        // At this point we have already made sure that ghostAsset is a ChallengeGhost and belongs to body
+        SerializedChallengeAttempt? score = this.FixupScoreAndGhost(body, ghostAsset, dataContext);
+        if (score == null) 
+        {
+            dataContext.Database.AddErrorNotification(
+                "Challenge Score upload failed", 
+                $"Your score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                +"could not be uploaded because your score's ghost data was corrupt and could not be fixed.",
+                user
+            );
+            return BadRequest;
+        }
+            
+
         // Create score
         dataContext.Database.CreateChallengeScore(body, challenge, user);
         return OK;
+    }
+
+    /// <summary>
+    /// Tries to verify and, if needed and possible, to fix the score attempt given and its ghost data. If the ghost data is corrupt
+    /// and it cannot be fixed, null is returned. The given ghost asset must be the one belonging to the given score attempt.
+    /// </summary>
+    private SerializedChallengeAttempt? FixupScoreAndGhost(SerializedChallengeAttempt score, GameAsset ghostAsset, DataContext dataContext)
+    {
+        // Get the content of the ghost asset and convert it to a string
+        byte[] ghostDataBytes = dataContext.DataStore.GetDataFromStore(ghostAsset.AssetHash);
+        string ghostData = "";
+
+        foreach(byte ghostDataByte in ghostDataBytes)
+        {
+            ghostData += (char)ghostDataByte;
+        }
+        
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Ghost asset content: {ghostData}");
+
+        // Remove all metric XML elements and try to parse them manually, since they usually contain multiple attributes called "id",
+        // which the deserializer doesnt seem to like at all
+        string[] metricSubStrings = ghostData.Split("<metric");
+        ghostData = metricSubStrings[0];
+
+        // Start from second substring, since the first one is the one before the opening tag for the first occuring metric XML element
+        // and already added to ghostDataWithFixedMetrics
+        for(int i = 1; i < metricSubStrings.Length; i++)
+        {
+            string substring = metricSubStrings[i];
+            string[] idSubStrings = substring.Split(" id=");
+
+            // usually all "id" XML attributes are set to the same value
+            ghostData += "<metric id=" + idSubStrings.Last();
+        }
+        
+        // try to deserialize only the checkpoints in the ghost data incase there is nothing to fix, to be more efficient
+        try
+        {
+            XmlSerializer ghostCheckpointsSerializer = new(typeof(SerializedChallengeGhostCheckpoints));
+            dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostSerializer initialized");
+            if (ghostCheckpointsSerializer.Deserialize(new StringReader(ghostData)) is not SerializedChallengeGhostCheckpoints serializedGhost)
+            {
+                dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData not ghost");
+                return null;
+            }
+        }
+        catch
+        {
+            dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData caught");
+            return null;
+        }
+        
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData start: {ghostData}");
+        return score;
     }
 
     /// <summary>
@@ -169,8 +241,6 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
 
-        if (!this.UserHighScoreCallees.Remove(user)) this.UserHighScoreCallees.Add(user);
-
         IEnumerable<GameChallengeScore> scores = dataContext.Database.GetScoresForChallenge(challenge);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(scores, dataContext).ToList());
     }
@@ -182,7 +252,7 @@ public class ChallengeEndpoints : EndpointGroup
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotFound)]
+    [NullStatusCode(Unauthorized)]
     public SerializedChallengeScore? GetUsersHighScoreForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
@@ -192,7 +262,7 @@ public class ChallengeEndpoints : EndpointGroup
         if (requestedUser == null) return null;
 
         // if requesting user is not in this list, fake the score in the response
-        bool fakeScore = !this.UserHighScoreCallees.Contains(user);
+        bool fakeScore = false;
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Fake score: {fakeScore}");
 
         // If user hasnt cleared the challenge yet
@@ -214,22 +284,15 @@ public class ChallengeEndpoints : EndpointGroup
             if (firstScore.Publisher.UserId == requestedUser.UserId)
             {
                 dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Returning first score");
-                return SerializedChallengeScore.FromOld(dataContext.Database.GetFirstScoreForChallenge(challenge), 1, fakeScore);
+                return SerializedChallengeScore.FromOld(dataContext.Database.GetFirstScoreForChallenge(challenge), 1, true);
             }
         }
 
         // Either the user has cleared the challenge atleast once or the request is not for the one who uploaded the first score,
         // either way return the high score of the requested user.
         dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Returning next high score");
-        return SerializedChallengeScore.FromOld(dataContext.Database.GetHighScoreForChallengeByUser(challenge, user), 1, fakeScore);
+        return SerializedChallengeScore.FromOld(dataContext.Database.GetHighScoreForChallengeByUser(challenge, user), 1, false);
     }
-
-    /// <summary>
-    /// List of users to not fake the score returned in GetUsersHighScoreForChallenge's response for,
-    /// to get the game to always upload the score for a challenge, even if it doesn't beat the opponent's
-    /// score.
-    /// </summary>
-    private List<GameUser> UserHighScoreCallees = [];
 
     /// <summary>
     /// This endpoint returns the scores of a challenge by a user's friends, specified by that user's username.
@@ -240,9 +303,6 @@ public class ChallengeEndpoints : EndpointGroup
     [NullStatusCode(NotImplemented)]
     public SerializedChallengeScoreList? GetScoresForChallengeByUsersFriends(RequestContext context, DataContext dataContext, GameUser user, int challengeId)
     {
-        // don't fake the scores returned by GetUsersHighScoreForChallenge called by the requesting user
-        this.UserHighScoreCallees.Remove(user);
-
         // Ignore username, return scores by the requesting user's friends
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
@@ -283,8 +343,6 @@ public class ChallengeEndpoints : EndpointGroup
     {
         GameUser? requestedUser = dataContext.Database.GetUserByUsername(username);
         if (requestedUser == null) return null;
-
-        this.UserHighScoreCallees.Remove(user);
 
         return this.GetContextualScoresForChallenge(context, dataContext, requestedUser, challengeId);
     } 
