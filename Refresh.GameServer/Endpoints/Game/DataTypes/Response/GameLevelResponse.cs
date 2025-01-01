@@ -72,6 +72,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
     [XmlElement("initiallyLocked")] public bool IsLocked { get; set; }
     [XmlElement("isSubLevel")] public bool IsSubLevel { get; set; }
     [XmlElement("shareable")] public int IsCopyable { get; set; }
+    [XmlElement("moveRequired")] public bool RequiresMotionController { get; set; }
     [XmlElement("backgroundGUID")] public string? BackgroundGuid { get; set; }
     [XmlElement("links")] public string? Links { get; set; }
     [XmlElement("averageRating")] public double AverageStarRating { get; set; }
@@ -134,6 +135,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             IsLocked = false,
             IsSubLevel = false,
             IsCopyable = 0,
+            RequiresMotionController = false,
             PublishDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             UpdateDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             EnforceMinMaxPlayers = false,
@@ -171,10 +173,11 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             BooCount = dataContext.Database.GetTotalRatingsForLevel(old, RatingType.Boo),
             SkillRewards = old.SkillRewards.ToList(),
             TeamPicked = old.TeamPicked,
-            LevelType = old.LevelType.ToGameString(),
+            LevelType = old.LevelType.ToGameString(), //old.LevelType.ToGameString(),
             IsCopyable = old.IsCopyable ? 1 : 0,
             IsLocked = old.IsLocked,
             IsSubLevel = old.IsSubLevel,
+            RequiresMotionController = old.RequiresMotionController,
             BackgroundGuid = old.BackgroundGuid,
             Links = "",
             AverageStarRating = old.CalculateAverageStarRating(dataContext.Database),
@@ -284,6 +287,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             IsLocked = false,
             IsSubLevel = false,
             IsCopyable = 0,
+            RequiresMotionController = false,
             BackgroundGuid = null,
             Links = null,
             AverageStarRating = 0,

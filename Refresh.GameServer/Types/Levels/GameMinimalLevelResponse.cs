@@ -42,9 +42,11 @@ public class GameMinimalLevelResponse : IDataConvertableFrom<GameMinimalLevelRes
     [XmlElement("commentsEnabled")] public bool CommentsEnabled { get; set; } = true;
     [XmlElement("commentCount")] public int CommentCount { get; set; } = 0; 
     
+    [XmlElement("leveltype")] public required string LevelType { get; set; }
     [XmlElement("initiallyLocked")] public bool IsLocked { get; set; }
     [XmlElement("isSubLevel")] public bool IsSubLevel { get; set; }
     [XmlElement("shareable")] public int IsCopyable { get; set; }
+    [XmlElement("moveRequired")] public bool RequiresMotionController { get; set; }
     [XmlElement("tags")] public string Tags { get; set; } = "";
  
     private GameMinimalLevelResponse() {}
@@ -95,9 +97,11 @@ public class GameMinimalLevelResponse : IDataConvertableFrom<GameMinimalLevelRes
             YourRating = level.YourRating,
             AverageStarRating = level.AverageStarRating,
             CommentCount = level.CommentCount,
+            LevelType = level.LevelType,
             IsLocked = level.IsLocked,
             IsSubLevel = level.IsSubLevel,
             IsCopyable = level.IsCopyable,
+            RequiresMotionController = level.RequiresMotionController,
             PlayerCount = dataContext.Match.GetPlayerCountForLevel(RoomSlotType.Online, level.LevelId),
             Tags = level.Tags,
         };
@@ -135,9 +139,11 @@ public class GameMinimalLevelResponse : IDataConvertableFrom<GameMinimalLevelRes
             ReviewCount = 0,
             CommentsEnabled = true,
             CommentCount = 0,
+            LevelType = GameLevelType.Normal.ToGameString(),
             IsLocked = false,
             IsSubLevel = false,
             IsCopyable = 0,
+            RequiresMotionController = false,
             Tags = string.Empty, 
             TeamPicked = false, 
             Handle = SerializedUserHandle.FromUser(old.Publisher, dataContext),

@@ -34,7 +34,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         this._time = time;
     }
 
-    protected override ulong SchemaVersion => 161;
+    protected override ulong SchemaVersion => 164;
 
     protected override string Filename => "refreshGameServer.realm";
     
@@ -241,7 +241,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         IQueryable<dynamic>? oldLevels = migration.OldRealm.DynamicApi.All("GameLevel");
         IQueryable<GameLevel>? newLevels = migration.NewRealm.All<GameLevel>();
 
-        if (oldVersion < 149)
+        if (oldVersion < 164)
             for (int i = 0; i < newLevels.Count(); i++)
             {
                 dynamic oldLevel = oldLevels.ElementAt(i);
@@ -352,6 +352,12 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
                 if (oldVersion >= 148 && oldVersion < 149)
                 {
                     newLevel.IsModded = oldLevel.Modded;
+                }
+
+                // From version 164 on we track whether a level requires a motion controller to play or not
+                if (oldVersion < 164)
+                {
+                    newLevel.RequiresMotionController = false;
                 }
             }
 
