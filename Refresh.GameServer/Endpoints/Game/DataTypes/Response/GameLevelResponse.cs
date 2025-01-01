@@ -81,6 +81,8 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
     [XmlElement("reviewsEnabled")] public bool ReviewsEnabled { get; set; } = true;
     [XmlElement("commentCount")] public int CommentCount { get; set; } = 0;
     [XmlElement("commentsEnabled")] public bool CommentsEnabled { get; set; } = true;
+    [XmlElement("photoCount")] public int PhotoCount { get; set; }
+    [XmlElement("authorPhotoCount")] public int PublisherPhotoCount { get; set; }
     [XmlElement("tags")] public string Tags { get; set; } = "";
     
     /// <summary>
@@ -142,6 +144,8 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             SameScreenGame = false,
             SkillRewards = [],
             LevelType = "",
+            PhotoCount = 0,
+            PublisherPhotoCount = 0,
         };
     }
 
@@ -185,11 +189,13 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             CommentCount = dataContext.Database.GetTotalCommentsForLevel(old),
             Tags = string.Join(',', dataContext.Database.GetTagsForLevel(old).Select(t => t.Tag.ToLbpString())) ,
             Type = old.SlotType.ToGameType(),
+            PhotoCount = dataContext.Database.GetTotalPhotosInLevel(old),
         };
         
         if (old is { Publisher: not null, IsReUpload: false })
         {
             response.Handle = SerializedUserHandle.FromUser(old.Publisher, dataContext);
+            response.PublisherPhotoCount = dataContext.Database.GetTotalPhotosInLevelByUser(old, old.Publisher);
         }
         else
         {
@@ -206,6 +212,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
                 IconHash = "0",
                 Username = publisher,
             };
+            response.PublisherPhotoCount = 0;
         }
         
         if (dataContext.User != null)
@@ -297,6 +304,8 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             CommentCount = 0,
             CommentsEnabled = true,
             Tags = string.Empty,
+            PhotoCount = 0,
+            PublisherPhotoCount = 0,
         };
     }
 
