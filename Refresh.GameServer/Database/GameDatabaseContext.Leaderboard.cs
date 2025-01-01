@@ -73,6 +73,19 @@ public partial class GameDatabaseContext // Leaderboard
         return new DatabaseList<GameSubmittedScore>(scores, skip, count);
     }
 
+    public DatabaseList<GameSubmittedScore> GetTopScoresForLevelInTime(GameLevel level, int count, int skip, byte type, DateTimeOffset startTime, DateTimeOffset endTime, bool showDuplicates = false)
+    {
+        IEnumerable<GameSubmittedScore> scores = this.GameSubmittedScores
+            .Where(s => s.ScoreType == type && s.Level == level && s.ScoreSubmitted > startTime && s.ScoreSubmitted < endTime)
+            .OrderByDescending(s => s.Score)
+            .AsEnumerable();
+
+        if (!showDuplicates)
+            scores = scores.DistinctBy(s => s.Players[0]);
+
+        return new DatabaseList<GameSubmittedScore>(scores, skip, count);
+    }
+
     public IEnumerable<ScoreWithRank> GetRankedScoresAroundScore(GameSubmittedScore score, int count)
     {
         if (count % 2 != 1) throw new ArgumentException("The number of scores must be odd.", nameof(count));

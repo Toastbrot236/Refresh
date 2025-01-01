@@ -9,6 +9,7 @@ using Bunkum.Protocols.Http;
 using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Extensions;
+using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
 using Refresh.GameServer.Types.Roles;
@@ -118,12 +119,27 @@ public class LeaderboardEndpoints : EndpointGroup
     [GameEndpoint("topscores/{slotType}/{id}/{type}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
-    public Response GetTopScoresForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id, int type)
+    public Response GetTopScoresForLevel(RequestContext context, DataContext dataContext, string slotType, int id, int type)
     {
-        GameLevel? level = database.GetLevelByIdAndType(slotType, id);
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, id);
         if (level == null) return NotFound;
         
         (int skip, int count) = context.GetPageData();
-        return new Response(SerializedScoreList.FromSubmittedEnumerable(database.GetTopScoresForLevel(level, count, skip, (byte)type).Items, skip), ContentType.Xml);
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        IEnumerable<GameSubmittedScore> scores = type switch
+        {
+            // 5 and 6 only appear when requesting scores for the last day/week for a versus level in-game
+            5 => dataContext.Database.GetTopScoresForLevelInTime(level, count, skip, 7, now.AddDays(-1), now).Items,
+            6 => dataContext.Database.GetTopScoresForLevelInTime(level, count, skip, 7, now.AddDays(-7), now).Items,
+            _ => dataContext.Database.GetTopScoresForLevel(level, count, skip, (byte)type).Items,
+        };
+
+        foreach(GameSubmittedScore score in scores)
+        {
+            dataContext.Logger.LogDebug(BunkumCategory.LevelScores, $"score: {score.ScoreType}, {score.Players[0].Username}, {score.Level.Title}");
+        }
+        
+        return new Response(SerializedScoreList.FromSubmittedEnumerable(scores, skip), ContentType.Xml);
     }
 }
