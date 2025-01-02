@@ -247,6 +247,22 @@ public partial class GameDatabaseContext // Relations
         return rating;
     }
 
+    public int GetRatingForReviewAsNumber(GameReview review)
+    {
+        IQueryable<RateReviewRelation> relations = this.RateReviewRelations.Where(r => r.Review == review);
+        int rating = 0;
+
+        foreach (RateReviewRelation relation in relations)
+        {
+            if (relation.RatingType == RatingType.Yay)
+                rating++;
+            else
+                rating--;
+        }
+
+        return rating;
+    }
+
     public GameReview? GetReviewByUserForLevel(GameUser user, GameLevel level)
         => this.GameReviews.FirstOrDefault(gameReview => gameReview.Publisher == user && gameReview.Level == level);
 
@@ -346,10 +362,13 @@ public partial class GameDatabaseContext // Relations
         });
     }
 
-    public DatabaseList<GameReview> GetReviewsByUser(GameUser user, int count, int skip)
+    public DatabaseList<GameReview> GetReviewsByUser(GameUser user, int count, int skip, bool sortByNewest = false)
     {
-        return new DatabaseList<GameReview>(this.GameReviews
-            .Where(r => r.Publisher == user), skip, count);
+        IEnumerable<GameReview> reviews = this.GameReviews.Where(r => r.Publisher == user);
+
+        if (sortByNewest) reviews = reviews.OrderByDescending(r => r.PostedAt);
+
+        return new DatabaseList<GameReview>(reviews, skip, count);
     }
 
     public int GetTotalReviewsByUser(GameUser user)
@@ -365,10 +384,13 @@ public partial class GameDatabaseContext // Relations
         return level.Reviews.FirstOrDefault(r => r.Publisher.UserId == user.UserId);
     }
 
-    public DatabaseList<GameReview> GetReviewsForLevel(GameLevel level, int count, int skip)
+    public DatabaseList<GameReview> GetReviewsForLevel(GameLevel level, int count, int skip, bool sortByRatio = false)
     {
-        return new DatabaseList<GameReview>(this.GameReviews
-            .Where(r => r.Level == level), skip, count);
+        IEnumerable<GameReview> reviews = this.GameReviews.Where(r => r.Level == level);
+
+        if (sortByRatio) reviews = reviews.OrderByDescending(this.GetRatingForReviewAsNumber);
+
+        return new DatabaseList<GameReview>(reviews, skip, count);
     }
     
     public int GetTotalReviewsForLevel(GameLevel level)

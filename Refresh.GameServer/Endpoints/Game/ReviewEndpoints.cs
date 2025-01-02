@@ -64,33 +64,35 @@ public class ReviewEndpoints : EndpointGroup
     }
 
     [GameEndpoint("reviewsFor/{slotType}/{id}", ContentType.Xml)]
+    [NullStatusCode(NotFound)]
     [AllowEmptyBody]
-    public Response GetReviewsForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
+    public SerializedGameReviewResponse? GetReviewsForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
         DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
 
         if (level == null) 
-            return NotFound;
+            return null;
 
         (int skip, int count) =  context.GetPageData();
         
-        return new Response(new SerializedGameReviewResponse(items: SerializedGameReview.FromOldList(database.GetReviewsForLevel(level, count, skip).Items, dataContext).ToList()), ContentType.Xml);
+        return new SerializedGameReviewResponse(items: SerializedGameReview.FromOldList(database.GetReviewsForLevel(level, count, skip, true).Items, dataContext).ToList());
     }
     
     [GameEndpoint("reviewsBy/{username}", ContentType.Xml)]
+    [NullStatusCode(NotFound)]
     [AllowEmptyBody]
-    public Response GetReviewsByUser(RequestContext context, GameDatabaseContext database, string username,
+    public SerializedGameReviewResponse? GetReviewsByUser(RequestContext context, GameDatabaseContext database, string username,
         DataContext dataContext)
     {
         GameUser? user = database.GetUserByUsername(username);
         
         if (user == null) 
-            return NotFound;
+            return null;
 
         (int skip, int count) =  context.GetPageData();
         
-        return new Response(new SerializedGameReviewResponse(SerializedGameReview.FromOldList(database.GetReviewsByUser(user, count, skip).Items, dataContext).ToList()), ContentType.Xml);
+        return new SerializedGameReviewResponse(SerializedGameReview.FromOldList(database.GetReviewsByUser(user, count, skip, true).Items, dataContext).ToList());
     }
 
     [GameEndpoint("postReview/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
@@ -123,6 +125,10 @@ public class ReviewEndpoints : EndpointGroup
             Labels = body.Labels,
             Content = body.Text,
         }, level);
+
+        // Add the review's level rating to the database aswell
+        if (body.Thumb is not < -1 or > 1) 
+            database.RateLevel(level, user, (RatingType)body.Thumb);
 
         return OK;
     }
