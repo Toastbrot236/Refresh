@@ -61,6 +61,9 @@ public partial class GameDatabaseContext // Leaderboard
     }
     
     public DatabaseList<GameSubmittedScore> GetTopScoresForLevel(GameLevel level, int count, int skip, byte type, bool showDuplicates = false)
+        => new(this.GetTopScoresForLevel(level, type, showDuplicates), skip, count);
+
+    public IEnumerable<GameSubmittedScore> GetTopScoresForLevel(GameLevel level, byte type, bool showDuplicates = false)
     {
         IEnumerable<GameSubmittedScore> scores = this.GameSubmittedScores
             .Where(s => s.ScoreType == type && s.Level == level)
@@ -68,12 +71,12 @@ public partial class GameDatabaseContext // Leaderboard
             .AsEnumerable();
 
         if (!showDuplicates)
-            scores = scores.DistinctBy(s => s.Players[0]);
-
-        return new DatabaseList<GameSubmittedScore>(scores, skip, count);
+            return scores.DistinctBy(s => s.Players[0]);
+        else
+            return scores;
     }
 
-    public DatabaseList<GameSubmittedScore> GetTopScoresForLevelInTime(GameLevel level, int count, int skip, byte type, DateTimeOffset startTime, DateTimeOffset endTime, bool showDuplicates = false)
+    public IEnumerable<GameSubmittedScore> GetTopScoresForLevelInTime(GameLevel level, byte type, DateTimeOffset startTime, DateTimeOffset endTime, bool showDuplicates = false)
     {
         IEnumerable<GameSubmittedScore> scores = this.GameSubmittedScores
             .Where(s => s.ScoreType == type && s.Level == level && s.ScoreSubmitted > startTime && s.ScoreSubmitted < endTime)
@@ -81,9 +84,9 @@ public partial class GameDatabaseContext // Leaderboard
             .AsEnumerable();
 
         if (!showDuplicates)
-            scores = scores.DistinctBy(s => s.Players[0]);
-
-        return new DatabaseList<GameSubmittedScore>(scores, skip, count);
+            return scores.DistinctBy(s => s.Players[0]);
+        else
+            return scores;
     }
 
     public IEnumerable<ScoreWithRank> GetRankedScoresAroundScore(GameSubmittedScore score, int count)

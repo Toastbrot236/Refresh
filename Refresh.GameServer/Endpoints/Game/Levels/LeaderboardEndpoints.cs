@@ -117,12 +117,13 @@ public class LeaderboardEndpoints : EndpointGroup
     }
 
     [GameEndpoint("topscores/{slotType}/{id}/{type}", ContentType.Xml)]
+    [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
     [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
-    public Response GetTopScoresForLevel(RequestContext context, DataContext dataContext, string slotType, int id, int type)
+    public SerializedScoreList? GetTopScoresForLevel(RequestContext context, DataContext dataContext, GameUser user, string slotType, int id, int type)
     {
         GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, id);
-        if (level == null) return NotFound;
+        if (level == null) return null;
         
         (int skip, int count) = context.GetPageData();
 
@@ -130,16 +131,16 @@ public class LeaderboardEndpoints : EndpointGroup
         IEnumerable<GameSubmittedScore> scores = type switch
         {
             // 5 and 6 only appear when requesting scores for the last day/week for a versus level in-game
-            5 => dataContext.Database.GetTopScoresForLevelInTime(level, count, skip, 7, now.AddDays(-1), now).Items,
-            6 => dataContext.Database.GetTopScoresForLevelInTime(level, count, skip, 7, now.AddDays(-7), now).Items,
-            _ => dataContext.Database.GetTopScoresForLevel(level, count, skip, (byte)type).Items,
+            5 => dataContext.Database.GetTopScoresForLevelInTime(level, 7, now.AddDays(-1), now),
+            6 => dataContext.Database.GetTopScoresForLevelInTime(level, 7, now.AddDays(-7), now),
+            _ => dataContext.Database.GetTopScoresForLevel(level, (byte)type),
         };
 
-        foreach(GameSubmittedScore score in scores)
-        {
-            dataContext.Logger.LogDebug(BunkumCategory.LevelScores, $"score: {score.ScoreType}, {score.Players[0].Username}, {score.Level.Title}");
-        }
+        int totalScoreCount = scores.Count();
+
+        GameSubmittedScore? ownScore = scores.FirstOrDefault(s => s.Players[0].UserId == user.UserId);
+        int? ownRank = ownScore == null ? null : scores.ToList().IndexOf(ownScore) + 1;
         
-        return new Response(SerializedScoreList.FromSubmittedEnumerable(scores, skip), ContentType.Xml);
+        return SerializedScoreList.FromSubmittedEnumerable(scores.Skip(skip).Take(count), skip, totalScoreCount, ownScore?.Score, ownRank);
     }
 }
