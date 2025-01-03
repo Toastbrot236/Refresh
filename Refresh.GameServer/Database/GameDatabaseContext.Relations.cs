@@ -85,12 +85,18 @@ public partial class GameDatabaseContext // Relations
     }
     
     [Pure]
-    public IEnumerable<GameUser> GetUsersFavouritedByUser(GameUser user, int count, int skip) => this.FavouriteUserRelations
-        .Where(r => r.UserFavouriting == user)
-        .AsEnumerable()
-        .Select(r => r.UserToFavourite)
-        .Skip(skip)
-        .Take(count);
+    public IEnumerable<GameUser> GetUsersFavouritedByUser(GameUser user, int count, int skip, bool sortByRecent = false) 
+    {
+        IEnumerable<GameUser> users = this.FavouriteUserRelations
+            .Where(r => r.UserFavouriting == user)
+            .AsEnumerable()
+            .Select(r => r.UserToFavourite);
+    
+        // This is the best we can currently do to sort by most recently favourited
+        if (sortByRecent) users = users.Reverse();
+
+        return users.Skip(skip).Take(count);
+    } 
     
     public int GetTotalUsersFavouritedByUser(GameUser user)
         => this.FavouriteUserRelations

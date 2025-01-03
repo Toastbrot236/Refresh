@@ -89,6 +89,40 @@ public partial class GameDatabaseContext // Leaderboard
             return scores;
     }
 
+    public IEnumerable<GameSubmittedScore> GetTopScoresForLevelByMutuals(GameUser user, GameLevel level, byte type, bool showDuplicates = false)
+    {
+        IEnumerable<GameUser> mutuals = this.GetUsersMutuals(user);
+
+        IEnumerable<GameSubmittedScore> scores = this.GameSubmittedScores
+            .Where(s => s.ScoreType == type && s.Level == level)
+            .OrderByDescending(s => s.Score)
+            .AsEnumerable()
+            // See the comment in GetLevelTopScoresByFriends below
+            .Where(s => s.Players.Any(p => p.UserId == user.UserId || mutuals.Contains(p)));
+
+        if (!showDuplicates)
+            return scores.DistinctBy(s => s.Players[0]);
+        else
+            return scores;
+    }
+
+    public IEnumerable<GameSubmittedScore> GetTopScoresForLevelByMutualsInTime(GameUser user, GameLevel level, byte type, DateTimeOffset startTime, DateTimeOffset endTime, bool showDuplicates = false)
+    {
+        IEnumerable<GameUser> mutuals = this.GetUsersMutuals(user);
+
+        IEnumerable<GameSubmittedScore> scores = this.GameSubmittedScores
+            .Where(s => s.ScoreType == type && s.Level == level && s.ScoreSubmitted > startTime && s.ScoreSubmitted < endTime)
+            .OrderByDescending(s => s.Score)
+            .AsEnumerable()
+            // See the comment in GetLevelTopScoresByFriends below
+            .Where(s => s.Players.Any(p => p.UserId == user.UserId || mutuals.Contains(p)));
+
+        if (!showDuplicates)
+            return scores.DistinctBy(s => s.Players[0]);
+        else
+            return scores;
+    }
+
     public IEnumerable<ScoreWithRank> GetRankedScoresAroundScore(GameSubmittedScore score, int count)
     {
         if (count % 2 != 1) throw new ArgumentException("The number of scores must be odd.", nameof(count));

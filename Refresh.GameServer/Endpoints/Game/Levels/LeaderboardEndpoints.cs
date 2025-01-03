@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
@@ -136,11 +135,31 @@ public class LeaderboardEndpoints : EndpointGroup
             _ => dataContext.Database.GetTopScoresForLevel(level, (byte)type),
         };
 
-        int totalScoreCount = scores.Count();
-
-        GameSubmittedScore? ownScore = scores.FirstOrDefault(s => s.Players[0].UserId == user.UserId);
-        int? ownRank = ownScore == null ? null : scores.ToList().IndexOf(ownScore) + 1;
         
-        return SerializedScoreList.FromSubmittedEnumerable(scores.Skip(skip).Take(count), skip, totalScoreCount, ownScore?.Score, ownRank);
+        return SerializedScoreList.FromSubmittedEnumerable(scores.Skip(skip).Take(count), skip);
+    }
+
+    [GameEndpoint("friendscores/{slotType}/{id}/{type}", HttpMethods.Get, ContentType.Xml)]
+    [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
+    [NullStatusCode(NotFound)]
+    public SerializedScoreList? GetTopScoresForLevelByFriends(RequestContext context, DataContext dataContext, GameUser user, string slotType, int id, int type)
+    {
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, id);
+        if (level == null) return null;
+
+        // There are no query parameters sent for this endpoint
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        IEnumerable<GameSubmittedScore> scores = type switch
+        {
+            // 5 and 6 only appear when requesting scores for the last day/week for a versus level in-game
+            5 => dataContext.Database.GetTopScoresForLevelByMutualsInTime(user, level, 7, now.AddDays(-1), now),
+            6 => dataContext.Database.GetTopScoresForLevelByMutualsInTime(user, level, 7, now.AddDays(-7), now),
+            _ => dataContext.Database.GetTopScoresForLevelByMutuals(user, level, (byte)type),
+        };
+
+        // Seems like information like the user's own score and rank don't matter for this endpoint
+
+        return SerializedScoreList.FromSubmittedEnumerable(scores, 0);
     }
 }
