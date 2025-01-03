@@ -27,6 +27,6 @@ public class FavouriteSlotsByUserCategory : LevelCategory
 
         if (user == null) return null;
         
-        return dataContext.Database.GetLevelsFavouritedByUser(user, count, skip, levelFilterSettings, dataContext.User);
+        return dataContext.Database.GetLevelsFavouritedByUser(user, count, skip, levelFilterSettings, dataContext.User, true);
     }
 }

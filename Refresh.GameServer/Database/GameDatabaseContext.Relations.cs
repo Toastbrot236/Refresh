@@ -20,14 +20,19 @@ public partial class GameDatabaseContext // Relations
         .FirstOrDefault(r => r.Level == level && r.User == user) != null;
 
     [Pure]
-    public DatabaseList<GameLevel> GetLevelsFavouritedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor) 
-        => new(this.FavouriteLevelRelations
+    public DatabaseList<GameLevel> GetLevelsFavouritedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor, bool sortByRecent = false) 
+    {
+        IEnumerable<GameLevel> levels = this.FavouriteLevelRelations
         .Where(r => r.User == user)
         .AsEnumerable()
         .Select(r => r.Level)
         .FilterByLevelFilterSettings(accessor, levelFilterSettings)
-        .FilterByGameVersion(levelFilterSettings.GameVersion)
-        .OrderByDescending(l => l.PublishDate), skip, count);
+        .FilterByGameVersion(levelFilterSettings.GameVersion);
+
+        // This is the best we can currently do to sort by most recently favourited
+        if (sortByRecent) return new(levels.Reverse(), skip, count);
+        else return new(levels, skip, count);
+    }
     
     public int GetTotalLevelsFavouritedByUser(GameUser user) 
         => this.FavouriteLevelRelations
@@ -153,14 +158,19 @@ public partial class GameDatabaseContext // Relations
         .FirstOrDefault(r => r.Level == level && r.User == user) != null;
 
     [Pure]
-    public DatabaseList<GameLevel> GetLevelsQueuedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor)
-        => new(this.QueueLevelRelations
+    public DatabaseList<GameLevel> GetLevelsQueuedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor, bool sortByRecent = false)
+    {
+        IEnumerable<GameLevel> levels = this.QueueLevelRelations
         .Where(r => r.User == user)
         .AsEnumerable()
         .Select(r => r.Level)
         .FilterByLevelFilterSettings(accessor, levelFilterSettings)
-        .FilterByGameVersion(levelFilterSettings.GameVersion)
-        .OrderByDescending(l => l.PublishDate), skip, count);
+        .FilterByGameVersion(levelFilterSettings.GameVersion);
+
+        // This is the best we can currently do to sort by most recently queued
+        if (sortByRecent) return new(levels.Reverse(), skip, count);
+        else return new(levels, skip, count);
+    }
     
     [Pure]
     public int GetTotalLevelsQueuedByUser(GameUser user) 
