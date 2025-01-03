@@ -354,10 +354,10 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
                     newLevel.IsModded = oldLevel.Modded;
                 }
 
-                // From version 164 on we track whether a level requires a motion controller to play or not
+                // From version 164 on we track whether a level requires a move controller to play or not
                 if (oldVersion < 164)
                 {
-                    newLevel.RequiresMotionController = false;
+                    newLevel.RequiresMoveController = false;
                 }
             }
 

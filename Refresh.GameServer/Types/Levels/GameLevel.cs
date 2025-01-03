@@ -85,7 +85,7 @@ public partial class GameLevel : IRealmObject, ISequentialId
     public bool IsLocked { get; set; }
     public bool IsSubLevel { get; set; }
     public bool IsCopyable { get; set; }
-    public bool RequiresMotionController { get; set; }
+    public bool RequiresMoveController { get; set; }
     
     /// <summary>
     /// The score, used for Cool Levels.
