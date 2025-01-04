@@ -109,20 +109,20 @@ public partial class GameDatabaseContext // Photos
 
     [Pure]
     public DatabaseList<GamePhoto> GetPhotosInLevel(GameLevel level, int count, int skip) =>
-        new(this.GamePhotos.Where(p => p.LevelId == level.LevelId), skip, count);
+        new(this.GamePhotos.Where(p => p.Level == level), skip, count);
     
     [Pure]
     public int GetTotalPhotosInLevel(GameLevel level)
-        => this.GamePhotos.Count(p => p.LevelId == level.LevelId);
+        => this.GamePhotos.Count(p => p.Level == level);
 
     [Pure]
     public DatabaseList<GamePhoto> GetPhotosInLevelByUser(GameLevel level, GameUser user, int count, int skip)
-        => new(this.GamePhotos.Where(p => p.LevelId == level.LevelId && p.Publisher == user)
+        => new(this.GamePhotos.Where(p => p.Level == level && p.Publisher == user)
             .OrderByDescending(p => p.TakenAt), skip, count);
     
     [Pure]
     public int GetTotalPhotosInLevelByUser(GameLevel level, GameUser user)
-        => this.GamePhotos.Count(p => p.LevelId == level.LevelId && p.Publisher == user);
+        => this.GamePhotos.Count(p => p.Level == level && p.Publisher == user);
     
     public void DeletePhotosPostedByUser(GameUser user)
     {
