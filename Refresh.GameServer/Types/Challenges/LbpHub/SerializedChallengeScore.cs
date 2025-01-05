@@ -1,8 +1,6 @@
 using System.Xml.Serialization;
 using Refresh.Common.Constants;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes;
-using Refresh.GameServer.Types.Assets;
-using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Data;
 
 namespace Refresh.GameServer.Types.Challenges.LbpHub;
@@ -24,7 +22,7 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
 
         return new SerializedChallengeScore
         {
-            GhostHash = old.GhostHash,
+            GhostHash = old.GhostHash ?? "",
             Score = fakeScore ? 0 : old.Score,
             PublisherName = old.Publisher.Username,
             Rank = rank,

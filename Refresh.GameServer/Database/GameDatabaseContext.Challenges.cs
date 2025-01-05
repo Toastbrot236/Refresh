@@ -111,7 +111,7 @@ public partial class GameDatabaseContext // Challenges
 
     #region Score
 
-    public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user)
+    public GameChallengeScore CreateChallengeScore(SerializedChallengeAttempt attempt, GameChallenge challenge, GameUser user, int ghostFramesCount)
     {
         DateTimeOffset now = this._time.Now;
 
@@ -153,6 +153,7 @@ public partial class GameDatabaseContext // Challenges
             Publisher = user,
             Score = attempt.Score,
             GhostHash = newPersonalBest ? attempt.GhostHash : null,
+            GhostFramesCount = ghostFramesCount,
             PublishDate = now,
         };
 

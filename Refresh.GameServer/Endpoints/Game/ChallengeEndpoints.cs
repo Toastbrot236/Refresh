@@ -1,3 +1,4 @@
+using System.Text;
 using System.Xml.Serialization;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
@@ -6,7 +7,6 @@ using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.GameServer.Types.Assets;
 using Refresh.GameServer.Types.Challenges.LbpHub;
-using Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
@@ -154,78 +154,116 @@ public class ChallengeEndpoints : EndpointGroup
             return BadRequest;
         }
 
-        // Verify and potentially fixup score and its ghost asset.
-        // At this point we have already made sure that ghostAsset is a ChallengeGhost and belongs to body
-        SerializedChallengeAttempt? score = this.FixupScoreAndGhost(body, ghostAsset, dataContext);
-        if (score == null) 
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"before GetGhostAssetContent");
+
+        // Get the content of this score's ghost asset as a string
+        string? ghostBodyString = this.GetGhostAssetContent(body, dataContext);
+        
+        // There is no way to catch all kinds of corruptions possible by LBP hub, neither is there a reliable way to correct corrupt ghost data either, 
+        // so just try to catch a few easy and fortunately more common cases and reject the score if any of those cases are true.
+        SerializedChallengeGhost? serializedGhost = this.IsGhostDataValid(ghostBodyString, isFirstScore, challenge, dataContext);
+        if (serializedGhost == null)
         {
             dataContext.Database.AddErrorNotification(
                 "Challenge Score upload failed", 
                 $"Your score submission for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
-                +"could not be uploaded because your score's ghost data was corrupt and could not be fixed.",
+                +"could not be uploaded because your score's ghost data was corrupt."
+                +"This happens sometimes. Try to submit another score!",
                 user
             );
+            dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Ghost data not valid");
             return BadRequest;
         }
-            
 
+        // Count the ghost frames
+        int ghostFramesCount = serializedGhost.Frames.Count;
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghost frames: {ghostFramesCount}");
+        
         // Create score
-        dataContext.Database.CreateChallengeScore(body, challenge, user);
-        return OK;
+        dataContext.Database.CreateChallengeScore(body, challenge, user, ghostFramesCount);
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"score created");
+
+        // return the newly created score (not body)
+        GameChallengeScore? newScore = dataContext.Database.GetHighScoreForChallengeByUser(challenge, user);
+        return new Response(SerializedChallengeScore.FromOld(newScore), ContentType.Xml);
     }
 
-    /// <summary>
-    /// Tries to verify and, if needed and possible, to fix the score attempt given and its ghost data. If the ghost data is corrupt
-    /// and it cannot be fixed, null is returned. The given ghost asset must be the one belonging to the given score attempt.
-    /// </summary>
-    private SerializedChallengeAttempt? FixupScoreAndGhost(SerializedChallengeAttempt score, GameAsset ghostAsset, DataContext dataContext)
+    private string? GetGhostAssetContent(SerializedChallengeAttempt attempt, DataContext dataContext)
     {
-        // Get the content of the ghost asset and convert it to a string
-        byte[] ghostDataBytes = dataContext.DataStore.GetDataFromStore(ghostAsset.AssetHash);
-        string ghostData = "";
+        // At this point we already know the hash sent in the SerializedChallengeAttempt refers to an existing ghost asset
+        if (!dataContext.DataStore.TryGetDataFromStore(attempt.GhostHash!, out byte[]? ghostDataBytes) || ghostDataBytes == null)
+            return null;
 
-        foreach(byte ghostDataByte in ghostDataBytes)
-        {
-            ghostData += (char)ghostDataByte;
-        }
+        // Convert the contents of the ghost data into a string
+        string ghostBodyString = Encoding.ASCII.GetString(ghostDataBytes, 0, ghostDataBytes.Length);
         
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Ghost asset content: {ghostData}");
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Ghost asset content (GetGhostAssetContent): {ghostBodyString}");
+        return ghostBodyString;
+    }
 
-        // Remove all metric XML elements and try to parse them manually, since they usually contain multiple attributes called "id",
-        // which the deserializer doesnt seem to like at all
-        string[] metricSubStrings = ghostData.Split("<metric");
-        ghostData = metricSubStrings[0];
+    private SerializedChallengeGhost? IsGhostDataValid(string? ghostBodyString, bool isFirstScore, GameChallenge challenge, DataContext dataContext)
+    {
+        if (ghostBodyString == null)
+            return null;
+
+        // Remove all duplicate "id" XML attributes in "metric" XML elements manually so we could deserialize with XmlSerializer
+        string[] metricSubStrings = ghostBodyString.Split("<metric");
+        string newGhostBodyString = metricSubStrings[0];
 
         // Start from second substring, since the first one is the one before the opening tag for the first occuring metric XML element
-        // and already added to ghostDataWithFixedMetrics
         for(int i = 1; i < metricSubStrings.Length; i++)
         {
             string substring = metricSubStrings[i];
             string[] idSubStrings = substring.Split(" id=");
 
-            // usually all "id" XML attributes are set to the same value
-            ghostData += "<metric id=" + idSubStrings.Last();
+            // usually all "id" XML attributes are set to the same value, so just take the value of the last attribute
+            newGhostBodyString += "<metric id=" + idSubStrings.Last();
         }
-        
-        // try to deserialize only the checkpoints in the ghost data incase there is nothing to fix, to be more efficient
+
+        // Deserialize
+        SerializedChallengeGhost? serializedGhost = null;
         try
         {
-            XmlSerializer ghostCheckpointsSerializer = new(typeof(SerializedChallengeGhostCheckpoints));
+            XmlSerializer ghostSerializer = new(typeof(SerializedChallengeGhost));
             dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostSerializer initialized");
-            if (ghostCheckpointsSerializer.Deserialize(new StringReader(ghostData)) is not SerializedChallengeGhostCheckpoints serializedGhost)
+            dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Ghost asset content (IsGhostDataValid): ");
+            if (ghostSerializer.Deserialize(new StringReader(newGhostBodyString)) is not SerializedChallengeGhost data)
             {
                 dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData not ghost");
                 return null;
             }
+            serializedGhost ??= data;
         }
         catch
         {
             dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData caught");
             return null;
         }
-        
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"ghostData start: {ghostData}");
-        return score;
+
+        if (serializedGhost == null)
+        {
+            dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"serializedGhost not set");
+            return null;
+        }
+
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"serializedGhost deserialized and set");
+
+        if (serializedGhost.Checkpoints.Count < 1)
+            return null;
+
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"Es ist checkpoints im haus, checkpoints: {serializedGhost.Checkpoints.Count}");
+
+        // Normally the game already takes care of ordering the checkpoints by time, but to make sure order them ourselves aswell
+        IEnumerable<SerializedChallengeCheckpoint> checkpoints = serializedGhost.Checkpoints.OrderBy(c => c.Time);
+        if (checkpoints.First().Uid != challenge.StartCheckpointUid || checkpoints.Last().Uid != challenge.EndCheckpointUid)
+            return null;
+
+        // The end checkpoint cant appear more than once in a score which isnt the first score
+        if (isFirstScore && checkpoints.Count(c => c.Uid == challenge.EndCheckpointUid) > 1)
+            return null;
+
+        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"first and last cp are correct, ghost data valid");
+        return serializedGhost;
     }
 
     /// <summary>
@@ -252,7 +290,7 @@ public class ChallengeEndpoints : EndpointGroup
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(Unauthorized)]
+    [NullStatusCode(NotFound)]
     public SerializedChallengeScore? GetUsersHighScoreForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username) 
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
@@ -349,7 +387,7 @@ public class ChallengeEndpoints : EndpointGroup
 
     #endregion
 
-    #region Developer Challenge Scores
+    #region Story Challenges
 
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]

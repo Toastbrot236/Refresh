@@ -1,20 +1,11 @@
 using System.Xml.Serialization;
 
-namespace Refresh.GameServer.Types.Challenges.LbpHub.Ghost;
-
-// There are two classes for what could have easily been one class for optimization reasons,
-// see Refresh.GameServer.Endpoints.Game.FixupScoreAndGhost
+namespace Refresh.GameServer.Types.Challenges.LbpHub;
 
 [XmlRoot("ghost")]
 [XmlType("ghost")]
-public class SerializedChallengeGhostCheckpoints
+public class SerializedChallengeGhost
 {
-    [XmlArray("checkpoint")] public List<SerializedChallengeCheckpoint> Checkpoints { get; set; } = [];
-}
-
-[XmlRoot("ghost")]
-[XmlType("ghost")]
-public class SerializedChallengeGhostFrames
-{
-    [XmlArray("ghost_frame")] public List<SerializedChallengeGhostFrame> Frames { get; set; } = [];
+    [XmlElement("checkpoint")] public List<SerializedChallengeCheckpoint> Checkpoints { get; set; } = [];
+    [XmlElement("ghost_frame")] public List<SerializedChallengeGhostFrame> Frames { get; set; } = [];
 }

@@ -20,6 +20,12 @@ public partial class GameChallengeScore : IRealmObject, ISequentialId
     /// The hash referring to the ghost data for this score.
     /// </summary>
     public string? GhostHash { get; set; }
+
+    /// <summary>
+    /// The number of ghost frame elements in this score's ghost asset.
+    /// Useful for getting this score's time for challenges which are not time challenges.
+    /// </summary>
+    public int GhostFramesCount { get; set; }
     public DateTimeOffset PublishDate { get; set; }
 
     public int SequentialId

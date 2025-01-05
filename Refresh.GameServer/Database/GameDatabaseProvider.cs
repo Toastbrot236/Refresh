@@ -35,7 +35,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         this._time = time;
     }
 
-    protected override ulong SchemaVersion => 164;
+    protected override ulong SchemaVersion => 165;
 
     protected override string Filename => "refreshGameServer.realm";
     
@@ -708,6 +708,24 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         //     {
         //         dynamic oldSubPlaylistRelation = oldSubPlaylistRelations.ElementAt(i);
         //         SubPlaylistRelation newSubPlaylistRelation = newSubPlaylistRelations.ElementAt(i);
+        //     }
+
+        // IQueryable<dynamic>? oldGameChallenges = migration.OldRealm.DynamicApi.All("GameChallenge");
+        // IQueryable<GameChallenge>? newGameChallenges = migration.NewRealm.All<GameChallenge>();
+        // if (oldVersion < 165)
+        //     for (int i = 0; i < newGameChallenges.Count(); i++)
+        //     {
+        //         dynamic oldGameChallenge = oldGameChallenge.ElementAt(i);
+        //         GameChallenge newGameChallenge = newGameChallenge.ElementAt(i);
+        //     }
+
+        // IQueryable<dynamic>? oldGameChallengeScores = migration.OldRealm.DynamicApi.All("GameChallengeScore");
+        // IQueryable<GameChallengeScore>? newGameChallengeScores = migration.NewRealm.All<GameChallengeScore>();
+        // if (oldVersion < 165)
+        //     for (int i = 0; i < newGameChallengeScores.Count(); i++)
+        //     {
+        //         dynamic oldGameChallengeScore = oldGameChallengeScores.ElementAt(i);
+        //         GameChallengeScore newGameChallengeScore = newGameChallengeScores.ElementAt(i);
         //     }
     }
 }
