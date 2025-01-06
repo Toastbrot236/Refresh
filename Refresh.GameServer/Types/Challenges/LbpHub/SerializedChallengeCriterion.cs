@@ -11,7 +11,7 @@ public class SerializedChallengeCriterion : IDataConvertableFrom<SerializedChall
     [XmlAttribute("name")] public byte Type { get; set; } = 0;
 
     /// <summary>
-    /// Appears to always be 0 when sent by the game
+    /// Appears to always be 0 when sent by the game, therefore we don't need to save it.
     /// </summary>
     [XmlText] public long Value { get; set; }
 

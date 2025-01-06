@@ -15,7 +15,7 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
     public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)
         => FromOld(old);
 
-    public static SerializedChallengeScore? FromOld(GameChallengeScore? old, int rank = 1, bool fakeScore = false)
+    public static SerializedChallengeScore? FromOld(GameChallengeScore? old, int rank = 0)
     {
         if (old == null)
             return null;
@@ -23,7 +23,7 @@ public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvert
         return new SerializedChallengeScore
         {
             GhostHash = old.GhostHash ?? "",
-            Score = fakeScore ? 0 : old.Score,
+            Score = old.Score,
             PublisherName = old.Publisher.Username,
             Rank = rank,
         };

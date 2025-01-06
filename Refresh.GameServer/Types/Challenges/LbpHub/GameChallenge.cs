@@ -31,7 +31,6 @@ public partial class GameChallenge : IRealmObject, ISequentialId
         get => (GameChallengeType)this._Type;
         set => this._Type = (byte)value;
     }
-    
     public byte _Type { get; set; }
     public DateTimeOffset PublishDate { get; set; }
     public DateTimeOffset LastUpdateDate { get; set; }
