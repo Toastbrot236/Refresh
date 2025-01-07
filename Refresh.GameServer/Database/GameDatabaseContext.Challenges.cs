@@ -112,7 +112,7 @@ public partial class GameDatabaseContext // Challenges
         // Skip this step if there is no first score (and therefore no scores at all) for this challenge yet.
         if (firstScore != null)
         {
-            // Get all scores for this challenge by the user whose GhostHash are not null
+            // Get all scores for this challenge by the user whose ghost hashes are not null
             IEnumerable<GameChallengeScore> otherScores = 
                 this.GameChallengeScores.Where(s => s.Challenge == challenge && s.Publisher == user && s.GhostHash != null);
 
@@ -131,6 +131,8 @@ public partial class GameDatabaseContext // Challenges
                     if (otherScore.Equals(firstScore))
                         continue;
 
+                    // Since the current score is lower than the new score and also not the first score,
+                    // set its ghost hash to null since it is not needed anymore
                     otherScore.GhostHash = null;
                 }
             });
@@ -318,5 +320,4 @@ public partial class GameDatabaseContext // Challenges
     }
 
     #endregion
-
 }

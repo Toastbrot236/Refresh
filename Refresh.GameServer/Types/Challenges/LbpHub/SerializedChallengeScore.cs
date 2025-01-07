@@ -10,6 +10,10 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvertableFrom<SerializedChallengeScore, GameChallengeScore>
 {
     [XmlElement("player")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
+
+    /// <summary>
+    /// This score's rank in the challenge's leaderboard
+    /// </summary>
     [XmlElement("rank")] public int Rank { get; set; }
 
     public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)

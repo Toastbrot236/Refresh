@@ -19,7 +19,7 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     public int StartCheckpointUid { get; set; }
 
     /// <summary>
-    /// The Uid of the checkpoint this challenge finishes on.
+    /// The Uid of the checkpoint this challenge ends on.
     /// </summary>
     public int EndCheckpointUid { get; set; }
 
@@ -32,7 +32,11 @@ public partial class GameChallenge : IRealmObject, ISequentialId
         set => this._Type = (byte)value;
     }
     public byte _Type { get; set; }
+
     public DateTimeOffset PublishDate { get; set; }
+
+    // TODO: This could store the last time this challenge's metadata was edited through ApiV3 in the future,
+    // such as changing the name or extending the expiration date. Right now this is only being set to the publish date.
     public DateTimeOffset LastUpdateDate { get; set; }
     public DateTimeOffset ExpirationDate { get; set; }
 

@@ -20,7 +20,7 @@ public class ChallengeEndpoints : EndpointGroup
     #region Challenges
 
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
-    [MinimumRole(GameUserRole.Restricted)]
+    [RequireEmailVerified]
     [NullStatusCode(NotFound)]
     public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body)
     {
@@ -119,7 +119,7 @@ public class ChallengeEndpoints : EndpointGroup
     /// Usually this endpoint only gets called after the game is done uploading the ChallengeGhost asset for this score.
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
-    [MinimumRole(GameUserRole.Restricted)]
+    [RequireEmailVerified]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user, SerializedChallengeAttempt body, int challengeId)
     {
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
@@ -158,17 +158,16 @@ public class ChallengeEndpoints : EndpointGroup
             return BadRequest;
         }
 
-        // Get the content of this score's ghost asset as a string
-        string? ghostContentString = this.GetGhostAssetContent(body, dataContext);
+        // Get the content of this score's ghost asset and deserialize it
+        string? ghostContentString = SerializedChallengeGhost.GetGhostAssetContent(body.GhostHash, dataContext.DataStore);
+        SerializedChallengeGhost? serializedGhost = SerializedChallengeGhost.ToSerializedChallengeGhost(ghostContentString);
         
-        // There is no way to catch all kinds of corruptions possible by LBP hub, neither is there a reliable way to correct corrupt ghost data either, 
-        // so just try to catch a few easy and fortunately more common cases and reject the score if any of those cases are true.
-        SerializedChallengeGhost? serializedGhost = this.IsGhostDataValid(ghostContentString, isFirstScore, challenge, dataContext);
-        if (serializedGhost == null)
+        // If the ghost asset for this score is invalid, reject the score
+        if (!SerializedChallengeGhost.IsGhostDataValid(serializedGhost, isFirstScore, challenge))
         {
             dataContext.Database.AddErrorNotification(
                 "Challenge Score upload failed", 
-                $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                $"Your score for challenge <em>'{challenge.Name}'</em> in level <slot type=\"{challenge.Level.SlotType.ToGameType()}\" id=\"{challenge.Level.LevelId}\" icon=\"{challenge.Level.IconHash}\">{challenge.Level.Title}</slot> "
                 +"couldn't be uploaded because it's ghost data was corrupt. "
                 +"Try to submit another score!",
                 user
@@ -178,75 +177,8 @@ public class ChallengeEndpoints : EndpointGroup
         }
 
         // Create the score
-        dataContext.Database.CreateChallengeScore(body, challenge, user, serializedGhost.Frames.Count);
+        dataContext.Database.CreateChallengeScore(body, challenge, user, serializedGhost!.Frames.Count);
         return OK;
-    }
-
-    private string? GetGhostAssetContent(SerializedChallengeAttempt attempt, DataContext dataContext)
-    {
-        // At this point we already know the hash sent in the SerializedChallengeAttempt refers to an existing ghost asset.
-        // If reading from the ghost asset fails, return
-        if (!dataContext.DataStore.TryGetDataFromStore(attempt.GhostHash, out byte[]? ghostContentBytes) || ghostContentBytes == null)
-            return null;
-
-        // Convert the contents of the ghost asset into a string
-        return Encoding.ASCII.GetString(ghostContentBytes);
-    }
-
-    private SerializedChallengeGhost? IsGhostDataValid(string? ghostContentString, bool isFirstScore, GameChallenge challenge, DataContext dataContext)
-    {
-        if (ghostContentString == null)
-            return null;
-
-        // Remove all duplicate "id" XML attributes in "metric" XML elements manually to keep the XmlSerializer happy
-        string[] metricSubstrings = ghostContentString.Split("<metric");
-        string fixedGhostContentString = metricSubstrings[0];
-
-        // Start iterating from second substring, since the first one is the one before the opening tag for the first occuring metric element
-        for(int i = 1; i < metricSubstrings.Length; i++)
-        {
-            string substring = metricSubstrings[i];
-            string[] idSubstrings = substring.Split(" id=");
-
-            // Usually all "id" XML attributes are set to the same value, so just take the value of the last attribute.
-            // Also we don't even need the metrics for validation.
-            fixedGhostContentString += "<metric id=" + idSubstrings.Last();
-        }
-
-        // Try to deserialize the ghost asset
-        SerializedChallengeGhost? serializedGhost = null;
-        try
-        {
-            XmlSerializer ghostSerializer = new(typeof(SerializedChallengeGhost));
-            if (ghostSerializer.Deserialize(new StringReader(fixedGhostContentString)) is not SerializedChallengeGhost output)
-                return null;
-
-            serializedGhost ??= output;
-        }
-        catch
-        {
-            return null;
-        }
-
-        // If serializedGhost is still null for some reason or there are no checkpoints at all in it, return
-        if (serializedGhost == null || serializedGhost.Checkpoints.Count < 1)
-            return null;
-
-        // Normally the game already takes care of ordering the checkpoints by time, but just in case
-        IEnumerable<SerializedChallengeCheckpoint> checkpoints = serializedGhost.Checkpoints.OrderBy(c => c.Time);
-
-        // The first checkpoint must be the start checkpoint of the challenge and the last checkpoint must be the end checkpoint,
-        // otherwise the score is not valid
-        if (checkpoints.First().Uid != challenge.StartCheckpointUid || checkpoints.Last().Uid != challenge.EndCheckpointUid)
-            return null;
-
-        // The end checkpoint cant appear more than once in a score which is not the first score, 
-        // because the game immediately ends the challenge you are playing when you reach it
-        if (isFirstScore && checkpoints.Count(c => c.Uid == challenge.EndCheckpointUid) > 1)
-            return null;
-
-        // Checks successful, ghost is valid
-        return serializedGhost;
     }
 
     /// <summary>
@@ -283,11 +215,9 @@ public class ChallengeEndpoints : EndpointGroup
         GameUser? requestedUser = dataContext.Database.GetUserByUsername(username);
         if (requestedUser == null) return null;
 
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"beginning");
         // If there is no first score for this challenge, there are no scores at all. Return NotFound.
         GameChallengeScore? firstScore = dataContext.Database.GetFirstScoreForChallenge(challenge);
         if (firstScore == null) return null;
-        dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"first score found");
 
         // If the requesting user hasnt cleared the challenge yet and the requested user is the first score's uploader,
         // return the first score, else the requested user's high score
@@ -321,7 +251,6 @@ public class ChallengeEndpoints : EndpointGroup
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard//contextual" /*typo is intentional*/, HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [NullStatusCode(NotImplemented)]
     public Response GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId) 
         => OK;
 
@@ -352,11 +281,13 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Story Challenges
 
+    // TODO: Implement story challenges
+    
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotImplemented)]
-    public SerializedChallengeScoreList? GetDeveloperChallengeScores(RequestContext context, DataContext dataContext)
+    public Response GetDeveloperChallengeScores(RequestContext context, DataContext dataContext)
     {
         /*
         string[]? challengeIdStrings = context.QueryString.GetValues("ids");
@@ -376,17 +307,14 @@ public class ChallengeEndpoints : EndpointGroup
         return challenges;
         */
 
-        return null;
+        return NotImplemented;
     }
 
     // developer-challenges/3/scores
-    [GameEndpoint("developer-challenges/{challengeId}/scores", HttpMethods.Get, ContentType.Xml)]
-    [MinimumRole(GameUserRole.Restricted)]
+    [GameEndpoint("developer-challenges/{challengeId}/scores", HttpMethods.Post, ContentType.Xml)]
+    [RequireEmailVerified]
     public Response SubmitDeveloperChallengeScore(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string body)
-    {
-        //dataContext.Logger.LogDebug(BunkumCategory.UserContent, $"SubmitDeveloperChallengeScore body: {body}");
-        return NotImplemented;
-    }
+        => NotImplemented;
 
     #endregion
 }

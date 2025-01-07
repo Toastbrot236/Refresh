@@ -12,19 +12,30 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, GameChallenge>
 {
     [XmlElement("id")] public int ChallengeId { get; set; }
-    [XmlElement("name")] public string Name { get; set; } = string.Empty;
+    [XmlElement("name")] public string Name { get; set; }
+
+    /// <summary>
+    /// This challenge's level's type (developer/user) and id (or story id if it is a developer level).
+    /// </summary>
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
+
+    /// <summary>
+    /// The user uploading this challenge.
+    /// </summary>
     [XmlElement("author")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
 
     /// <summary>
-    /// Always 0 when challenge is first uploaded by LBP hub, doesn't appear to affect anything if filled out.
+    /// Always 0 when challenge is first uploaded by LBP hub, doesn't appear to affect anything if set to not 0 in the response.
     /// </summary>
     [XmlElement("score")] public long Score { get; set; }
 
+    /// <summary>
+    /// The Uid of the checkpoint this challenge starts on.
+    /// </summary>
     [XmlElement("start-checkpoint")] public int StartCheckpointUid { get; set; }
 
     /// <summary>
-    /// The Uid of the checkpoint this challenge finishes on.
+    /// The Uid of the checkpoint this challenge ends on.
     /// </summary>
     [XmlElement("end-checkpoint")] public int EndCheckpointUid { get; set; }
 
