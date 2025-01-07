@@ -138,9 +138,9 @@ public class ChallengeEndpoints : EndpointGroup
             {
                 dataContext.Database.AddErrorNotification(
                     "Challenge Score upload failed", 
-                    $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                    $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title}' "
                     +"couldn't be uploaded because it's ghost data was missing. "
-                    +"Whoever uploads a valid score first will have it set as the first score to beat",
+                    +"Whoever uploads a valid score first will have it set as the first score to beat.",
                     user
                 );
             }
@@ -148,7 +148,7 @@ public class ChallengeEndpoints : EndpointGroup
             {
                 dataContext.Database.AddErrorNotification(
                     "Challenge Score upload failed", 
-                    $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title} "
+                    $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title}' "
                     +"couldn't be uploaded because it's ghost data was missing.",
                     user
                 );
@@ -167,7 +167,7 @@ public class ChallengeEndpoints : EndpointGroup
         {
             dataContext.Database.AddErrorNotification(
                 "Challenge Score upload failed", 
-                $"Your score for challenge <em>'{challenge.Name}'</em> in level <slot type=\"{challenge.Level.SlotType.ToGameType()}\" id=\"{challenge.Level.LevelId}\" icon=\"{challenge.Level.IconHash}\">{challenge.Level.Title}</slot> "
+                $"Your score for challenge '{challenge.Name}' in level '{challenge.Level.Title}' "
                 +"couldn't be uploaded because it's ghost data was corrupt. "
                 +"Try to submit another score!",
                 user
@@ -282,7 +282,7 @@ public class ChallengeEndpoints : EndpointGroup
     #region Story Challenges
 
     // TODO: Implement story challenges
-    
+
     // developer-challenges/scores?ids=1&ids=2&ids=3&ids=4
     [GameEndpoint("developer-challenges/scores", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
