@@ -13,44 +13,37 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
 {
     [XmlElement("id")] public int ChallengeId { get; set; }
     [XmlElement("name")] public string Name { get; set; }
-
     /// <summary>
     /// This challenge's level's type (developer/user) and id (or story id if it is a developer level).
     /// </summary>
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
-
-    /// <summary>
-    /// The user uploading this challenge.
-    /// </summary>
     [XmlElement("author")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
-
     /// <summary>
     /// Always 0 when challenge is first uploaded by LBP hub, doesn't appear to affect anything if set to not 0 in the response.
     /// </summary>
     [XmlElement("score")] public long Score { get; set; }
-
     /// <summary>
     /// The Uid of the checkpoint this challenge starts on.
     /// </summary>
     [XmlElement("start-checkpoint")] public int StartCheckpointUid { get; set; }
-
     /// <summary>
-    /// The Uid of the checkpoint this challenge ends on.
+    /// The Uid of the checkpoint this challenge finishes on.
     /// </summary>
-    [XmlElement("end-checkpoint")] public int EndCheckpointUid { get; set; }
-
+    [XmlElement("end-checkpoint")] public int FinishCheckpointUid { get; set; }
     /// <summary>
-    /// Sent by the game as time in days, which is always 0 here.
+    /// Sent by the game as time in days, which is always 0.
+    /// </summary>
+    /// <remarks>
     /// But for the response we have to send the actual milliseconds of the creation date, else lbp hub will crash.
-    /// </summary>
-    [XmlElement("published")] public long Published { get; set; }
-
+    /// </remarks>
+    [XmlElement("published")] public long PublishedAt { get; set; }
     /// <summary>
     /// Sent by the game as time in days, which is usually 3, 5 or 7 here, as those are the only selectable options ingame.
-    /// But for the response we have to send the actual milliseconds of the expiration date, else lbp hub will crash.
     /// </summary>
-    [XmlElement("expires")] public long Expires { get; set; }
-
+    /// <remarks>
+    /// But for the response we have to send the actual milliseconds of the expiration date, else lbp hub will crash.
+    /// </remarks>
+    [XmlElement("expires")] public long ExpiresAt { get; set; }
     /// <summary>
     /// An array of criteria of a challenge. Appears to only ever have a single criterion.
     /// </summary>
@@ -70,14 +63,14 @@ public class SerializedChallenge : IDataConvertableFrom<SerializedChallenge, Gam
             {
                 LevelId = old.Level.SlotType == GameSlotType.Story ? old.Level.StoryId : old.Level.LevelId,
                 Type = old.Level.SlotType.ToGameType(),
-                Title = old.Level.Title,  // does nothing if filled out
+                Title = old.Level.Title,  // achieves nothing if filled out
             },
             PublisherName = old.Publisher.Username,
             Score = 0,
             StartCheckpointUid = old.StartCheckpointUid,
-            EndCheckpointUid = old.EndCheckpointUid,
-            Published = old.PublishDate.ToUnixTimeMilliseconds(),
-            Expires = old.ExpirationDate.ToUnixTimeMilliseconds(),
+            FinishCheckpointUid = old.FinishCheckpointUid,
+            PublishedAt = old.PublishDate.ToUnixTimeMilliseconds(),
+            ExpiresAt = old.ExpirationDate.ToUnixTimeMilliseconds(),
             Criteria =
             [
                 new()

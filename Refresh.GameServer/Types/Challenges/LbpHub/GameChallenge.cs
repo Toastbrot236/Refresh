@@ -12,17 +12,14 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     public string Name { get; set; } = "Unnamed Challenge";
     public GameUser Publisher { get; set; }
     public GameLevel Level { get; set; }
-
     /// <summary>
     /// The Uid of the checkpoint this challenge starts on.
     /// </summary>
     public int StartCheckpointUid { get; set; }
-
     /// <summary>
-    /// The Uid of the checkpoint this challenge ends on.
+    /// The Uid of the checkpoint this challenge finishes on.
     /// </summary>
-    public int EndCheckpointUid { get; set; }
-
+    public int FinishCheckpointUid { get; set; }
     /// <summary>
     /// Whether this is a score/time/lives etc challenge.
     /// </summary>
@@ -34,9 +31,6 @@ public partial class GameChallenge : IRealmObject, ISequentialId
     public byte _Type { get; set; }
 
     public DateTimeOffset PublishDate { get; set; }
-
-    // TODO: This could store the last time this challenge's metadata was edited through ApiV3 in the future,
-    // such as changing the name or extending the expiration date. Right now this is only being set to the publish date.
     public DateTimeOffset LastUpdateDate { get; set; }
     public DateTimeOffset ExpirationDate { get; set; }
 

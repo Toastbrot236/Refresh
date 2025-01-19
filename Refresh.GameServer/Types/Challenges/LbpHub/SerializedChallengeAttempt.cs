@@ -10,6 +10,9 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 [XmlType("challenge-attempt")]
 public class SerializedChallengeAttempt
 {
+    /// <summary>
+    /// The publisher's achieved raw score. More always means better here, independent of challenge type.
+    /// </summary>
     [XmlElement("score")] public long Score { get; set; }
     [XmlElement("ghost")] public string GhostHash { get; set; } = "";
 }

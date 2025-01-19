@@ -8,13 +8,12 @@ namespace Refresh.GameServer.Types.Challenges.LbpHub;
 [XmlRoot("challenge-score")]
 [XmlType("challenge-score")]
 public class SerializedChallengeScore : SerializedChallengeAttempt, IDataConvertableFrom<SerializedChallengeScore, GameChallengeScore>
-{
-    [XmlElement("player")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
-
+{   
     /// <summary>
     /// This score's rank in the challenge's leaderboard
     /// </summary>
     [XmlElement("rank")] public int Rank { get; set; }
+    [XmlElement("player")] public string PublisherName { get; set; } = SystemUsers.UnknownUserName;
 
     public static SerializedChallengeScore? FromOld(GameChallengeScore? old, DataContext dataContext)
         => FromOld(old);
