@@ -59,7 +59,8 @@ public class ChallengeEndpoints : EndpointGroup
         if (user == null) return null;
 
         string? status = context.QueryString.Get("status");
-        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, status);
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallengesByUser(user, status)
+            .OrderByDescending(c => c.ExpirationDate);
         
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
@@ -82,9 +83,11 @@ public class ChallengeEndpoints : EndpointGroup
 
         IEnumerable<GameChallenge> challenges;
         if (user == null)
-            challenges = dataContext.Database.GetChallenges(status);
+            challenges = dataContext.Database.GetChallenges(status)
+                .OrderByDescending(c => c.ExpirationDate);
         else
-            challenges = dataContext.Database.GetChallengesNotByUser(user, status);
+            challenges = dataContext.Database.GetChallengesNotByUser(user, status)
+                .OrderByDescending(c => c.ExpirationDate);
 
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
@@ -103,7 +106,8 @@ public class ChallengeEndpoints : EndpointGroup
         // ignore username, since we're returning all challenges with the specified status for this
 
         string? status = context.QueryString.Get("status");
-        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallenges(status);
+        IEnumerable<GameChallenge> challenges = dataContext.Database.GetChallenges(status)
+            .OrderByDescending(c => c.ExpirationDate);;
 
         return new SerializedChallengeList(SerializedChallenge.FromOldList(challenges, dataContext).ToList());
     }
@@ -264,7 +268,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallengeScoreWithRank? newestScore = dataContext.Database.GetRankedHighScoreByUserForChallenge(challenge, user);
         if (newestScore == null) return null;
 
-        IEnumerable<GameChallengeScoreWithRank> rankedScores = dataContext.Database.GetRankedHighScoresAroundChallengeScore(newestScore.score, 3);
+        IEnumerable<GameChallengeScoreWithRank> rankedScores = dataContext.Database.GetRankedScoresAroundChallengeScore(newestScore.score, 3);
         return new SerializedChallengeScoreList(SerializedChallengeScore.FromOldList(rankedScores));
     } 
 
