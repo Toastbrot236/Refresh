@@ -191,21 +191,33 @@ public partial class GameDatabaseContext // Levels
     {
         if (user.Username == SystemUsers.DeletedUserName)
         {
-            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion).FilterByLevelFilterSettings(accessor, levelFilterSettings).Where(l => l.Publisher == null), skip, count);
+            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+                .FilterByLevelFilterSettings(accessor, levelFilterSettings)
+                .Where(l => l.Publisher == null)
+                .OrderByDescending(l => l.UpdateDate), skip, count);
         }
 
         if (user.Username == SystemUsers.UnknownUserName)
         {
-            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion).FilterByLevelFilterSettings(null, levelFilterSettings).Where(l => l.IsReUpload && string.IsNullOrEmpty(l.OriginalPublisher)), skip, count);
+            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+                .FilterByLevelFilterSettings(null, levelFilterSettings)
+                .Where(l => l.IsReUpload && string.IsNullOrEmpty(l.OriginalPublisher))
+                .OrderByDescending(l => l.UpdateDate), skip, count);
         }
         
         if (user.Username.StartsWith(SystemUsers.SystemPrefix))
         {
             string withoutPrefix = user.Username[1..];
-            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion).FilterByLevelFilterSettings(accessor, levelFilterSettings).Where(l => l.OriginalPublisher == withoutPrefix), skip, count);
+            return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+                .FilterByLevelFilterSettings(accessor, levelFilterSettings)
+                .Where(l => l.OriginalPublisher == withoutPrefix)
+                .OrderByDescending(l => l.UpdateDate), skip, count);
         }
         
-        return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion).FilterByLevelFilterSettings(accessor, levelFilterSettings).Where(l => l.Publisher == user), skip, count);
+        return new DatabaseList<GameLevel>(this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+            .FilterByLevelFilterSettings(accessor, levelFilterSettings)
+            .Where(l => l.Publisher == user)
+            .OrderByDescending(l => l.UpdateDate), skip, count);
     }
     
     public int GetTotalLevelsByUser(GameUser user) => this.GameLevels.Count(l => l.Publisher == user);
