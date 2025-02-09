@@ -41,7 +41,7 @@ public class ChallengeEndpoints : EndpointGroup
         GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
 
         // Return a SerializedChallenge which is not body, else the game will not send the first score
-        // and the ghost asset belonging to it for this challenge
+        // and it's ghost asset for this challenge
         return new Response(SerializedChallenge.FromOld(challenge, dataContext), ContentType.Xml);
     }
 
@@ -181,8 +181,7 @@ public class ChallengeEndpoints : EndpointGroup
     }
 
     /// <summary>
-    /// This endpoint returns the scores of a challenge. It usually gets called when viewing the leaderboard of a challenge in the pod menu
-    /// and the game takes care of assigning rank numbers to scores.
+    /// This endpoint returns the scores of a challenge. Normally the game takes care of assigning rank numbers to scores.
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard/", HttpMethods.Get, ContentType.Xml)]  // Called in a level when playing a challenge
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]  // Called in the pod menu when viewing a challenge
