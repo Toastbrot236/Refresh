@@ -88,7 +88,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(GamePlaylist),
         typeof(LevelPlaylistRelation),
         typeof(SubPlaylistRelation),
-        typeof(FavouritePlaylistRelation)
+        typeof(FavouritePlaylistRelation),
         
         // challenges
         typeof(GameChallenge),
@@ -711,7 +711,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         //         SubPlaylistRelation newSubPlaylistRelation = newSubPlaylistRelations.ElementAt(i);
         //     }
 
-        // Version 163 added indices for LevelPlaylistRelations for custom playlist level order in LBP3
+        // Version 163 added indices for LevelPlaylistRelations for custom playlist level ordering in LBP3
         IQueryable<dynamic>? oldLevelPlaylistRelations = migration.OldRealm.DynamicApi.All("LevelPlaylistRelation");
         IQueryable<LevelPlaylistRelation>? newLevelPlaylistRelations = migration.NewRealm.All<LevelPlaylistRelation>();
         if (oldVersion < 163)
