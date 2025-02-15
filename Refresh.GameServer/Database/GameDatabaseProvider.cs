@@ -17,6 +17,7 @@ using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Photos;
 using Refresh.GameServer.Types.Playlists;
+using Refresh.GameServer.Types.Challenges.LbpHub;
 
 namespace Refresh.GameServer.Database;
 
@@ -34,7 +35,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         this._time = time;
     }
 
-    protected override ulong SchemaVersion => 164;
+    protected override ulong SchemaVersion => 165;
 
     protected override string Filename => "refreshGameServer.realm";
     
@@ -87,6 +88,11 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(GamePlaylist),
         typeof(LevelPlaylistRelation),
         typeof(SubPlaylistRelation),
+        typeof(FavouritePlaylistRelation)
+        
+        // challenges
+        typeof(GameChallenge),
+        typeof(GameChallengeScore),
     ];
 
     public override void Warmup()
@@ -692,7 +698,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         // We weren't deleting level playlist relations when a level was deleted. Version 160 fixes this.
         if (oldVersion < 160)
             migration.NewRealm.RemoveRange(migration.NewRealm.All<LevelPlaylistRelation>().Where(r => r.Level == null));
-        
+
         // IQueryable<dynamic>? oldLevelPlaylistRelations = migration.OldRealm.DynamicApi.All("LevelPlaylistRelation");
         // IQueryable<LevelPlaylistRelation>? newLevelPlaylistRelations = migration.NewRealm.All<LevelPlaylistRelation>();
         // if (oldVersion < 155)
@@ -709,6 +715,39 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         //     {
         //         dynamic oldSubPlaylistRelation = oldSubPlaylistRelations.ElementAt(i);
         //         SubPlaylistRelation newSubPlaylistRelation = newSubPlaylistRelations.ElementAt(i);
+        //     }
+
+        // Version 163 added indices for LevelPlaylistRelations for custom playlist level order in LBP3
+        IQueryable<dynamic>? oldLevelPlaylistRelations = migration.OldRealm.DynamicApi.All("LevelPlaylistRelation");
+        IQueryable<LevelPlaylistRelation>? newLevelPlaylistRelations = migration.NewRealm.All<LevelPlaylistRelation>();
+        if (oldVersion < 163)
+            for (int i = 0; i < newLevelPlaylistRelations.Count(); i++)
+            {
+                dynamic oldLevelPlaylistRelation = oldLevelPlaylistRelations.ElementAt(i);
+                LevelPlaylistRelation newLevelPlaylistRelation = newLevelPlaylistRelations.ElementAt(i);
+
+                if (oldVersion < 163)
+                {
+                    newLevelPlaylistRelation.Index = 0;
+                }
+            }
+            
+        // IQueryable<dynamic>? oldGameChallenges = migration.OldRealm.DynamicApi.All("GameChallenge");
+        // IQueryable<GameChallenge>? newGameChallenges = migration.NewRealm.All<GameChallenge>();
+        // if (oldVersion < 165)
+        //     for (int i = 0; i < newGameChallenges.Count(); i++)
+        //     {
+        //         dynamic oldGameChallenge = oldGameChallenge.ElementAt(i);
+        //         GameChallenge newGameChallenge = newGameChallenge.ElementAt(i);
+        //     }
+
+        // IQueryable<dynamic>? oldGameChallengeScores = migration.OldRealm.DynamicApi.All("GameChallengeScore");
+        // IQueryable<GameChallengeScore>? newGameChallengeScores = migration.NewRealm.All<GameChallengeScore>();
+        // if (oldVersion < 165)
+        //     for (int i = 0; i < newGameChallengeScores.Count(); i++)
+        //     {
+        //         dynamic oldGameChallengeScore = oldGameChallengeScores.ElementAt(i);
+        //         GameChallengeScore newGameChallengeScore = newGameChallengeScores.ElementAt(i);
         //     }
     }
 }

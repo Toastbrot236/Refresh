@@ -8,6 +8,7 @@ using Refresh.GameServer.Configuration;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Time;
 using Refresh.GameServer.Types.Challenges;
+using Refresh.GameServer.Types.Challenges.Lbp3;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Roles;
 using Refresh.GameServer.Types.UserData;
@@ -200,11 +201,11 @@ public class MetadataEndpoints : EndpointGroup
     
     [GameEndpoint("ChallengeConfig.xml", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    public SerializedGameChallengeList ChallengeConfig(RequestContext context, IDateTimeProvider timeProvider)
+    public SerializedLevelChallengeList ChallengeConfig(RequestContext context, IDateTimeProvider timeProvider)
     {
         //TODO: allow this to be controlled by the server owner, right now lets just send the game 0 challenges,
         //      so nothing appears in the challenges menu
-        return new SerializedGameChallengeList
+        return new SerializedLevelChallengeList
         {
             TotalChallenges = 0,
             EndTime = (ulong)(timeProvider.Now.ToUnixTimeMilliseconds() * 1000),
