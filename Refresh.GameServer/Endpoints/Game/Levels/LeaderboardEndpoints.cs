@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
@@ -9,6 +8,7 @@ using Bunkum.Protocols.Http;
 using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Extensions;
+using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
 using Refresh.GameServer.Types.Roles;
@@ -116,14 +116,50 @@ public class LeaderboardEndpoints : EndpointGroup
     }
 
     [GameEndpoint("topscores/{slotType}/{id}/{type}", ContentType.Xml)]
+    [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
     [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
-    public Response GetTopScoresForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id, int type)
+    public SerializedScoreList? GetTopScoresForLevel(RequestContext context, DataContext dataContext, GameUser user, string slotType, int id, int type)
     {
-        GameLevel? level = database.GetLevelByIdAndType(slotType, id);
-        if (level == null) return NotFound;
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, id);
+        if (level == null) return null;
         
         (int skip, int count) = context.GetPageData();
-        return new Response(SerializedScoreList.FromSubmittedEnumerable(database.GetTopScoresForLevel(level, count, skip, (byte)type).Items, skip), ContentType.Xml);
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        IEnumerable<GameSubmittedScore> scores = type switch
+        {
+            // 5 and 6 only appear when requesting scores for the last day/week for a versus level in-game
+            5 => dataContext.Database.GetTopScoresForLevelInTime(level, 7, now.AddDays(-1), now),
+            6 => dataContext.Database.GetTopScoresForLevelInTime(level, 7, now.AddDays(-7), now),
+            _ => dataContext.Database.GetTopScoresForLevel(level, (byte)type),
+        };
+
+        
+        return SerializedScoreList.FromSubmittedEnumerable(scores.Skip(skip).Take(count), skip);
+    }
+
+    [GameEndpoint("friendscores/{slotType}/{id}/{type}", HttpMethods.Get, ContentType.Xml)]
+    [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
+    [NullStatusCode(NotFound)]
+    public SerializedScoreList? GetTopScoresForLevelByFriends(RequestContext context, DataContext dataContext, GameUser user, string slotType, int id, int type)
+    {
+        GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, id);
+        if (level == null) return null;
+
+        // There are no query parameters sent for this endpoint
+
+        DateTimeOffset now = DateTimeOffset.Now;
+        IEnumerable<GameSubmittedScore> scores = type switch
+        {
+            // 5 and 6 only appear when requesting scores for the last day/week for a versus level in-game
+            5 => dataContext.Database.GetTopScoresForLevelByMutualsInTime(user, level, 7, now.AddDays(-1), now),
+            6 => dataContext.Database.GetTopScoresForLevelByMutualsInTime(user, level, 7, now.AddDays(-7), now),
+            _ => dataContext.Database.GetTopScoresForLevelByMutuals(user, level, (byte)type),
+        };
+
+        // Seems like information like the user's own score and rank don't matter for this endpoint
+
+        return SerializedScoreList.FromSubmittedEnumerable(scores, 0);
     }
 }

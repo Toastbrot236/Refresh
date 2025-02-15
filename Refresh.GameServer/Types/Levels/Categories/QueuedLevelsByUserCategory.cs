@@ -23,6 +23,6 @@ public class QueuedLevelsByUserCategory : LevelCategory
     {
         if (user == null) return null;
 
-        return dataContext.Database.GetLevelsQueuedByUser(user, count, skip, levelFilterSettings, dataContext.User);
+        return dataContext.Database.GetLevelsQueuedByUser(user, count, skip, levelFilterSettings, dataContext.User, true);
     }
 }

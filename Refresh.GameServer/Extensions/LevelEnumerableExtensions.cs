@@ -66,13 +66,15 @@ public static class LevelEnumerableExtensions
         if (!levelFilterSettings.DisplayPSP) levels = levels.Where(l => l._GameVersion != (int)TokenGame.LittleBigPlanetPSP);
         if (!levelFilterSettings.DisplayBeta) levels = levels.Where(l => l._GameVersion != (int)TokenGame.BetaBuild);
         
-        //TODO: store move compatibility for levels
-        // levels = levelFilterSettings.MoveFilterType switch {
-        // MoveFilterType.True => levels,
-        // MoveFilterType.Only => levels.Where(l => l.MoveCompatible),
-        // MoveFilterType.False => levels.Where(l => !l.MoveCompatible),
-        // _ => throw new ArgumentOutOfRangeException()
-        // };
+        levels = levelFilterSettings.MoveFilterType switch {
+            MoveFilterType.True => levels,
+            // This combination happens when selecting both LBP1 and LBP2 Move and unselecting LBP2 in the game
+            MoveFilterType.Only => levelFilterSettings.GameFilterType == GameFilterType.Both 
+                                    ? levels.Where(l => l.RequiresMoveController || l._GameVersion == (int)TokenGame.LittleBigPlanet1)
+                                    : levels.Where(l => l.RequiresMoveController),
+            MoveFilterType.False => levels.Where(l => !l.RequiresMoveController),
+            _ => throw new ArgumentOutOfRangeException()
+        };
         
         // Filter out sub levels that weren't published by self
         levels = levels.Where(l => !l.IsSubLevel || l.Publisher == user);
@@ -113,16 +115,18 @@ public static class LevelEnumerableExtensions
         if (!levelFilterSettings.DisplayPSP) levels = levels.Where(l => l._GameVersion != (int)TokenGame.LittleBigPlanetPSP);
         if (!levelFilterSettings.DisplayBeta) levels = levels.Where(l => l._GameVersion != (int)TokenGame.BetaBuild);
         
-        //TODO: store move compatibility for levels
-        // levels = levelFilterSettings.MoveFilterType switch {
-        // MoveFilterType.True => levels,
-        // MoveFilterType.Only => levels.Where(l => l.MoveCompatible),
-        // MoveFilterType.False => levels.Where(l => !l.MoveCompatible),
-        // _ => throw new ArgumentOutOfRangeException()
-        // };
+        levels = levelFilterSettings.MoveFilterType switch {
+            MoveFilterType.True => levels,
+            // This combination happens when selecting both LBP1 and LBP2 Move and unselecting LBP2 in the game
+            MoveFilterType.Only => levelFilterSettings.GameFilterType == GameFilterType.Both 
+                                    ? levels.Where(l => l.RequiresMoveController && l._GameVersion == (int)TokenGame.LittleBigPlanet1)
+                                    : levels.Where(l => l.RequiresMoveController),
+            MoveFilterType.False => levels.Where(l => !l.RequiresMoveController),
+            _ => throw new ArgumentOutOfRangeException()
+        };
         
         // Filter out sub levels that weren't published by self
-        levels = levels.Where(l => !l.IsSubLevel || l.Publisher?.UserId ==  user?.UserId);
+        levels = levels.Where(l => !l.IsSubLevel || l.Publisher?.UserId == user?.UserId);
 
         return levels;
     }

@@ -20,14 +20,19 @@ public partial class GameDatabaseContext // Relations
         .FirstOrDefault(r => r.Level == level && r.User == user) != null;
 
     [Pure]
-    public DatabaseList<GameLevel> GetLevelsFavouritedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor) 
-        => new(this.FavouriteLevelRelations
+    public DatabaseList<GameLevel> GetLevelsFavouritedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor, bool sortByRecent = false) 
+    {
+        IEnumerable<GameLevel> levels = this.FavouriteLevelRelations
         .Where(r => r.User == user)
         .AsEnumerable()
         .Select(r => r.Level)
         .FilterByLevelFilterSettings(accessor, levelFilterSettings)
-        .FilterByGameVersion(levelFilterSettings.GameVersion)
-        .OrderByDescending(l => l.PublishDate), skip, count);
+        .FilterByGameVersion(levelFilterSettings.GameVersion);
+
+        // This is the best we can currently do to sort by most recently favourited
+        if (sortByRecent) return new(levels.Reverse(), skip, count);
+        else return new(levels, skip, count);
+    }
     
     public int GetTotalLevelsFavouritedByUser(GameUser user) 
         => this.FavouriteLevelRelations
@@ -85,12 +90,18 @@ public partial class GameDatabaseContext // Relations
     }
     
     [Pure]
-    public IEnumerable<GameUser> GetUsersFavouritedByUser(GameUser user, int count, int skip) => this.FavouriteUserRelations
-        .Where(r => r.UserFavouriting == user)
-        .AsEnumerable()
-        .Select(r => r.UserToFavourite)
-        .Skip(skip)
-        .Take(count);
+    public IEnumerable<GameUser> GetUsersFavouritedByUser(GameUser user, int count, int skip, bool sortByRecent = false) 
+    {
+        IEnumerable<GameUser> users = this.FavouriteUserRelations
+            .Where(r => r.UserFavouriting == user)
+            .AsEnumerable()
+            .Select(r => r.UserToFavourite);
+    
+        // This is the best we can currently do to sort by most recently favourited
+        if (sortByRecent) users = users.Reverse();
+
+        return users.Skip(skip).Take(count);
+    } 
     
     public int GetTotalUsersFavouritedByUser(GameUser user)
         => this.FavouriteUserRelations
@@ -147,14 +158,19 @@ public partial class GameDatabaseContext // Relations
         .FirstOrDefault(r => r.Level == level && r.User == user) != null;
 
     [Pure]
-    public DatabaseList<GameLevel> GetLevelsQueuedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor)
-        => new(this.QueueLevelRelations
+    public DatabaseList<GameLevel> GetLevelsQueuedByUser(GameUser user, int count, int skip, LevelFilterSettings levelFilterSettings, GameUser? accessor, bool sortByRecent = false)
+    {
+        IEnumerable<GameLevel> levels = this.QueueLevelRelations
         .Where(r => r.User == user)
         .AsEnumerable()
         .Select(r => r.Level)
         .FilterByLevelFilterSettings(accessor, levelFilterSettings)
-        .FilterByGameVersion(levelFilterSettings.GameVersion)
-        .OrderByDescending(l => l.PublishDate), skip, count);
+        .FilterByGameVersion(levelFilterSettings.GameVersion);
+
+        // This is the best we can currently do to sort by most recently queued
+        if (sortByRecent) return new(levels.Reverse(), skip, count);
+        else return new(levels, skip, count);
+    }
     
     [Pure]
     public int GetTotalLevelsQueuedByUser(GameUser user) 
@@ -242,6 +258,22 @@ public partial class GameDatabaseContext // Relations
                 rating.PositiveRating++;
             else
                 rating.NegativeRating++;
+        }
+
+        return rating;
+    }
+
+    public int GetRatingForReviewAsNumber(GameReview review)
+    {
+        IQueryable<RateReviewRelation> relations = this.RateReviewRelations.Where(r => r.Review == review);
+        int rating = 0;
+
+        foreach (RateReviewRelation relation in relations)
+        {
+            if (relation.RatingType == RatingType.Yay)
+                rating++;
+            else
+                rating--;
         }
 
         return rating;
@@ -346,10 +378,13 @@ public partial class GameDatabaseContext // Relations
         });
     }
 
-    public DatabaseList<GameReview> GetReviewsByUser(GameUser user, int count, int skip)
+    public DatabaseList<GameReview> GetReviewsByUser(GameUser user, int count, int skip, bool sortByNewest = false)
     {
-        return new DatabaseList<GameReview>(this.GameReviews
-            .Where(r => r.Publisher == user), skip, count);
+        IEnumerable<GameReview> reviews = this.GameReviews.Where(r => r.Publisher == user);
+
+        if (sortByNewest) reviews = reviews.OrderByDescending(r => r.PostedAt);
+
+        return new DatabaseList<GameReview>(reviews, skip, count);
     }
 
     public int GetTotalReviewsByUser(GameUser user)
@@ -365,10 +400,13 @@ public partial class GameDatabaseContext // Relations
         return level.Reviews.FirstOrDefault(r => r.Publisher.UserId == user.UserId);
     }
 
-    public DatabaseList<GameReview> GetReviewsForLevel(GameLevel level, int count, int skip)
+    public DatabaseList<GameReview> GetReviewsForLevel(GameLevel level, int count, int skip, bool sortByRatio = false)
     {
-        return new DatabaseList<GameReview>(this.GameReviews
-            .Where(r => r.Level == level), skip, count);
+        IEnumerable<GameReview> reviews = this.GameReviews.Where(r => r.Level == level);
+
+        if (sortByRatio) reviews = reviews.OrderByDescending(this.GetRatingForReviewAsNumber);
+
+        return new DatabaseList<GameReview>(reviews, skip, count);
     }
     
     public int GetTotalReviewsForLevel(GameLevel level)

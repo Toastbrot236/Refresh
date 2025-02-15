@@ -72,14 +72,18 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
     [XmlElement("initiallyLocked")] public bool IsLocked { get; set; }
     [XmlElement("isSubLevel")] public bool IsSubLevel { get; set; }
     [XmlElement("shareable")] public int IsCopyable { get; set; }
+    [XmlElement("moveRequired")] public bool RequiresMoveController { get; set; }
     [XmlElement("backgroundGUID")] public string? BackgroundGuid { get; set; }
     [XmlElement("links")] public string? Links { get; set; }
     [XmlElement("averageRating")] public double AverageStarRating { get; set; }
     [XmlElement("sizeOfResources")] public int SizeOfResourcesInBytes { get; set; }
     [XmlElement("reviewCount")] public int ReviewCount { get; set; }
     [XmlElement("reviewsEnabled")] public bool ReviewsEnabled { get; set; } = true;
+    [XmlElement("yourReview")] public SerializedGameReview? YourReview { get; set; }
     [XmlElement("commentCount")] public int CommentCount { get; set; } = 0;
     [XmlElement("commentsEnabled")] public bool CommentsEnabled { get; set; } = true;
+    [XmlElement("photoCount")] public int PhotoCount { get; set; }
+    [XmlElement("authorPhotoCount")] public int PublisherPhotoCount { get; set; }
     [XmlElement("tags")] public string Tags { get; set; } = "";
     
     /// <summary>
@@ -134,12 +138,15 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             IsLocked = false,
             IsSubLevel = false,
             IsCopyable = 0,
+            RequiresMoveController = false,
             PublishDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             UpdateDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             EnforceMinMaxPlayers = false,
             SameScreenGame = false,
             SkillRewards = [],
             LevelType = "",
+            PhotoCount = 0,
+            PublisherPhotoCount = 0,
         };
     }
 
@@ -171,10 +178,11 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             BooCount = dataContext.Database.GetTotalRatingsForLevel(old, RatingType.Boo),
             SkillRewards = old.SkillRewards.ToList(),
             TeamPicked = old.TeamPicked,
-            LevelType = old.LevelType.ToGameString(),
+            LevelType = old.LevelType.ToGameString(), //old.LevelType.ToGameString(),
             IsCopyable = old.IsCopyable ? 1 : 0,
             IsLocked = old.IsLocked,
             IsSubLevel = old.IsSubLevel,
+            RequiresMoveController = old.RequiresMoveController,
             BackgroundGuid = old.BackgroundGuid,
             Links = "",
             AverageStarRating = old.CalculateAverageStarRating(dataContext.Database),
@@ -182,11 +190,13 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             CommentCount = dataContext.Database.GetTotalCommentsForLevel(old),
             Tags = string.Join(',', dataContext.Database.GetTagsForLevel(old).Select(t => t.Tag.ToLbpString())) ,
             Type = old.SlotType.ToGameType(),
+            PhotoCount = dataContext.Database.GetTotalPhotosInLevel(old),
         };
         
         if (old is { Publisher: not null, IsReUpload: false })
         {
             response.Handle = SerializedUserHandle.FromUser(old.Publisher, dataContext);
+            response.PublisherPhotoCount = dataContext.Database.GetTotalPhotosInLevelByUser(old, old.Publisher);
         }
         else
         {
@@ -203,6 +213,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
                 IconHash = "0",
                 Username = publisher,
             };
+            response.PublisherPhotoCount = 0;
         }
         
         if (dataContext.User != null)
@@ -211,6 +222,8 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
 
             response.YourRating = rating?.ToDPad() ?? (int)RatingType.Neutral;
             response.YourStarRating = rating?.ToLBP1() ?? 0;
+
+            response.YourReview = SerializedGameReview.FromOld(dataContext.Database.GetReviewByLevelAndUser(old, dataContext.User), dataContext);
 
             // this is technically invalid, but specifying this for all games ensures they all have the capacity to review if played.
             // we don't store the game's version in play relations, so this is the best we can do
@@ -284,6 +297,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             IsLocked = false,
             IsSubLevel = false,
             IsCopyable = 0,
+            RequiresMoveController = false,
             BackgroundGuid = null,
             Links = null,
             AverageStarRating = 0,
@@ -293,6 +307,8 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
             CommentCount = 0,
             CommentsEnabled = true,
             Tags = string.Empty,
+            PhotoCount = 0,
+            PublisherPhotoCount = 0,
         };
     }
 
