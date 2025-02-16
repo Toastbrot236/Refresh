@@ -7,7 +7,7 @@ namespace Refresh.GameServer.Types.Lists;
 
 [XmlRoot("slots")]
 [XmlType("slots")]
-public class SerializedMinimalLevelList : SerializedList<GameMinimalLevelResponse>
+public class SerializedMinimalLevelList : SerializedList<GameMinimalLevelResponse>, ISerializedCategoryItemList
 {
     public SerializedMinimalLevelList() {}
     

@@ -5,7 +5,7 @@ namespace Refresh.GameServer.Types.Lists;
 
 [XmlRoot("playlists")]
 [XmlType("playlists")]
-public class SerializedLbp3PlaylistList : SerializedList<SerializedLbp3Playlist>
+public class SerializedLbp3PlaylistList : SerializedList<SerializedLbp3Playlist>, ISerializedCategoryItemList
 {
     public SerializedLbp3PlaylistList() {}
 

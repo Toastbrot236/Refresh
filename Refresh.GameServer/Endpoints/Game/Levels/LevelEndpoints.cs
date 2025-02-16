@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
 using Refresh.Common.Constants;
@@ -26,7 +27,7 @@ public class LevelEndpoints : EndpointGroup
 {
     [GameEndpoint("slots/{route}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    public SerializedMinimalLevelList? GetLevels(RequestContext context,
+    public Response GetLevels(RequestContext context,
         GameDatabaseContext database,
         CategoryService categoryService,
         PlayNowService overrideService,
@@ -45,7 +46,7 @@ public class LevelEndpoints : EndpointGroup
             if (overrideService.GetHashOverrideForUser(token, out string hashOverride))
                 overrides.Add(GameMinimalLevelResponse.FromHash(hashOverride, dataContext));
             
-            return new SerializedMinimalLevelList(overrides, overrides.Count, overrides.Count);
+            return new Response(new SerializedMinimalLevelList(overrides, overrides.Count, overrides.Count), ContentType.Xml);
         }
         
         // If we are getting the levels by a user, and that user is "!Hashed", then we pull that user's overrides
@@ -53,40 +54,68 @@ public class LevelEndpoints : EndpointGroup
             && (context.QueryString.Get("u") == SystemUsers.HashedUserName || user.Username == SystemUsers.HashedUserName) 
             && overrideService.GetLastHashOverrideForUser(token, out string hash))
         {
-            return new SerializedMinimalLevelList
+            return new Response(new SerializedMinimalLevelList
             {
                 Total = 1,
                 NextPageStart = 1,
                 Items = [GameMinimalLevelResponse.FromHash(hash, dataContext)],
-            };
+            }, ContentType.Xml);
         }
-        
+
+        // If the route is that of a level category
+        LevelCategory? levelCategory = categoryService.LevelCategories
+            .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)));
+
+        if (levelCategory != null)
+            return new Response(this.GetCategoryLevels(context, user, token, dataContext, levelCategory), ContentType.Xml);
+
+        // If the route is that of a playlist category
+        PlaylistCategory? playlistCategory = categoryService.PlaylistCategories
+            .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)));
+
+        if (playlistCategory != null)
+            return new Response(this.GetCategoryPlaylists(context, user, token, dataContext, playlistCategory), ContentType.Xml);
+
+        // If the route is that of a user category
+        UserCategory? userCategory = categoryService.UserCategories
+            .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)));
+
+        if (userCategory != null)
+            return new Response(this.GetCategoryUsers(context, user, token, dataContext, userCategory), ContentType.Xml);
+
+        return NotFound;
+    }
+
+    private SerializedMinimalLevelList? GetCategoryLevels(RequestContext context,
+        GameUser user,
+        Token token,
+        DataContext dataContext,
+        LevelCategory category) 
+    {
         (int skip, int count) = context.GetPageData();
 
-        DatabaseList<GameLevel>? levels = categoryService.LevelCategories
-            .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)))?
+        DatabaseList<GameLevel>? levels = category
             .Fetch(context, skip, count, dataContext, new LevelFilterSettings(context, token.TokenGame), user);
 
         if (levels == null) return null;
         
-        IEnumerable<GameMinimalLevelResponse> category = levels.Items
+        IEnumerable<GameMinimalLevelResponse> serializedLevels = levels.Items
             .Select(l => GameMinimalLevelResponse.FromOld(l, dataContext)!);
 
+        // Inject the user's playlist info if we're getting a user's levels
         int injectedAmount = 0;
-        
-        // Special case the `by` route for LBP1 requests, to inject the user's playlist info
-        if (route == "by" && dataContext.Game == TokenGame.LittleBigPlanet1)
+        if (category is ByUserLevelCategory && dataContext.Game == TokenGame.LittleBigPlanet1)
         {
             // Get the requested user's root playlist
-            GamePlaylist? playlist = database.GetUserByUsername(context.QueryString.Get("u"))?.RootPlaylist;
+            GamePlaylist? playlist = dataContext.Database.GetUserByUsername(context.QueryString.Get("u"))?.RootPlaylist;
 
             // If it was found, inject it into the response info
             if (playlist != null)
             {
                 // TODO: with postgres this can be IQueryable
-                List<GamePlaylist> playlists = database.GetPlaylistsInPlaylist(playlist).ToList();
+                List<GamePlaylist> playlists = dataContext.Database.GetPlaylistsInPlaylist(playlist).ToList();
                 
-                category = GameMinimalLevelResponse.FromOldList(playlists, dataContext).Concat(category);
+                serializedLevels = GameMinimalLevelResponse.FromOldList(playlists, dataContext).Concat(serializedLevels);
                 // While this does technically return more slot results than the game is expecting,
                 // because we tell the game exactly what the "next page index" is (its not based on count sent),
                 // pagination still seems to work perfectly fine in LBP1!
@@ -95,13 +124,54 @@ public class LevelEndpoints : EndpointGroup
             }
         }   
 
-        return new SerializedMinimalLevelList(category, levels.TotalItems + injectedAmount, skip + count);
+        return new SerializedMinimalLevelList(serializedLevels, levels.TotalItems + injectedAmount, skip + count);
+    }
+
+    private SerializedLbp3PlaylistList? GetCategoryPlaylists(RequestContext context,
+        GameUser user,
+        Token token,
+        DataContext dataContext,
+        PlaylistCategory category) 
+    {
+        (int skip, int count) = context.GetPageData();
+
+        DatabaseList<GamePlaylist>? playlists = category
+            .Fetch(context, skip, count, dataContext, new LevelFilterSettings(context, token.TokenGame), user);
+
+        if (playlists == null) return null;
+        
+        IEnumerable<SerializedLbp3Playlist> serializedPlaylists = playlists.Items
+            .Select(l => SerializedLbp3Playlist.FromOld(l, dataContext)!);
+
+        return new SerializedLbp3PlaylistList(serializedPlaylists, playlists.TotalItems, skip + count);
+    }
+
+    private SerializedUserList? GetCategoryUsers(RequestContext context,
+        GameUser user,
+        Token token,
+        DataContext dataContext,
+        UserCategory category) 
+    {
+        (int skip, int count) = context.GetPageData();
+
+        DatabaseList<GameUser>? users = category
+            .Fetch(context, skip, count, dataContext, new LevelFilterSettings(context, token.TokenGame), user);
+
+        if (users == null) return null;
+        
+        IEnumerable<GameUserResponse> serializedUsers = users.Items
+            .Select(l => GameUserResponse.FromOld(l, dataContext)!);
+
+        return new SerializedUserList
+        {
+            Users = serializedUsers.ToList(),
+        };
     }
 
     [GameEndpoint("slots/{route}/{username}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedMinimalLevelList? GetLevelsWithPlayer(RequestContext context,
+    public Response GetLevelsWithPlayer(RequestContext context,
         GameDatabaseContext database,
         CategoryService categories,
         PlayNowService overrideService,
@@ -171,8 +241,8 @@ public class LevelEndpoints : EndpointGroup
     {
         (int skip, int count) = context.GetPageData();
 
-        IEnumerable<SerializedLevelCategory> levelCategories = categoryService.LevelCategories
-            .Where(c => !c.Hidden)
+        IEnumerable<SerializedLevelCategory> levelCategories = categoryService.Categories
+            .Where(c => !c.Hidden && c is LevelCategory)
             .Select(c => SerializedLevelCategory.FromLevelCategory(c, context, dataContext, 0, 1));
 
         IEnumerable<SerializedPlaylistCategory> playlistCategories = categoryService.PlaylistCategories
@@ -185,10 +255,10 @@ public class LevelEndpoints : EndpointGroup
             .Select(c => SerializedUserCategory.FromUserCategory(c, context, dataContext, 0, 1))
             .ToList();
 
-        IEnumerable<SerializedCategory> categories = Array.Empty<SerializedCategory>()
-            .Concat(levelCategories)
-            .Concat(playlistCategories)
-            .Concat(userCategories);
+        IEnumerable<SerializedCategory> categories = categoryService.Categories
+            .Where(c => !c.Hidden)
+            .Select(c => SerializedCategory.FromCategory(c, context, dataContext, 0, 1))
+            .ToList();
         
         context.Logger.LogDebug(BunkumCategory.UserLevels, "after IEnumerable creation");
 
