@@ -1,15 +1,22 @@
 using System.Xml.Serialization;
-using Refresh.GameServer.Types.Levels.Categories;
+using Refresh.GameServer.Types.Categories;
+using Refresh.GameServer.Types.Categories.Levels;
+using Refresh.GameServer.Types.Categories.Playlists;
+using Refresh.GameServer.Types.Categories.Users;
 
 namespace Refresh.GameServer.Types.Lists;
+
 [XmlRoot("categories")]
 [XmlType("categories")]
+[XmlInclude(typeof(SerializedLevelCategory))]
+[XmlInclude(typeof(SerializedPlaylistCategory))]
+[XmlInclude(typeof(SerializedUserCategory))]
 public class SerializedCategoryList : SerializedList<SerializedCategory>
 {
     public SerializedCategoryList(IEnumerable<SerializedCategory> items, SearchLevelCategory searchCategory, int total)
     {
         this.Items = items.ToList();
-        this.TextSearchCategory = SerializedCategory.FromLevelCategory(searchCategory);
+        this.TextSearchCategory = SerializedCategory.FromCategory(searchCategory);
         this.Total = total;
     }
 

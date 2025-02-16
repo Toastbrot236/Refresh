@@ -9,9 +9,12 @@ using Refresh.GameServer.Endpoints.Game.DataTypes.Response;
 using Refresh.GameServer.Endpoints.Game.Levels.FilterSettings;
 using Refresh.GameServer.Extensions;
 using Refresh.GameServer.Services;
+using Refresh.GameServer.Types.Categories;
+using Refresh.GameServer.Types.Categories.Levels;
+using Refresh.GameServer.Types.Categories.Playlists;
+using Refresh.GameServer.Types.Categories.Users;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
-using Refresh.GameServer.Types.Levels.Categories;
 using Refresh.GameServer.Types.Lists;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Roles;
@@ -60,7 +63,7 @@ public class LevelEndpoints : EndpointGroup
         
         (int skip, int count) = context.GetPageData();
 
-        DatabaseList<GameLevel>? levels = categoryService.Categories
+        DatabaseList<GameLevel>? levels = categoryService.LevelCategories
             .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)))?
             .Fetch(context, skip, count, dataContext, new LevelFilterSettings(context, token.TokenGame), user);
 
@@ -168,17 +171,36 @@ public class LevelEndpoints : EndpointGroup
     {
         (int skip, int count) = context.GetPageData();
 
-        IEnumerable<SerializedCategory> categories = categoryService.Categories
+        IEnumerable<SerializedLevelCategory> levelCategories = categoryService.LevelCategories
             .Where(c => !c.Hidden)
-            .Select(c => SerializedCategory.FromLevelCategory(c, context, dataContext, 0, 1))
+            .Select(c => SerializedLevelCategory.FromLevelCategory(c, context, dataContext, 0, 1));
+
+        IEnumerable<SerializedPlaylistCategory> playlistCategories = categoryService.PlaylistCategories
+            .Where(c => !c.Hidden)
+            .Select(c => SerializedPlaylistCategory.FromPlaylistCategory(c, context, dataContext, 0, 1))
             .ToList();
 
-        int total = categories.Count();
+        IEnumerable<SerializedUserCategory> userCategories = categoryService.UserCategories
+            .Where(c => !c.Hidden)
+            .Select(c => SerializedUserCategory.FromUserCategory(c, context, dataContext, 0, 1))
+            .ToList();
 
+        IEnumerable<SerializedCategory> categories = Array.Empty<SerializedCategory>()
+            .Concat(levelCategories)
+            .Concat(playlistCategories)
+            .Concat(userCategories);
+        
+        context.Logger.LogDebug(BunkumCategory.UserLevels, "after IEnumerable creation");
+
+        int total = categories.Count();
         categories = categories.Skip(skip).Take(count);
 
-        SearchLevelCategory searchCategory = (SearchLevelCategory)categoryService.Categories
+        context.Logger.LogDebug(BunkumCategory.UserLevels, "before search category");
+
+        SearchLevelCategory searchCategory = (SearchLevelCategory)categoryService.LevelCategories
             .First(c => c is SearchLevelCategory);
+
+        context.Logger.LogDebug(BunkumCategory.UserLevels, "before return");
         
         return new SerializedCategoryList(categories, searchCategory, total);
     }
@@ -190,7 +212,7 @@ public class LevelEndpoints : EndpointGroup
     {
         (int skip, int count) = context.GetPageData();
 
-        DatabaseList<GameLevel>? levels = categories.Categories
+        DatabaseList<GameLevel>? levels = categories.LevelCategories
             .FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute))?
             .Fetch(context, skip, count, dataContext, new LevelFilterSettings(context, token.TokenGame), user);
         
