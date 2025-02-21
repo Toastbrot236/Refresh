@@ -26,6 +26,10 @@ public class FavouritePlaylistsByUserCategory : PlaylistCategory
 
         if (user == null) return null;
         
-        return new DatabaseList<GamePlaylist>(dataContext.Database.GetPlaylistsFavouritedByUser(user /*, count, skip, levelFilterSettings, dataContext.User, true*/ ), skip, count) ;
+        return new DatabaseList<GamePlaylist>(
+            dataContext.Database.GetPlaylistsFavouritedByUser(user), 
+            skip, 
+            count
+        );
     }
 }

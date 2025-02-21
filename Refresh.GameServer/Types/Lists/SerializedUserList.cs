@@ -3,9 +3,20 @@ using Refresh.GameServer.Endpoints.Game.DataTypes.Response;
 
 namespace Refresh.GameServer.Types.Lists;
 
+#nullable disable
+
 [XmlRoot("users")]
-public class SerializedUserList : ISerializedCategoryItemList
+public class SerializedUserList : SerializedList<GameUserResponse>, ISerializedCategoryItemList
 {
+    public SerializedUserList() {}
+    
+    public SerializedUserList(IEnumerable<GameUserResponse> list, int total, int skip)
+    {
+        this.Total = total;
+        this.Items = list.ToList();
+        this.NextPageStart = skip + 1;
+    }
+
     [XmlElement("user")]
-    public List<GameUserResponse> Users { get; set; } = new();
+    public override List<GameUserResponse> Items { get; set; }
 }

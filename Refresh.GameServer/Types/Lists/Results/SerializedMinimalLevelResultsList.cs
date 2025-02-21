@@ -1,11 +1,11 @@
 using System.Xml.Serialization;
 using Refresh.GameServer.Types.Levels;
 
-namespace Refresh.GameServer.Types.Lists;
+namespace Refresh.GameServer.Types.Lists.Results;
 
 [XmlRoot("results")]
 [XmlType("results")]
-public class SerializedMinimalLevelResultsList : SerializedMinimalLevelList
+public class SerializedMinimalLevelResultsList : SerializedMinimalLevelList, ISerializedCategoryItemResultsList
 {
     public SerializedMinimalLevelResultsList() {}
     
