@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class NewestLevelsCategory : LevelCategory
+public class NewestLevelsCategory : GameLevelCategory
 {
     internal NewestLevelsCategory() : base("newestLevels", "newest", false)
     {

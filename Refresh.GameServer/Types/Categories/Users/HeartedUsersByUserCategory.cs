@@ -6,7 +6,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Users;
 
-public class HeartedUsersByUserCategory : UserCategory
+public class HeartedUsersByUserCategory : GameUserCategory
 {
     internal HeartedUsersByUserCategory() : base("heartedUsers", [], true)
     {

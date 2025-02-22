@@ -6,7 +6,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Users;
 
-public class NewestUsersCategory : UserCategory
+public class NewestUsersCategory : GameUserCategory
 {
     internal NewestUsersCategory() : base("newestUsers", [], false)
     {

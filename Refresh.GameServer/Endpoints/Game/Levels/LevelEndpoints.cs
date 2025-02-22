@@ -155,7 +155,7 @@ public class LevelEndpoints : EndpointGroup
         (int skip, int count) = context.GetPageData();
 
         // If level category
-        LevelCategory? levelCategory = categories.LevelCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
+        GameLevelCategory? levelCategory = categories.LevelCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
 
         if (levelCategory != null)
         {
@@ -164,7 +164,7 @@ public class LevelEndpoints : EndpointGroup
         }
 
         // If playlist category
-        PlaylistCategory? playlistCategory = categories.PlaylistCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
+        GamePlaylistCategory? playlistCategory = categories.PlaylistCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
 
         if (playlistCategory != null)
         {
@@ -173,7 +173,7 @@ public class LevelEndpoints : EndpointGroup
         }
 
         // If user category
-        UserCategory? userCategory = categories.UserCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
+        GameUserCategory? userCategory = categories.UserCategories.FirstOrDefault(c => c.ApiRoute.StartsWith(apiRoute));
 
         if (userCategory != null)
         {
@@ -248,7 +248,6 @@ public class LevelEndpoints : EndpointGroup
         IDataStore dataStore,
         Token token,
         DataContext dataContext) 
-        // the route "newest" leads to a level category
         => this.GetLevels(context, categories, overrideService, user, token, dataContext, "newest");
 
     [GameEndpoint("favouriteSlots/{username}", ContentType.Xml)]
@@ -266,8 +265,7 @@ public class LevelEndpoints : EndpointGroup
     {
         GameUser? user = database.GetUserByUsername(username);
         if (user == null) return null;
-        
-        // the route "favouriteSlots" leads to a level category
+
         SerializedMinimalLevelList? levels = this.GetLevels(context, categories, overrideService, user, token, dataContext, "favouriteSlots");
         return new SerializedMinimalFavouriteLevelList(levels);
     }

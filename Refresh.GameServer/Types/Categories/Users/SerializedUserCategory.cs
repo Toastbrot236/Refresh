@@ -15,7 +15,7 @@ public class SerializedUserCategory : SerializedCategory
 {
     [XmlElement("results")] public SerializedUserList Users { get; set; }
 
-    public static SerializedUserCategory FromUserCategory(Category category)
+    public static SerializedUserCategory FromUserCategory(GameCategory category)
     {
         SerializedUserCategory serializedCategory = new()
         {
@@ -33,7 +33,7 @@ public class SerializedUserCategory : SerializedCategory
         return serializedCategory;
     }
 
-    public static SerializedUserCategory FromUserCategory(UserCategory userCategory,
+    public static SerializedUserCategory FromUserCategory(GameUserCategory userCategory,
         RequestContext context,
         DataContext dataContext,
         int skip = 0,

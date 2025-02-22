@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class AdventureCategory : LevelCategory
+public class AdventureCategory : GameLevelCategory
 {
     public AdventureCategory() : base("adventure", [], false)
     {

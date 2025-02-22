@@ -6,22 +6,26 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Users;
 
-public class MostHeartedUsersCategory : GameUserCategory
+public class MutualsOfUserCategory : GameUserCategory
 {
-    internal MostHeartedUsersCategory() : base("mostHeartedUsers", [], false)
+    internal MutualsOfUserCategory() : base("mutuals", [], true)
     {
-        this.Name = "Most Hearted Users";
-        this.Description = "The most beloved users in the community!";
+        this.Name = "Your Mutuals";
+        this.Description = "People who have hearted you and who you have hearted.";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";
     }
     
     public override DatabaseList<GameUser>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,
-        LevelFilterSettings levelFilterSettings, GameUser? _)
-        => new
+        LevelFilterSettings levelFilterSettings, GameUser? user)
+    {
+        if (user == null) return null;
+        
+        return new DatabaseList<GameUser>
         (
-            dataContext.Database.GetMostHeartedUsers(), 
+            dataContext.Database.GetUsersMutuals(user), 
             skip, 
             count
         );
+    }
 }

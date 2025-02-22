@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class CurrentlyPlayingCategory : LevelCategory
+public class CurrentlyPlayingCategory : GameLevelCategory
 {
     internal CurrentlyPlayingCategory() : base("currentlyPlayingLevels", "busiest", false)
     {

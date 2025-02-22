@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class RandomLevelsCategory : LevelCategory
+public class RandomLevelsCategory : GameLevelCategory
 {
     internal RandomLevelsCategory() : base("randomLevels", ["lbp2luckydip", "luckydip"], false)
     {

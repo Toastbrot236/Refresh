@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class QueuedLevelsByUserCategory : LevelCategory
+public class QueuedLevelsByUserCategory : GameLevelCategory
 {
     internal QueuedLevelsByUserCategory() : base("queuedLevels", "lolcatftw", true)
     {

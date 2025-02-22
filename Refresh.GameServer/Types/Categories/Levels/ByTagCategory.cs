@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class ByTagCategory : LevelCategory
+public class ByTagCategory : GameLevelCategory
 {
     internal ByTagCategory() : base("taggedLevels", "tag", false)
     {

@@ -10,10 +10,10 @@ namespace Refresh.GameServer.Types.Categories;
 public class CategoryService : EndpointService
 {
     // Level Categories
-    public readonly FrozenSet<LevelCategory> LevelCategories;
+    public readonly FrozenSet<GameLevelCategory> LevelCategories;
 
     // ReSharper disable once InconsistentNaming
-    private readonly List<LevelCategory> _levelCategories =
+    private readonly List<GameLevelCategory> _levelCategories =
     [
         new CoolLevelsCategory(),
         new TeamPickedLevelsCategory(),
@@ -39,24 +39,26 @@ public class CategoryService : EndpointService
     ];
 
     // Playlist Categories
-    public readonly FrozenSet<PlaylistCategory> PlaylistCategories;
+    public readonly FrozenSet<GamePlaylistCategory> PlaylistCategories;
 
     // ReSharper disable once InconsistentNaming
-    private readonly List<PlaylistCategory> _playlistCategories =
+    private readonly List<GamePlaylistCategory> _playlistCategories =
     [
         new NewestPlaylistsCategory(),
         new HeartedPlaylistsByUserCategory(),
+        new ByUserPlaylistCategory(),
         new MostHeartedPlaylistsCategory(),
     ];
 
     // User Categories
-    public readonly FrozenSet<UserCategory> UserCategories;
+    public readonly FrozenSet<GameUserCategory> UserCategories;
 
     // ReSharper disable once InconsistentNaming
-    private readonly List<UserCategory> _userCategories =
+    private readonly List<GameUserCategory> _userCategories =
     [
         new NewestUsersCategory(),
         new HeartedUsersByUserCategory(),
+        new MutualsOfUserCategory(),
         new MostHeartedUsersCategory(),
     ];
 

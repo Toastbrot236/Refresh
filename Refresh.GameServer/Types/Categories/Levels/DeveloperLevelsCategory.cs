@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class DeveloperLevelsCategory : LevelCategory
+public class DeveloperLevelsCategory : GameLevelCategory
 {
     internal DeveloperLevelsCategory() : base("developerLevels", [], false)
     {

@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class MostReplayedLevelsCategory : LevelCategory
+public class MostReplayedLevelsCategory : GameLevelCategory
 {
     internal MostReplayedLevelsCategory() : base("mostReplayedLevels", "mostPlays", false)
     {

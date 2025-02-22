@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class MostHeartedLevelsCategory : LevelCategory
+public class MostHeartedLevelsCategory : GameLevelCategory
 {
     internal MostHeartedLevelsCategory() : base("mostHeartedLevels", "mostHearted", false)
     {

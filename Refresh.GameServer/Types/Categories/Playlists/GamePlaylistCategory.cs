@@ -9,11 +9,11 @@ using Refresh.GameServer.Types.UserData;
 namespace Refresh.GameServer.Types.Categories.Playlists;
 
 [JsonObject(MemberSerialization.OptIn)]
-public abstract class PlaylistCategory : Category
+public abstract class GamePlaylistCategory : GameCategory
 {
-    internal PlaylistCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
+    internal GamePlaylistCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
     
-    internal PlaylistCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
+    internal GamePlaylistCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
 
     [Pure]
     public abstract DatabaseList<GamePlaylist>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,

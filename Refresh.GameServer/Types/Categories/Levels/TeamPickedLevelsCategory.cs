@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class TeamPickedLevelsCategory : LevelCategory
+public class TeamPickedLevelsCategory : GameLevelCategory
 {
     internal TeamPickedLevelsCategory() : base("teamPickedLevels", "mmpicks", false)
     {

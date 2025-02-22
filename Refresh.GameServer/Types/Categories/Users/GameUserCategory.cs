@@ -8,11 +8,11 @@ using Refresh.GameServer.Types.UserData;
 namespace Refresh.GameServer.Types.Categories.Users;
 
 [JsonObject(MemberSerialization.OptIn)]
-public abstract class UserCategory : Category
+public abstract class GameUserCategory : GameCategory
 {
-    internal UserCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
+    internal GameUserCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
     
-    internal UserCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
+    internal GameUserCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
 
     [Pure]
     public abstract DatabaseList<GameUser>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,

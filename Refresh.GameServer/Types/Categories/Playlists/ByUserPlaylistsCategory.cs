@@ -2,22 +2,22 @@ using Bunkum.Core;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Endpoints.Game.Levels.FilterSettings;
 using Refresh.GameServer.Types.Data;
-using Refresh.GameServer.Types.Levels;
+using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.UserData;
 
-namespace Refresh.GameServer.Types.Categories.Levels;
+namespace Refresh.GameServer.Types.Categories.Playlists;
 
-public class HeartedLevelsByUserCategory : GameLevelCategory
+public class ByUserPlaylistCategory : GamePlaylistCategory
 {
-    internal HeartedLevelsByUserCategory() : base("heartedLevels", "favouriteSlots", true)
+    internal ByUserPlaylistCategory() : base("playlistsByUser", [], true)
     {
-        this.Name = "Your Favorites";
-        this.Description = "Your personal list filled with your favourite levels!";
+        this.Name = "Your Playlists";
+        this.Description = "Your personal list filled with your favourite playlists!";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";
     }
     
-    public override DatabaseList<GameLevel>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,
+    public override DatabaseList<GamePlaylist>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,
         LevelFilterSettings levelFilterSettings, GameUser? user)
     {
         // Prefer username from query, but fallback to user passed into this category if it's missing
@@ -26,6 +26,11 @@ public class HeartedLevelsByUserCategory : GameLevelCategory
 
         if (user == null) return null;
         
-        return dataContext.Database.GetLevelsFavouritedByUser(user, count, skip, levelFilterSettings, dataContext.User, true);
+        return new DatabaseList<GamePlaylist>
+        (
+            dataContext.Database.GetPlaylistsByAuthor(user), 
+            skip, 
+            count
+        );
     }
 }

@@ -14,7 +14,7 @@ public class SerializedLevelCategory : SerializedCategory
 {
     [XmlElement("results")] public SerializedMinimalLevelList Levels { get; set; }
 
-    public static SerializedLevelCategory FromLevelCategory(LevelCategory category)
+    public static SerializedLevelCategory FromLevelCategory(GameLevelCategory category)
     {
         SerializedLevelCategory serializedCategory = new()
         {
@@ -33,7 +33,7 @@ public class SerializedLevelCategory : SerializedCategory
         return serializedCategory;
     }
 
-    public static SerializedLevelCategory FromLevelCategory(LevelCategory levelCategory,
+    public static SerializedLevelCategory FromLevelCategory(GameLevelCategory levelCategory,
         RequestContext context,
         DataContext dataContext,
         int skip = 0,

@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class ByUserLevelCategory : LevelCategory
+public class ByUserLevelCategory : GameLevelCategory
 {
     internal ByUserLevelCategory() : base("levelsByUser", "by", true)
     {

@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Playlists;
 
-public class MostHeartedPlaylistsCategory : PlaylistCategory
+public class MostHeartedPlaylistsCategory : GamePlaylistCategory
 {
     internal MostHeartedPlaylistsCategory() : base("mostHeartedPlaylists", [], false)
     {

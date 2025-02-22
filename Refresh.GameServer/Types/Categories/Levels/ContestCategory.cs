@@ -8,7 +8,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class ContestCategory : LevelCategory
+public class ContestCategory : GameLevelCategory
 {
     public ContestCategory() : base("contestLevels", [], false)
     {

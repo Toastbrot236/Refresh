@@ -9,7 +9,7 @@ using Refresh.GameServer.Types.Levels;
 namespace Refresh.GameServer.Endpoints.ApiV3.DataTypes.Response.Levels;
 
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-public class ApiLevelCategoryResponse : IApiResponse, IDataConvertableFrom<ApiLevelCategoryResponse, LevelCategory>
+public class ApiLevelCategoryResponse : IApiResponse, IDataConvertableFrom<ApiLevelCategoryResponse, GameLevelCategory>
 {
     public required string Name { get; set; }
     public required string Description { get; set; }
@@ -20,7 +20,7 @@ public class ApiLevelCategoryResponse : IApiResponse, IDataConvertableFrom<ApiLe
     public required ApiGameLevelResponse? PreviewLevel { get; set; }
     public required bool Hidden { get; set; } = false;
     
-    public static ApiLevelCategoryResponse? FromOld(LevelCategory? old, GameLevel? previewLevel,
+    public static ApiLevelCategoryResponse? FromOld(GameLevelCategory? old, GameLevel? previewLevel,
         DataContext dataContext)
     {
         if (old == null) return null;
@@ -38,12 +38,12 @@ public class ApiLevelCategoryResponse : IApiResponse, IDataConvertableFrom<ApiLe
         };
     }
     
-    public static ApiLevelCategoryResponse? FromOld(LevelCategory? old, DataContext dataContext) => FromOld(old, null, dataContext);
+    public static ApiLevelCategoryResponse? FromOld(GameLevelCategory? old, DataContext dataContext) => FromOld(old, null, dataContext);
 
-    public static IEnumerable<ApiLevelCategoryResponse> FromOldList(IEnumerable<LevelCategory> oldList,
+    public static IEnumerable<ApiLevelCategoryResponse> FromOldList(IEnumerable<GameLevelCategory> oldList,
         DataContext dataContext) => oldList.Select(old => FromOld(old, dataContext)).ToList()!;
     
-    public static IEnumerable<ApiLevelCategoryResponse> FromOldList(IEnumerable<LevelCategory> oldList,
+    public static IEnumerable<ApiLevelCategoryResponse> FromOldList(IEnumerable<GameLevelCategory> oldList,
         RequestContext context,
         DataContext dataContext)
     {

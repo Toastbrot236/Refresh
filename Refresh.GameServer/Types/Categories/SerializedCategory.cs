@@ -16,7 +16,7 @@ public class SerializedCategory
     [XmlArray("types")] 
     [XmlArrayItem("type")] public string[] Types { get; set; }
 
-    public static SerializedCategory FromCategory(Category category)
+    public static SerializedCategory FromCategory(GameCategory category)
     {
         SerializedCategory serializedCategory = new()
         {

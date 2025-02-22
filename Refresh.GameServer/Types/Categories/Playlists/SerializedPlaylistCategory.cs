@@ -15,7 +15,7 @@ public class SerializedPlaylistCategory : SerializedCategory
     // This type of categories is only used in LBP3 (ignoring ApiV3)
     [XmlElement("results")] public SerializedLbp3PlaylistList Playlists { get; set; }
 
-    public static SerializedPlaylistCategory FromPlaylistCategory(Category category)
+    public static SerializedPlaylistCategory FromPlaylistCategory(GameCategory category)
     {
         SerializedPlaylistCategory serializedCategory = new()
         {
@@ -33,7 +33,7 @@ public class SerializedPlaylistCategory : SerializedCategory
         return serializedCategory;
     }
 
-    public static SerializedPlaylistCategory FromPlaylistCategory(PlaylistCategory playlistCategory,
+    public static SerializedPlaylistCategory FromPlaylistCategory(GamePlaylistCategory playlistCategory,
         RequestContext context,
         DataContext dataContext,
         int skip = 0,

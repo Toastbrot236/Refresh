@@ -7,7 +7,7 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class SearchLevelCategory : LevelCategory
+public class SearchLevelCategory : GameLevelCategory
 {
     internal SearchLevelCategory() : base("search", "search", false)
     {
