@@ -2,6 +2,7 @@ using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Endpoints.Game.DataTypes.Response;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
+using Refresh.GameServer.Types.Lists.Results;
 using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData;
 using RefreshTests.GameServer.Extensions;
@@ -456,7 +457,7 @@ public class LevelTests : GameServerTest
     }
     
     [Test]
-    public void GetLevelsFromCategory()
+    public void GetLevelsFromLevelCategory()
     {
         using TestContext context = this.GetServer();
         GameUser publisher = context.CreateUser();

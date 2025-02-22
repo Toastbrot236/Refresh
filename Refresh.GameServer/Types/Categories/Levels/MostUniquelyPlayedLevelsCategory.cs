@@ -1,16 +1,15 @@
 using Bunkum.Core;
-using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Endpoints.Game.Levels.FilterSettings;
-using Refresh.GameServer.Services;
 using Refresh.GameServer.Types.Data;
+using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.UserData;
 
-namespace Refresh.GameServer.Types.Levels.Categories;
+namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class MostUniquelyPlayedLevelsCategory : LevelCategory
+public class MostUniquelyPlayedLevelsCategory : GameLevelCategory
 {
-    internal MostUniquelyPlayedLevelsCategory() : base("mostPlayed", "mostUniquePlays", false)
+    internal MostUniquelyPlayedLevelsCategory() : base("mostPlayedLevels", "mostUniquePlays", false)
     {
         this.Name = "Starter Pack";
         this.Description = "Levels that many people have played.";

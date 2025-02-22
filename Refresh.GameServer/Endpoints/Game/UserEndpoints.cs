@@ -46,7 +46,7 @@ public class UserEndpoints : EndpointGroup
 
         return new SerializedUserList
         {
-            Users = users,
+            Items = users,
         };
     }
 
