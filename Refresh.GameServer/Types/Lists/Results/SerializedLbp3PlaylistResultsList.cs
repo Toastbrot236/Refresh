@@ -5,7 +5,7 @@ namespace Refresh.GameServer.Types.Lists.Results;
 
 [XmlRoot("results")]
 [XmlType("results")]
-public class SerializedLbp3PlaylistResultsList : SerializedLbp3PlaylistList, ISerializedCategoryItemResultsList
+public class SerializedLbp3PlaylistResultsList : SerializedLbp3PlaylistList, ISerializedCategoryResultsList
 {
     public SerializedLbp3PlaylistResultsList() {}
     

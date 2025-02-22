@@ -12,7 +12,7 @@ public class NewestPlaylistsCategory : PlaylistCategory
     internal NewestPlaylistsCategory() : base("newestPlaylists", [], false)
     {
         this.Name = "Newest Playlists";
-        this.Description = "The newest user-made playlists!";
+        this.Description = "Our newest user-made playlists.";
         this.IconHash = "g820623";
         this.FontAwesomeIcon = "calendar";
     }

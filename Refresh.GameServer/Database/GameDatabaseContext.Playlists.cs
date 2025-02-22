@@ -232,6 +232,7 @@ public partial class GameDatabaseContext // Playlists
     public IEnumerable<GamePlaylist> GetNewestPlaylists()
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
         => this.GamePlaylists.AsEnumerable()
+            .Where(p => !p.IsRoot)
             .OrderByDescending(p => p.CreationDate);
 
     public IEnumerable<GamePlaylist> GetPlaylistsFavouritedByUser(GameUser user) 

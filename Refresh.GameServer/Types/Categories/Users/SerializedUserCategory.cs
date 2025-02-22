@@ -49,7 +49,7 @@ public class SerializedUserCategory : SerializedCategory
 
         serializedUserCategory.Users = new SerializedUserList
         {
-            Users = users.ToList(),
+            Items = users.ToList(),
         };
 
         return serializedUserCategory;

@@ -6,7 +6,7 @@ namespace Refresh.GameServer.Types.Lists;
 #nullable disable
 
 [XmlRoot("users")]
-public class SerializedUserList : SerializedList<GameUserResponse>, ISerializedCategoryItemList
+public class SerializedUserList : SerializedList<GameUserResponse>
 {
     public SerializedUserList() {}
     

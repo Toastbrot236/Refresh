@@ -5,7 +5,7 @@ namespace Refresh.GameServer.Types.Lists.Results;
 
 [XmlRoot("results")]
 [XmlType("results")]
-public class SerializedUserResultsList : SerializedUserList, ISerializedCategoryItemResultsList
+public class SerializedUserResultsList : SerializedUserList, ISerializedCategoryResultsList
 {
     public SerializedUserResultsList() {}
     

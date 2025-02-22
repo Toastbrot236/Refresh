@@ -5,7 +5,7 @@ namespace Refresh.GameServer.Types.Lists.Results;
 
 [XmlRoot("results")]
 [XmlType("results")]
-public class SerializedMinimalLevelResultsList : SerializedMinimalLevelList, ISerializedCategoryItemResultsList
+public class SerializedMinimalLevelResultsList : SerializedMinimalLevelList, ISerializedCategoryResultsList
 {
     public SerializedMinimalLevelResultsList() {}
     

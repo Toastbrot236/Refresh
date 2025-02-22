@@ -102,7 +102,7 @@ public class LevelEndpoints : EndpointGroup
     [GameEndpoint("slots/{route}/{username}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public ISerializedCategoryItemList? GetLevelsWithPlayer(RequestContext context,
+    public SerializedMinimalLevelList? GetLevelsWithPlayer(RequestContext context,
         GameDatabaseContext database,
         CategoryService categories,
         PlayNowService overrideService,
@@ -149,7 +149,7 @@ public class LevelEndpoints : EndpointGroup
 
     [GameEndpoint("searches/{apiRoute}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    public ISerializedCategoryItemResultsList? GetLevelsFromCategory(RequestContext context,
+    public ISerializedCategoryResultsList? GetLevelsFromCategory(RequestContext context,
         CategoryService categories, GameUser user, Token token, string apiRoute, DataContext dataContext)
     {
         (int skip, int count) = context.GetPageData();
