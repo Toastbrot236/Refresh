@@ -7,22 +7,22 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Playlists;
 
-public class NewestPlaylistsCategory : PlaylistCategory
+public class MostHeartedPlaylistsCategory : PlaylistCategory
 {
-    internal NewestPlaylistsCategory() : base("newestPlaylists", [], false)
+    internal MostHeartedPlaylistsCategory() : base("mostHeartedPlaylists", [], false)
     {
-        this.Name = "Newest Playlists";
-        this.Description = "Our newest user-made playlists.";
-        this.IconHash = "g820623";
-        this.FontAwesomeIcon = "calendar";
+        this.Name = "Most Hearted Playlists";
+        this.Description = "The most hearted level collections!";
+        this.FontAwesomeIcon = "heart";
+        this.IconHash = "g820611";
     }
     
     public override DatabaseList<GamePlaylist>? Fetch(RequestContext context, int skip, int count, DataContext dataContext,
         LevelFilterSettings levelFilterSettings, GameUser? _) 
         => new
         (
-            dataContext.Database.GetNewestPlaylists(),
-            skip,
+            dataContext.Database.GetMostHeartedPlaylists(), 
+            skip, 
             count
         );
 }

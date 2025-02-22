@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class TeamPickedLevelsCategory : LevelCategory
 {
-    internal TeamPickedLevelsCategory() : base("teamPicks", "mmpicks", false)
+    internal TeamPickedLevelsCategory() : base("teamPickedLevels", "mmpicks", false)
     {
         this.Name = "Team Picks";
         this.Description = "High quality levels, hand-picked by us.";

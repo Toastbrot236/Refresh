@@ -7,11 +7,11 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Levels;
 
-public class FavouriteLevelsByUserCategory : LevelCategory
+public class HeartedLevelsByUserCategory : LevelCategory
 {
-    internal FavouriteLevelsByUserCategory() : base("hearted", "favouriteSlots", true)
+    internal HeartedLevelsByUserCategory() : base("heartedLevels", "favouriteSlots", true)
     {
-        this.Name = "My Favorites";
+        this.Name = "Your Favorites";
         this.Description = "Your personal list filled with your favourite levels!";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";

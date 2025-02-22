@@ -84,6 +84,16 @@ public partial class GameDatabaseContext // Users
     public DatabaseList<GameUser> GetUsers(int count, int skip)
         => new(this.GameUsers.OrderByDescending(u => u.JoinDate), skip, count);
 
+    public IEnumerable<GameUser> GetMostHeartedUsers() 
+        // TODO: When we have postgres, remove the `AsEnumerable` call for performance.
+        // TODO: reduce code duplication for getting most of x
+        => this.FavouriteUserRelations.AsEnumerable()
+            .GroupBy(r => r.UserToFavourite)
+            .Select(g => new { User = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .Select(x => x.User)
+            .Where(p => p != null);
+
     public void UpdateUserData(GameUser user, SerializedUpdateData data, TokenGame game)
     {
         this.Write(() =>

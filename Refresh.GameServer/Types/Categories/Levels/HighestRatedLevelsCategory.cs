@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class HighestRatedLevelsCategory : LevelCategory
 {
-    internal HighestRatedLevelsCategory() : base("mostLiked", new[] { "thumbs", "highestRated" }, false)
+    internal HighestRatedLevelsCategory() : base("mostLikedLevels", ["thumbs", "highestRated"], false)
     {
         this.Name = "Highest Rated";
         this.Description = "Levels with the most Yays!";

@@ -9,9 +9,9 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class QueuedLevelsByUserCategory : LevelCategory
 {
-    internal QueuedLevelsByUserCategory() : base("queued", "lolcatftw", true)
+    internal QueuedLevelsByUserCategory() : base("queuedLevels", "lolcatftw", true)
     {
-        this.Name = "My Queue";
+        this.Name = "Your Queue";
         this.Description = "Levels you'd like to play!";
         this.FontAwesomeIcon = "bell";
         this.IconHash = "g820614";

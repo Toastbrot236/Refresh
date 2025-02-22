@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class MostReplayedLevelsCategory : LevelCategory
 {
-    internal MostReplayedLevelsCategory() : base("mostReplayed", "mostPlays", false)
+    internal MostReplayedLevelsCategory() : base("mostReplayedLevels", "mostPlays", false)
     {
         this.Name = "Replayable Levels";
         this.Description = "Levels people love to play over and over!";

@@ -10,7 +10,7 @@ namespace Refresh.GameServer.Types.Categories.Users;
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class UserCategory : Category
 {
-    internal UserCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, new []{gameRoute}, requiresUser) {}
+    internal UserCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
     
     internal UserCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
 

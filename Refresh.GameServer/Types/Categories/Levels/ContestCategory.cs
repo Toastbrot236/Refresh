@@ -10,7 +10,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class ContestCategory : LevelCategory
 {
-    public ContestCategory() : base("contest", Array.Empty<string>(), false)
+    public ContestCategory() : base("contestLevels", [], false)
     {
         this.Name = "Contests";
         this.Description = "Levels from a contest.";

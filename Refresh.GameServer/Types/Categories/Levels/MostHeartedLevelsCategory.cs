@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class MostHeartedLevelsCategory : LevelCategory
 {
-    internal MostHeartedLevelsCategory() : base("mostHearted", "mostHearted", false)
+    internal MostHeartedLevelsCategory() : base("mostHeartedLevels", "mostHearted", false)
     {
         this.Name = "Community's Favorites";
         this.Description = "The all-time most hearted levels!";

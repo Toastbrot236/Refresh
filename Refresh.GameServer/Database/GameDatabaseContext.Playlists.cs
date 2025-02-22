@@ -235,6 +235,16 @@ public partial class GameDatabaseContext // Playlists
             .Where(p => !p.IsRoot)
             .OrderByDescending(p => p.CreationDate);
 
+    public IEnumerable<GamePlaylist> GetMostHeartedPlaylists() 
+        // TODO: When we have postgres, remove the `AsEnumerable` call for performance.
+        // TODO: reduce code duplication for getting most of x
+        => this.FavouritePlaylistRelations.AsEnumerable()
+            .GroupBy(r => r.Playlist)
+            .Select(g => new { Playlist = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .Select(x => x.Playlist)
+            .Where(p => p != null);
+
     public IEnumerable<GamePlaylist> GetPlaylistsFavouritedByUser(GameUser user) 
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance.
         => this.FavouritePlaylistRelations.Where(r => r.User == user).AsEnumerable()

@@ -9,10 +9,10 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class ByUserLevelCategory : LevelCategory
 {
-    internal ByUserLevelCategory() : base("byUser", "by", true)
+    internal ByUserLevelCategory() : base("levelsByUser", "by", true)
     {
         // Technically this category can apply to any user, but since we fallback to the regular user this name & description still applies
-        this.Name = "My Published Levels";
+        this.Name = "Your Published Levels";
         this.Description = "Levels you've shared with the community!";
         this.IconHash = "g820625";
         this.FontAwesomeIcon = "user";

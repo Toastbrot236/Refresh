@@ -9,9 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class SearchLevelCategory : LevelCategory
 {
-    public const string SearchRoute = "search";
-    
-    internal SearchLevelCategory() : base(SearchRoute, "search", false)
+    internal SearchLevelCategory() : base("search", "search", false)
     {
         this.Name = "Search";
         this.Description = "Search for new levels.";

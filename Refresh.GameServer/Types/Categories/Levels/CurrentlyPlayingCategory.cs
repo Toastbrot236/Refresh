@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class CurrentlyPlayingCategory : LevelCategory
 {
-    internal CurrentlyPlayingCategory() : base("currentlyPlaying", "busiest", false)
+    internal CurrentlyPlayingCategory() : base("currentlyPlayingLevels", "busiest", false)
     {
         this.Name = "Popular Now";
         this.Description = "Levels people are playing right now!";

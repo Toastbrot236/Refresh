@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class NewestLevelsCategory : LevelCategory
 {
-    internal NewestLevelsCategory() : base("newest", "newest", false)
+    internal NewestLevelsCategory() : base("newestLevels", "newest", false)
     {
         this.Name = "Newest Levels";
         this.Description = "Levels that were most recently uploaded!";

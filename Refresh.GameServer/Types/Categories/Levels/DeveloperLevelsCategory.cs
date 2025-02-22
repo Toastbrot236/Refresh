@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class DeveloperLevelsCategory : LevelCategory
 {
-    internal DeveloperLevelsCategory() : base("developer", Array.Empty<string>(), false)
+    internal DeveloperLevelsCategory() : base("developerLevels", [], false)
     {
         this.Name = "Story Levels";
         this.Description = "Levels from LittleBigPlanet's story mode.";

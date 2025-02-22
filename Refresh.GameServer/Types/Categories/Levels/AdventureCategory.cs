@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class AdventureCategory : LevelCategory
 {
-    public AdventureCategory() : base("adventure", Array.Empty<string>(), false)
+    public AdventureCategory() : base("adventure", [], false)
     {
         this.Name = "Adventures";
         this.Description = "Storylines and other big projects by the community.";

@@ -7,11 +7,11 @@ using Refresh.GameServer.Types.UserData;
 
 namespace Refresh.GameServer.Types.Categories.Playlists;
 
-public class FavouritePlaylistsByUserCategory : PlaylistCategory
+public class HeartedPlaylistsByUserCategory : PlaylistCategory
 {
-    internal FavouritePlaylistsByUserCategory() : base("heartedPlaylists", [], true)
+    internal HeartedPlaylistsByUserCategory() : base("heartedPlaylists", [], true)
     {
-        this.Name = "My Favorite Playlists";
+        this.Name = "Your Favorite Playlists";
         this.Description = "Your personal list filled with your favourite playlists!";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";
@@ -26,7 +26,8 @@ public class FavouritePlaylistsByUserCategory : PlaylistCategory
 
         if (user == null) return null;
         
-        return new DatabaseList<GamePlaylist>(
+        return new DatabaseList<GamePlaylist>
+        (
             dataContext.Database.GetPlaylistsFavouritedByUser(user), 
             skip, 
             count

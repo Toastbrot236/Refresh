@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class MostUniquelyPlayedLevelsCategory : LevelCategory
 {
-    internal MostUniquelyPlayedLevelsCategory() : base("mostPlayed", "mostUniquePlays", false)
+    internal MostUniquelyPlayedLevelsCategory() : base("mostPlayedLevels", "mostUniquePlays", false)
     {
         this.Name = "Starter Pack";
         this.Description = "Levels that many people have played.";

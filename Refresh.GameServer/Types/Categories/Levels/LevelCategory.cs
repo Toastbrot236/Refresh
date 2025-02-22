@@ -13,7 +13,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class LevelCategory : Category
 {
-    internal LevelCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, new []{gameRoute}, requiresUser) {}
+    internal LevelCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
     
     internal LevelCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
 

@@ -28,7 +28,7 @@ public class CategoryService : EndpointService
         new MostReplayedLevelsCategory(),
 
         new ByUserLevelCategory(),
-        new FavouriteLevelsByUserCategory(),
+        new HeartedLevelsByUserCategory(),
         new QueuedLevelsByUserCategory(),
 
         new SearchLevelCategory(),
@@ -45,7 +45,8 @@ public class CategoryService : EndpointService
     private readonly List<PlaylistCategory> _playlistCategories =
     [
         new NewestPlaylistsCategory(),
-        new FavouritePlaylistsByUserCategory(),
+        new HeartedPlaylistsByUserCategory(),
+        new MostHeartedPlaylistsCategory(),
     ];
 
     // User Categories
@@ -55,6 +56,8 @@ public class CategoryService : EndpointService
     private readonly List<UserCategory> _userCategories =
     [
         new NewestUsersCategory(),
+        new HeartedUsersByUserCategory(),
+        new MostHeartedUsersCategory(),
     ];
 
 

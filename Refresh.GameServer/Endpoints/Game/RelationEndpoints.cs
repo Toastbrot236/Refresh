@@ -90,7 +90,7 @@ public class RelationEndpoints : EndpointGroup
         if (user == null) return null;
 
         (int skip, int count) = context.GetPageData();
-        List<GameUser> users = database.GetUsersFavouritedByUser(user, count, skip, true)
+        List<GameUser> users = database.GetUsersFavouritedByUser(user, count, skip)
             .ToList();
 
         return new SerializedFavouriteUserList(GameUserResponse.FromOldList(users, dataContext).ToList(), users.Count, skip + count);

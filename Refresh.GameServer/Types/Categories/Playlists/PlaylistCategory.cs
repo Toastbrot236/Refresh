@@ -11,7 +11,7 @@ namespace Refresh.GameServer.Types.Categories.Playlists;
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class PlaylistCategory : Category
 {
-    internal PlaylistCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, new []{gameRoute}, requiresUser) {}
+    internal PlaylistCategory(string apiRoute, string gameRoute, bool requiresUser) : base(apiRoute, [gameRoute], requiresUser) {}
     
     internal PlaylistCategory(string apiRoute, string[] gameRoutes, bool requiresUser) : base(apiRoute, gameRoutes, requiresUser) {}
 

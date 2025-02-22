@@ -9,7 +9,7 @@ namespace Refresh.GameServer.Types.Categories.Levels;
 
 public class ByTagCategory : LevelCategory
 {
-    internal ByTagCategory() : base("tag", "tag", false)
+    internal ByTagCategory() : base("taggedLevels", "tag", false)
     {
         // Technically this category can apply to any user, but since we fallback to the regular user this name & description still applies
         this.Name = "Tag Search";
