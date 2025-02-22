@@ -8,10 +8,10 @@ namespace Refresh.GameServer.Types.Categories.Users;
 
 public class MutualsOfUserCategory : GameUserCategory
 {
-    internal MutualsOfUserCategory() : base("mutuals", [], true)
+    internal MutualsOfUserCategory() : base("mutualUsers", [], true)
     {
         this.Name = "Your Mutuals";
-        this.Description = "People who have hearted you and who you have hearted.";
+        this.Description = "Your mutuals, people who have hearted you and who you have hearted.";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";
     }

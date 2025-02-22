@@ -12,7 +12,7 @@ public class ByUserPlaylistCategory : GamePlaylistCategory
     internal ByUserPlaylistCategory() : base("playlistsByUser", [], true)
     {
         this.Name = "Your Playlists";
-        this.Description = "Your personal list filled with your favourite playlists!";
+        this.Description = "You own playlists.";
         this.FontAwesomeIcon = "heart";
         this.IconHash = "g820611";
     }
