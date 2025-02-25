@@ -1,5 +1,7 @@
 using Refresh.GameServer.Authentication;
+using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Request;
 using Refresh.GameServer.Extensions;
+using Refresh.GameServer.Types;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Relations;
@@ -11,14 +13,77 @@ public partial class GameDatabaseContext // Playlists
 {
     public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp1Playlist createInfo, bool rootPlaylist)
     {
-        GamePlaylist playlist = GamePlaylist.ToGamePlaylist(createInfo, user, rootPlaylist);
+        GamePlaylist playlist = new() 
+        {
+            Publisher = user, 
+            Name = createInfo.Name,
+            Description = createInfo.Description, 
+            IconHash = createInfo.Icon, 
+            LocationX = createInfo.Location.X, 
+            LocationY = createInfo.Location.Y,
+            IsRoot = rootPlaylist,
+        };
+
         this.CreatePlaylist(playlist);
+
         return playlist;
     }
 
     public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp3Playlist createInfo, bool rootPlaylist)
     {
-        GamePlaylist playlist = GamePlaylist.ToGamePlaylist(createInfo, user, rootPlaylist);
+        GameLocation randomLocation = GameLocation.GetRandomLocation();
+
+        GamePlaylist playlist = new()
+        {
+            Publisher = user, 
+            Name = createInfo.Name ?? "",
+            Description = createInfo.Description ?? "", 
+            // lbp1 star sticker, to differentiate from playlists made in lbp1
+            IconHash = "g18451",
+            LocationX = randomLocation.X, 
+            LocationY = randomLocation.Y,
+            IsRoot = rootPlaylist,
+        };
+
+        this.CreatePlaylist(playlist);
+
+        return playlist;
+    }
+
+    public GamePlaylist CreatePlaylist(GameUser user, string? name, string? description, bool rootPlaylist)
+    {
+        GameLocation randomLocation = GameLocation.GetRandomLocation();
+
+        GamePlaylist playlist = new()
+        {
+            Publisher = user, 
+            Name = name ?? "",
+            Description = description ?? "", 
+            // lbp1 star sticker, to differentiate from playlists made in lbp1
+            IconHash = "g18451",
+            LocationX = randomLocation.X, 
+            LocationY = randomLocation.Y,
+            IsRoot = rootPlaylist,
+        };
+        this.CreatePlaylist(playlist);
+        return playlist;
+    }
+
+    public GamePlaylist CreatePlaylist(GameUser user, ApiPlaylistRequest createInfo, bool rootPlaylist)
+    {
+        GameLocation randomLocation = GameLocation.GetRandomLocation();
+
+        GamePlaylist playlist = new()
+        {
+            Publisher = user, 
+            Name = createInfo.Name ?? "",
+            Description = createInfo.Description ?? "", 
+            // lbp1 star sticker, to differentiate from playlists made in lbp1
+            IconHash = createInfo.IconHash ?? "g18451",
+            LocationX = randomLocation.X, 
+            LocationY = randomLocation.Y,
+            IsRoot = rootPlaylist,
+        };
         this.CreatePlaylist(playlist);
         return playlist;
     }
@@ -61,6 +126,19 @@ public partial class GameDatabaseContext // Playlists
             playlist.LastUpdateDate = now;
             if (updateInfo.Name != null) playlist.Name = updateInfo.Name;
             if (updateInfo.Description != null) playlist.Description = updateInfo.Description;
+        });
+    }
+
+    public void UpdatePlaylist(GamePlaylist playlist, ApiPlaylistRequest updateInfo)
+    {
+        DateTimeOffset now = this._time.Now;
+
+        this.Write(() =>
+        {
+            playlist.LastUpdateDate = now;
+            if (updateInfo.Name != null) playlist.Name = updateInfo.Name;
+            if (updateInfo.Description != null) playlist.Description = updateInfo.Description;
+            if (updateInfo.IconHash != null) playlist.IconHash = updateInfo.IconHash;
         });
     }
 
@@ -176,6 +254,13 @@ public partial class GameDatabaseContext // Playlists
             .Select(r => this.GamePlaylists.First(p => p.PlaylistId == r.Playlist.PlaylistId))
             .Where(p => !p.IsRoot);
 
+    public int GetTotalPlaylistsContainingPlaylistCount(GamePlaylist playlist)
+        // TODO: with postgres this can be IQueryable
+        => this.SubPlaylistRelations.Where(p => p.SubPlaylist == playlist).AsEnumerable()
+            .Select(r => this.GamePlaylists.First(p => p.PlaylistId == r.Playlist.PlaylistId))
+            .Where(p => !p.IsRoot)
+            .Count();
+
     public IEnumerable<GamePlaylist> GetPlaylistsByAuthorContainingPlaylist(GameUser user, GamePlaylist playlist)
         // TODO: with postgres this can be IQueryable
         => this.SubPlaylistRelations.Where(p => p.SubPlaylist == playlist).AsEnumerable()
@@ -193,6 +278,14 @@ public partial class GameDatabaseContext // Playlists
             .Select(l => l.Level)
             .FilterByGameVersion(game);
 
+    public IEnumerable<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist)
+        // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
+        => this.LevelPlaylistRelations
+            .Where(l => l.Playlist == playlist)
+            .OrderBy(r => r.Index)
+            .AsEnumerable()
+            .Select(l => l.Level);
+
     public int GetTotalLevelsInPlaylistCount(GamePlaylist playlist, TokenGame game) => 
         this.LevelPlaylistRelations.Where(l => l.Playlist == playlist).AsEnumerable()
             .Select(l => l.Level)
@@ -201,7 +294,6 @@ public partial class GameDatabaseContext // Playlists
 
     public int GetTotalLevelsInPlaylistCount(GamePlaylist playlist) => 
         this.LevelPlaylistRelations.Where(l => l.Playlist == playlist).AsEnumerable()
-            .Select(l => l.Level)
             .Count();
 
     public IEnumerable<GamePlaylist> GetPlaylistsInPlaylist(GamePlaylist playlist)
@@ -209,6 +301,11 @@ public partial class GameDatabaseContext // Playlists
         => this.SubPlaylistRelations.Where(p => p.Playlist == playlist).AsEnumerable()
             .Reverse()
             .Select(l => l.SubPlaylist);
+
+    public int GetTotalPlaylistsInPlaylistCount(GamePlaylist playlist)
+        // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
+        => this.SubPlaylistRelations.Where(p => p.Playlist == playlist).AsEnumerable()
+            .Count();
 
     public IEnumerable<GamePlaylist> GetPlaylistsByAuthor(GameUser author)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 

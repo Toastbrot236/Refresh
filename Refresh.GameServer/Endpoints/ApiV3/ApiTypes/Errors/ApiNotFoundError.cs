@@ -12,6 +12,9 @@ public class ApiNotFoundError : ApiError
 
     public const string LevelMissingErrorWhen = "The level could not be found";
     public static readonly ApiNotFoundError LevelMissingError = new(LevelMissingErrorWhen);
+
+    public const string PlaylistMissingErrorWhen = "The playlist could not be found";
+    public static readonly ApiNotFoundError PlaylistMissingError = new(PlaylistMissingErrorWhen);
     
     public const string ScoreMissingErrorWhen = "The score could not be found";
     public static readonly ApiNotFoundError ScoreMissingError = new(ScoreMissingErrorWhen);
