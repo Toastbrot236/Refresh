@@ -6,7 +6,6 @@ using Refresh.GameServer.Database;
 using Refresh.GameServer.Documentation.Attributes;
 using Refresh.GameServer.Endpoints.ApiV3.ApiTypes;
 using Refresh.GameServer.Endpoints.ApiV3.ApiTypes.Errors;
-using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Response;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Response.Levels;
 using Refresh.GameServer.Extensions;
 using Refresh.GameServer.Types.Data;
@@ -30,8 +29,8 @@ public class ReviewApiEndpoints : EndpointGroup
         (int skip, int count) = context.GetPageData();
         
         DatabaseList<GameReview> reviews = database.GetReviewsForLevel(level, count, skip);
-        DatabaseList<ApiGameReviewResponse> ret = DatabaseList<ApiGameScoreResponse>.FromOldList<ApiGameReviewResponse, GameReview>(reviews, dataContext);
+        DatabaseList<ApiGameReviewResponse> response = DatabaseList<ApiGameScoreResponse>.FromOldList<ApiGameReviewResponse, GameReview>(reviews, dataContext);
 
-        return ret;
+        return response;
     }
 }

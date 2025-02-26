@@ -218,7 +218,7 @@ public class GameLevelResponse : IDataConvertableFrom<GameLevelResponse, GameLev
         
         if (dataContext.User != null)
         {
-            RatingType? rating = dataContext.Database.GetRatingByUser(old, dataContext.User);
+            RatingType? rating = dataContext.Database.GetLevelRatingByUser(dataContext.User, old);
 
             response.YourRating = rating?.ToDPad() ?? (int)RatingType.Neutral;
             response.YourStarRating = rating?.ToLBP1() ?? 0;

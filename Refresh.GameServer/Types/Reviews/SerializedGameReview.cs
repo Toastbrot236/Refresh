@@ -58,7 +58,7 @@ public class SerializedGameReview : IDataConvertableFrom<SerializedGameReview, G
         
         DatabaseRating reviewRatings = dataContext.Database.GetRatingForReview(review);
 
-        RatingType userRatingType = dataContext.Database.GetRateReviewRelationForReview(dataContext.User!, review)?.RatingType ?? RatingType.Neutral;
+        RatingType userRatingType = dataContext.Database.GetReviewRatingByUser(dataContext.User!, review) ?? RatingType.Neutral;
         
         return new SerializedGameReview
         {
@@ -74,7 +74,7 @@ public class SerializedGameReview : IDataConvertableFrom<SerializedGameReview, G
             Deleted = false,
             DeletedBy = ReviewDeletedBy.None,
             Text = review.Content,
-            Thumb = dataContext.Database.GetRatingByUser(review.Level, review.Publisher)?.ToDPad() ?? 0,
+            Thumb = dataContext.Database.GetLevelRatingByUser(review.Publisher, review.Level)?.ToDPad() ?? 0,
             ThumbsUp = reviewRatings.PositiveRating,
             ThumbsDown = reviewRatings.NegativeRating,
             YourThumb = (int) userRatingType,

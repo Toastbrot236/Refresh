@@ -13,6 +13,8 @@ public class ApiGameReviewResponse : IApiResponse, IDataConvertableFrom<ApiGameR
     public required DateTimeOffset PostedAt { get; set; }
     public required string Labels { get; set; }
     public required string Text { get; set; }
+    public required int PublishersLevelRating { get; set; }
+    public required int? OwnReviewRating { get; set; }
     public static ApiGameReviewResponse? FromOld(GameReview? old, DataContext dataContext)
     {
         if (old == null) return null;
@@ -24,6 +26,8 @@ public class ApiGameReviewResponse : IApiResponse, IDataConvertableFrom<ApiGameR
             PostedAt = old.PostedAt,
             Labels = old.Labels,
             Text = old.Content,
+            PublishersLevelRating = dataContext.Database.GetLevelRatingByUser(old.Publisher, old.Level)?.ToDPad() ?? 0,
+            OwnReviewRating = null //(int)dataContext.Database.GetReviewRatingByUser(old.Publisher, old) ?? 0,
         };
     }
 

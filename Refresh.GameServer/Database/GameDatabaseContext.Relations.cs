@@ -283,13 +283,15 @@ public partial class GameDatabaseContext // Relations
     public bool ReviewRatingExistsByUser(GameUser user, GameReview review)
         => this.RateReviewRelations.Any(relation => relation.Review == review && relation.User == user);
 
-    public RateReviewRelation? GetRateReviewRelationForReview(GameUser user, GameReview review)
+    private RateReviewRelation? GetRateReviewRelationForReview(GameUser user, GameReview review)
         => this.RateReviewRelations.FirstOrDefault(relation => relation.User == user && relation.Review == review);
+    
+    public RatingType? GetReviewRatingByUser(GameUser user, GameReview review) => this.GetRateReviewRelationForReview(user, review)?.RatingType;
     
     public bool ReviewRatingExists(GameUser user, GameReview review, RatingType rating)
         => this.RateReviewRelations.Any(r => r.Review == review && r.User == user && r._ReviewRatingType == (int)rating);
 
-    private RateLevelRelation? GetRateRelationByUser(GameLevel level, GameUser user)
+    private RateLevelRelation? GetRateLevelRelationByUser(GameUser user, GameLevel level)
         => this.RateLevelRelations.FirstOrDefault(r => r.User == user && r.Level == level);
 
     /// <summary>
@@ -302,14 +304,14 @@ public partial class GameDatabaseContext // Relations
     /// <param name="user">The user to check</param>
     /// <returns>The rating if found</returns>
     [Pure]
-    public RatingType? GetRatingByUser(GameLevel level, GameUser user) => this.GetRateRelationByUser(level, user)?.RatingType;
+    public RatingType? GetLevelRatingByUser(GameUser user, GameLevel level) => this.GetRateLevelRelationByUser(user, level)?.RatingType;
 
     public bool RateLevel(GameLevel level, GameUser user, RatingType type)
     {
         if (level.Publisher?.UserId == user.UserId) return false;
         if (level.GameVersion != TokenGame.LittleBigPlanetPSP && !this.HasUserPlayedLevel(level, user)) return false;
         
-        RateLevelRelation? rating = this.GetRateRelationByUser(level, user);
+        RateLevelRelation? rating = this.GetRateLevelRelationByUser(user, level);
         
         if (rating == null)
         {
