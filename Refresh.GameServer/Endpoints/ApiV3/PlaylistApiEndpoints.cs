@@ -73,7 +73,7 @@ public class PlaylistApiEndpoints : EndpointGroup
     [ApiV3Endpoint("playlists/id/{id}"), Authentication(false)]
     [DocSummary("Gets an individual playlist by it's numerical ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.PlaylistMissingErrorWhen)]
-    public ApiResponse<ApiGamePlaylistResponse> GetPlaylistById(DataContext dataContext,
+    public ApiResponse<ApiGamePlaylistResponse> GetPlaylistById(RequestContext context, DataContext dataContext,
         [DocSummary("The ID of the playlist")] int id)
     {
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
@@ -92,14 +92,10 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         // if the player has no root playlist yet, create a new one first
         if (user.RootPlaylist == null)
-        {
-            GamePlaylist rootPlaylist = GamePlaylist.ToGamePlaylist("My Playlists", null, user, true);
-            dataContext.Database.CreatePlaylist(rootPlaylist);
-            dataContext.Database.SetUserRootPlaylist(user, rootPlaylist);
-        }
+            dataContext.Database.CreateRootPlaylist(user);
 
         // create the actual playlist and add it to the root playlist to have it show up in lbp1 too
-        GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body, false);
+        GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body);
         dataContext.Database.AddPlaylistToPlaylist(playlist, user.RootPlaylist!);
 
         return new ApiOkResponse();

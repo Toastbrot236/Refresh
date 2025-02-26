@@ -22,14 +22,10 @@ public class PlaylistLbp3Endpoints : EndpointGroup
     {
         // if the player has no root playlist yet, create a new one first
         if (user.RootPlaylist == null)
-        {
-            GamePlaylist rootPlaylist = GamePlaylist.ToGamePlaylist("My Playlists", null, user, true);
-            dataContext.Database.CreatePlaylist(rootPlaylist);
-            dataContext.Database.SetUserRootPlaylist(user, rootPlaylist);
-        }
+            dataContext.Database.CreateRootPlaylist(user);
 
         // create the actual playlist and add it to the root playlist to have it show up in lbp1 too
-        GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body, false);
+        GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body);
         dataContext.Database.AddPlaylistToPlaylist(playlist, user.RootPlaylist!);
 
         // return the playlist we just created to have the game open to it immediately

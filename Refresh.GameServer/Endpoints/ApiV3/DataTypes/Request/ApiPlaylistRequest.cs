@@ -6,4 +6,5 @@ public class ApiPlaylistRequest
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? IconHash { get; set; }
+    public ApiGameLocationRequest? Location { get; set; }
 }

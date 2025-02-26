@@ -11,7 +11,28 @@ namespace Refresh.GameServer.Database;
 
 public partial class GameDatabaseContext // Playlists
 {
-    public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp1Playlist createInfo, bool rootPlaylist)
+    public GamePlaylist CreateRootPlaylist(GameUser user)
+    {
+        GameLocation randomLocation = GameLocation.GetRandomLocation();
+
+        GamePlaylist playlist = new()
+        {
+            Publisher = user, 
+            Name = "My Playlists",
+            Description = $"{user.Username}'s root playlist", 
+            IconHash = "g18451", // lbp1 star sticker
+            LocationX = randomLocation.X, 
+            LocationY = randomLocation.Y,
+            IsRoot = true,
+        };
+
+        this.CreatePlaylist(playlist);
+        this.SetUserRootPlaylist(user, playlist);
+
+        return playlist;
+    }
+
+    public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp1Playlist createInfo, bool rootPlaylist = false)
     {
         GamePlaylist playlist = new() 
         {
@@ -29,7 +50,7 @@ public partial class GameDatabaseContext // Playlists
         return playlist;
     }
 
-    public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp3Playlist createInfo, bool rootPlaylist)
+    public GamePlaylist CreatePlaylist(GameUser user, SerializedLbp3Playlist createInfo)
     {
         GameLocation randomLocation = GameLocation.GetRandomLocation();
 
@@ -38,11 +59,10 @@ public partial class GameDatabaseContext // Playlists
             Publisher = user, 
             Name = createInfo.Name ?? "",
             Description = createInfo.Description ?? "", 
-            // lbp1 star sticker, to differentiate from playlists made in lbp1
-            IconHash = "g18451",
+            IconHash = "g18451", // lbp1 star sticker
             LocationX = randomLocation.X, 
             LocationY = randomLocation.Y,
-            IsRoot = rootPlaylist,
+            IsRoot = false,
         };
 
         this.CreatePlaylist(playlist);
@@ -50,45 +70,27 @@ public partial class GameDatabaseContext // Playlists
         return playlist;
     }
 
-    public GamePlaylist CreatePlaylist(GameUser user, string? name, string? description, bool rootPlaylist)
+    public GamePlaylist CreatePlaylist(GameUser user, ApiPlaylistRequest createInfo)
     {
         GameLocation randomLocation = GameLocation.GetRandomLocation();
 
-        GamePlaylist playlist = new()
-        {
-            Publisher = user, 
-            Name = name ?? "",
-            Description = description ?? "", 
-            // lbp1 star sticker, to differentiate from playlists made in lbp1
-            IconHash = "g18451",
-            LocationX = randomLocation.X, 
-            LocationY = randomLocation.Y,
-            IsRoot = rootPlaylist,
-        };
-        this.CreatePlaylist(playlist);
-        return playlist;
-    }
-
-    public GamePlaylist CreatePlaylist(GameUser user, ApiPlaylistRequest createInfo, bool rootPlaylist)
-    {
-        GameLocation randomLocation = GameLocation.GetRandomLocation();
-
-        GamePlaylist playlist = new()
+        GamePlaylist playlist = new() 
         {
             Publisher = user, 
             Name = createInfo.Name ?? "",
             Description = createInfo.Description ?? "", 
-            // lbp1 star sticker, to differentiate from playlists made in lbp1
-            IconHash = createInfo.IconHash ?? "g18451",
-            LocationX = randomLocation.X, 
-            LocationY = randomLocation.Y,
-            IsRoot = rootPlaylist,
+            IconHash = createInfo.IconHash ?? "g18451", // lbp1 star sticker 
+            LocationX = createInfo.Location?.X ?? randomLocation.X, 
+            LocationY = createInfo.Location?.Y ?? randomLocation.Y,
+            IsRoot = false,
         };
+
         this.CreatePlaylist(playlist);
+
         return playlist;
     }
 
-    public void CreatePlaylist(GamePlaylist createInfo)
+    private void CreatePlaylist(GamePlaylist createInfo)
     {
         DateTimeOffset now = this._time.Now;
 
