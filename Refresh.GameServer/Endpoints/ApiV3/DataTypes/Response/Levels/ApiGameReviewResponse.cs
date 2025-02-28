@@ -1,4 +1,5 @@
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Response.Users;
+using Refresh.GameServer.Types;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Reviews;
 
@@ -13,11 +14,17 @@ public class ApiGameReviewResponse : IApiResponse, IDataConvertableFrom<ApiGameR
     public required DateTimeOffset PostedAt { get; set; }
     public required string Labels { get; set; }
     public required string Text { get; set; }
-    public required int PublishersLevelRating { get; set; }
-    public required int? OwnReviewRating { get; set; }
+    public required int LevelRating { get; set; }
+
+    public required int PositiveRating { get; set; }
+    public required int NegativeRating { get; set; }
+    public required int OwnReviewRating { get; set; }
     public static ApiGameReviewResponse? FromOld(GameReview? old, DataContext dataContext)
     {
         if (old == null) return null;
+
+        DatabaseRating reviewRatings = dataContext.Database.GetRatingForReview(old);
+
         return new ApiGameReviewResponse
         {
             ReviewId = old.ReviewId,
@@ -26,8 +33,10 @@ public class ApiGameReviewResponse : IApiResponse, IDataConvertableFrom<ApiGameR
             PostedAt = old.PostedAt,
             Labels = old.Labels,
             Text = old.Content,
-            PublishersLevelRating = dataContext.Database.GetLevelRatingByUser(old.Publisher, old.Level)?.ToDPad() ?? 0,
-            OwnReviewRating = null //(int)dataContext.Database.GetReviewRatingByUser(old.Publisher, old) ?? 0,
+            LevelRating = dataContext.Database.GetLevelRatingByUser(old.Publisher, old.Level)?.ToDPad() ?? 0,
+            PositiveRating = reviewRatings.PositiveRating,
+            NegativeRating = reviewRatings.NegativeRating,
+            OwnReviewRating = dataContext.Database.GetReviewRatingByUser(old.Publisher, old)?.ToDPad() ?? 0,
         };
     }
 
