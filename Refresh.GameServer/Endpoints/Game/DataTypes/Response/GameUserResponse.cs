@@ -33,6 +33,7 @@ public class GameUserResponse : IDataConvertableFrom<GameUserResponse, GameUser>
     [XmlElement("heartCount")] public int HeartCount { get; set; }
     [XmlElement("photosByMeCount")] public int PhotosByMeCount { get; set; }
     [XmlElement("photosWithMeCount")] public int PhotosWithMeCount { get; set; }
+    [XmlElement("pins")] public string? ProfilePins { get; set; }
     
     [XmlElement("freeSlots")] public int FreeSlots { get; set; }
     [XmlElement("lbp2FreeSlots")] public int FreeSlotsLBP2 { get; set; }

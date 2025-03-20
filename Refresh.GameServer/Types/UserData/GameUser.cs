@@ -4,6 +4,7 @@ using Realms;
 using Bunkum.Core.RateLimit;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Roles;
+using Refresh.GameServer.Types.Pins;
 
 namespace Refresh.GameServer.Types.UserData;
 

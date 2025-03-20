@@ -17,6 +17,7 @@ using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData.Leaderboard;
 using Refresh.GameServer.Types.Photos;
 using Refresh.GameServer.Types.Playlists;
+using Refresh.GameServer.Types.Pins;
 
 namespace Refresh.GameServer.Database;
 

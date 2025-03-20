@@ -5,6 +5,7 @@ using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Request;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Photos;
+using Refresh.GameServer.Types.Pins;
 using Refresh.GameServer.Types.Playlists;
 using Refresh.GameServer.Types.Roles;
 using Refresh.GameServer.Types.UserData;
