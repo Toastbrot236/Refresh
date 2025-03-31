@@ -143,7 +143,7 @@ public class UserEndpoints : EndpointGroup
 
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
     [NullStatusCode(BadRequest)]
-    public string? UpdatePins(RequestContext context, GameDatabaseContext database, GameUser user, UserPins body)
+    public string? UpdatePins(RequestContext context, GameDatabaseContext database, GameUser user, SerializedUserPins body)
     {
         /*
         context.Logger.LogInfo(BunkumCategory.UserContent, $"Content: {body}");
@@ -180,6 +180,7 @@ public class UserEndpoints : EndpointGroup
         });
     }
 
+    /*
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
     [MinimumRole(GameUserRole.Restricted)]
     public string GetPins(RequestContext context, GameUser user)
@@ -187,4 +188,5 @@ public class UserEndpoints : EndpointGroup
         {
             NullValueHandling = NullValueHandling.Ignore,
         });
+    */
 }

@@ -66,4 +66,36 @@ public class UserApiEndpoints : EndpointGroup
         database.UpdateUserData(user, body);
         return ApiExtendedGameUserResponse.FromOld(user, dataContext);
     }
+
+    /*
+    [ApiV3Endpoint("users/pin/id/{pinId}/progress/{progress}", HttpMethods.Patch)]
+    [DocSummary("No summary")]
+    public ApiResponse<ApiExtendedGameUserResponse> UpdateUserPin(RequestContext context, GameUser user, DataContext dataContext, int pinId, int progress)
+    {
+        if (body.IconHash != null && database.GetAssetFromHash(body.IconHash) == null)
+            return ApiNotFoundError.Instance;
+
+        if (body.EmailAddress != null && !smtpService.CheckEmailDomainValidity(body.EmailAddress))
+            return ApiValidationError.EmailDoesNotActuallyExistError;
+
+        database.UpdateUserData(user, body);
+        return ApiExtendedGameUserResponse.FromOld(user, dataContext);
+    }
+    */
+
+    [ApiV3Endpoint("users/pin/id/{pinId}", HttpMethods.Delete)]
+    [DocSummary("No summary")]
+    public ApiResponse<ApiExtendedGameUserResponse> RemoveUserPin(RequestContext context, GameDatabaseContext database,
+        GameUser user, ApiUpdateUserRequest body, IDataStore dataStore, DataContext dataContext, IntegrationConfig integrationConfig,
+        SmtpService smtpService)
+    {
+        if (body.IconHash != null && database.GetAssetFromHash(body.IconHash) == null)
+            return ApiNotFoundError.Instance;
+
+        if (body.EmailAddress != null && !smtpService.CheckEmailDomainValidity(body.EmailAddress))
+            return ApiValidationError.EmailDoesNotActuallyExistError;
+
+        database.UpdateUserData(user, body);
+        return ApiExtendedGameUserResponse.FromOld(user, dataContext);
+    }
 }

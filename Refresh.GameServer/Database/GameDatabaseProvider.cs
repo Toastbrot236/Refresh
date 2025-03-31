@@ -69,7 +69,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         // users
         typeof(GameUser),
         typeof(Token),
-        typeof(UserPins),
+        typeof(UserPinProgressRelation),
         typeof(GameProfileComment),
         typeof(FavouriteUserRelation),
         typeof(DisallowedUser),
@@ -118,9 +118,6 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
                     newUser.LocationX = 0;
                     newUser.LocationY = 0;
                 }
-
-                //In version 4, GameLocation went from TopLevel -> Embedded, and UserPins was added
-                if (oldVersion < 4) newUser.Pins = new UserPins();
 
                 // In version 12, users were given IconHashes
                 if (oldVersion < 12) newUser.IconHash = "0";
@@ -719,5 +716,10 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         //         dynamic oldSubPlaylistRelation = oldSubPlaylistRelations.ElementAt(i);
         //         SubPlaylistRelation newSubPlaylistRelation = newSubPlaylistRelations.ElementAt(i);
         //     }
+
+        if (oldVersion > 3 && oldVersion < 164)
+        {
+            
+        }
     }
 }

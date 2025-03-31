@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using Refresh.Common.Constants;
 using Refresh.GameServer.Authentication;
 using Refresh.GameServer.Endpoints.ApiV3.DataTypes.Request;
+using Refresh.GameServer.Extensions;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Photos;
 using Refresh.GameServer.Types.Pins;
@@ -217,16 +218,67 @@ public partial class GameDatabaseContext // Users
         return this.GameUsers.Count(u => u.LastLoginDate > timeFrame);
     }
 
-    public void UpdateUserPins(GameUser user, UserPins pinsUpdate) 
+    public void UpdateUserPins(GameUser user, SerializedUserPins pinsUpdate) 
     {
-        this.Write(() => {
-            user.Pins = new UserPins();
+        Dictionary<long, int> progressPins = pinsUpdate.FromSerializedProgressPins();
+        Dictionary<long, int> awardPins = pinsUpdate.FromSerializedAwardPins();
 
-            foreach (long pinsAward in pinsUpdate.Awards) user.Pins.Awards.Add(pinsAward);
-            foreach (long pinsAward in pinsUpdate.Progress) user.Pins.Progress.Add(pinsAward);
-            foreach (long profilePins in pinsUpdate.ProfilePins) user.Pins.ProfilePins.Add(profilePins);
+        this.Write(() => {
+
+            foreach (KeyValuePair<long, int> progressPin in progressPins)
+            {
+                
+            }
+
+            foreach (KeyValuePair<long, int> awardPin in awardPins)
+            {
+
+            }
+
+            foreach (long profilePins in pinsUpdate.ProfilePins)
+            {
+            
+            }
         });
     }
+
+    public UserPinProgressRelation UpdateUserPin(GameUser user, int progressTypeId, int progress)
+    {
+        UserPinProgressRelation? pinToUpdate = this.GetPinByUserAndId(progressTypeId, user);
+        DateTimeOffset now = this._time.Now;
+
+        if (pinToUpdate == null)
+        {
+            // New pin
+            UserPinProgressRelation newPin = new()
+            {
+                ProgressTypeId = progressTypeId,
+                Progress = progress,
+                User = user,
+                PublishDate = now,
+                LastUpdateDate = now,
+            };
+
+            this.Write(() => {
+                this.GamePinRelations.Add(newPin);
+            });
+
+            return newPin;
+        }
+        else
+        {
+            // Update pin
+            this.Write(() => {
+                pinToUpdate.Progress = progress;
+                pinToUpdate.LastUpdateDate = now;
+            });
+            
+            return pinToUpdate;
+        }
+    }
+
+    public UserPinProgressRelation? GetPinByUserAndId(long progressTypeId, GameUser user)
+        => this.GamePinRelations.FirstOrDefault(p => p.ProgressTypeId == progressTypeId && p.User == user);
 
     public void SetUserRole(GameUser user, GameUserRole role)
     {
@@ -308,7 +360,6 @@ public partial class GameDatabaseContext // Users
         
         this.Write(() =>
         {
-            user.Pins = new UserPins();
             user.LocationX = 0;
             user.LocationY = 0;
             user.Description = deletedReason;

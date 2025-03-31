@@ -18,6 +18,7 @@ using Refresh.GameServer.Types.Relations;
 using Refresh.GameServer.Types.Reviews;
 using Refresh.GameServer.Types.UserData;
 using Refresh.GameServer.Types.UserData.Leaderboard;
+using Refresh.GameServer.Types.Pins;
 
 namespace Refresh.GameServer.Database;
 
@@ -63,6 +64,7 @@ public partial class GameDatabaseContext : RealmDatabaseContext
     private RealmDbSet<SubPlaylistRelation> SubPlaylistRelations => new(this._realm);
     private RealmDbSet<FavouritePlaylistRelation> FavouritePlaylistRelations => new(this._realm);
     private RealmDbSet<GameUserVerifiedIpRelation> GameUserVerifiedIpRelations => new(this._realm);
+    private RealmDbSet<UserPinProgressRelation> GamePinRelations => new(this._realm);
     
     internal GameDatabaseContext(IDateTimeProvider time)
     {
