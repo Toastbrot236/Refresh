@@ -142,8 +142,9 @@ public class UserEndpoints : EndpointGroup
     }
 
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
+    [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
-    public string? UpdatePins(RequestContext context, GameDatabaseContext database, GameUser user, SerializedUserPins body)
+    public SerializedUserPins? UpdatePins(RequestContext context, GameDatabaseContext database, GameUser user, SerializedUserPins body)
     {
         /*
         context.Logger.LogInfo(BunkumCategory.UserContent, $"Content: {body}");
@@ -156,8 +157,7 @@ public class UserEndpoints : EndpointGroup
         using JsonTextReader jsonReader = new(streamReader);
         
         SerializedUserPins? updateUserPins = serializer.Deserialize<SerializedUserPins>(jsonReader);
-        */
-
+        
         //If the type is not correct, return null
         if (body is null)
         {
@@ -178,15 +178,16 @@ public class UserEndpoints : EndpointGroup
         {
             NullValueHandling = NullValueHandling.Ignore,
         });
+        */
+
+        return null;
     }
 
-    /*
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
+    [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    public string GetPins(RequestContext context, GameUser user)
-        => JsonConvert.SerializeObject(user.Pins, new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Ignore,
-        });
-    */
+    public SerializedUserPins? GetPins(RequestContext context, GameUser user)
+    {
+        return null;
+    }
 }

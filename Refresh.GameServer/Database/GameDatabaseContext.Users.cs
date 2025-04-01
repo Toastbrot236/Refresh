@@ -218,68 +218,6 @@ public partial class GameDatabaseContext // Users
         return this.GameUsers.Count(u => u.LastLoginDate > timeFrame);
     }
 
-    public void UpdateUserPins(GameUser user, SerializedUserPins pinsUpdate) 
-    {
-        Dictionary<long, int> progressPins = pinsUpdate.FromSerializedProgressPins();
-        Dictionary<long, int> awardPins = pinsUpdate.FromSerializedAwardPins();
-
-        this.Write(() => {
-
-            foreach (KeyValuePair<long, int> progressPin in progressPins)
-            {
-                
-            }
-
-            foreach (KeyValuePair<long, int> awardPin in awardPins)
-            {
-
-            }
-
-            foreach (long profilePins in pinsUpdate.ProfilePins)
-            {
-            
-            }
-        });
-    }
-
-    public UserPinProgressRelation UpdateUserPin(GameUser user, int progressTypeId, int progress)
-    {
-        UserPinProgressRelation? pinToUpdate = this.GetPinByUserAndId(progressTypeId, user);
-        DateTimeOffset now = this._time.Now;
-
-        if (pinToUpdate == null)
-        {
-            // New pin
-            UserPinProgressRelation newPin = new()
-            {
-                ProgressTypeId = progressTypeId,
-                Progress = progress,
-                User = user,
-                PublishDate = now,
-                LastUpdateDate = now,
-            };
-
-            this.Write(() => {
-                this.GamePinRelations.Add(newPin);
-            });
-
-            return newPin;
-        }
-        else
-        {
-            // Update pin
-            this.Write(() => {
-                pinToUpdate.Progress = progress;
-                pinToUpdate.LastUpdateDate = now;
-            });
-            
-            return pinToUpdate;
-        }
-    }
-
-    public UserPinProgressRelation? GetPinByUserAndId(long progressTypeId, GameUser user)
-        => this.GamePinRelations.FirstOrDefault(p => p.ProgressTypeId == progressTypeId && p.User == user);
-
     public void SetUserRole(GameUser user, GameUserRole role)
     {
         if(role == GameUserRole.Banned) throw new InvalidOperationException($"Cannot ban a user with this method. Please use {nameof(this.BanUser)}().");
