@@ -25,6 +25,7 @@ using Refresh.GameServer.Time;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Levels.Categories;
+using Refresh.GameServer.Types.Pins;
 using Refresh.GameServer.Types.Roles;
 using Refresh.GameServer.Types.UserData;
 using Refresh.GameServer.Workers;
@@ -114,6 +115,7 @@ public class RefreshGameServer : RefreshServer
         this.Server.AddConfig(integrationConfig);
         this.Server.AddConfigFromJsonFile<RichPresenceConfig>("rpc.json");
         this.Server.AddConfigFromJsonFile<ContactInfoConfig>("contactInfo.json");
+        this.Server.AddConfigFromJsonFile<GamePinConfig>("gamePinData.json");
     }
     
     protected override void SetupServices()
@@ -142,6 +144,7 @@ public class RefreshGameServer : RefreshServer
         this.Server.AddService<PresenceService>();
         this.Server.AddService<PlayNowService>();
         this.Server.AddService<CommandService>();
+        this.Server.AddService<GamePinService>();
         this.Server.AddService<DiscordStaffService>();
 
         if(this._integrationConfig!.AipiEnabled)
