@@ -5,7 +5,6 @@ using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.GameServer.Database;
 using Refresh.GameServer.Endpoints.Game.DataTypes.Response;
-using Refresh.GameServer.Extensions;
 using Refresh.GameServer.Types.Data;
 using Refresh.GameServer.Types.Levels;
 using Refresh.GameServer.Types.Lists;
@@ -80,13 +79,13 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (playlist == null)
             return null;
 
-        IEnumerable<GameLevel> levels = dataContext.Database.GetLevelsInPlaylist(playlist, dataContext.Game);
+        DatabaseList<GameLevel> levels = dataContext.Database.GetLevelsInPlaylist(playlist, dataContext.Game, 0, 100);
 
         return new SerializedLevelList
         {
-            Items = GameLevelResponse.FromOldList(levels, dataContext).ToList(),
-            Total = 0,
-            NextPageStart = 0
+            Items = GameLevelResponse.FromOldList(levels.Items, dataContext).ToList(),
+            Total = levels.TotalItems,
+            NextPageStart = levels.NextPageIndex
         };
     }
 
@@ -158,11 +157,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (user == null) 
             return null;
 
-        IEnumerable<GamePlaylist> playlists = dataContext.Database.GetPlaylistsByAuthor(user);
+        DatabaseList<GamePlaylist> playlists = dataContext.Database.GetPlaylistsByAuthor(user, 0, 100);
 
         return new SerializedLbp3PlaylistList 
         {
-            Items = SerializedLbp3Playlist.FromOldList(playlists, dataContext).ToList()
+            Items = SerializedLbp3Playlist.FromOldList(playlists.Items, dataContext).ToList()
         };
     }
 
