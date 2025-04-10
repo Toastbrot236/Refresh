@@ -84,8 +84,8 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         return new SerializedLevelList
         {
             Items = GameLevelResponse.FromOldList(levels.Items, dataContext).ToList(),
+            NextPageStart = levels.NextPageIndex,
             Total = levels.TotalItems,
-            NextPageStart = levels.NextPageIndex
         };
     }
 
@@ -157,30 +157,37 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (user == null) 
             return null;
 
-        DatabaseList<GamePlaylist> playlists = dataContext.Database.GetPlaylistsByAuthor(user, 0, 100);
+        // LBP3 only sends pagination parameters to this endpoint when actually looking through the playlists of a user on their profile,
+        // but even then it doesn't paginate the playlists anyway.
+        // For optimization and completeness, send 100 playlists max when a page size is given, else send 10 max.
+        bool paramsGiven = int.TryParse(context.QueryString["pageSize"], out int _);
+        DatabaseList<GamePlaylist> playlists = dataContext.Database.GetPlaylistsByAuthor(user, 0, paramsGiven ? 100 : 10);
 
         return new SerializedLbp3PlaylistList 
         {
-            Items = SerializedLbp3Playlist.FromOldList(playlists.Items, dataContext).ToList()
+            Items = SerializedLbp3Playlist.FromOldList(playlists.Items, dataContext).ToList(),
+            NextPageStart = playlists.NextPageIndex,
+            Total = playlists.TotalItems,
         };
     }
 
     [GameEndpoint("favouritePlaylists/{username}", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    public SerializedLbp3PlaylistList? GetFavouritedPlaylists(RequestContext context, DataContext dataContext, string username)
+    public SerializedLbp3PlaylistList? GetFavouritedPlaylistsByUser(RequestContext context, DataContext dataContext, string username)
     {
         GameUser? user = dataContext.Database.GetUserByUsername(username);
         if (user == null) 
             return null;
 
-        // The only LBP3 playlist endpoint so far which uses pagination
         (int skip, int count) = context.GetPageData();
         DatabaseList<GamePlaylist> playlists = dataContext.Database.GetPlaylistsFavouritedByUser(user, skip, count);
 
         return new SerializedLbp3FavouritePlaylistList
         {
-            Items = SerializedLbp3Playlist.FromOldList(playlists.Items, dataContext).ToList()
+            Items = SerializedLbp3Playlist.FromOldList(playlists.Items, dataContext).ToList(),
+            NextPageStart = playlists.NextPageIndex,
+            Total = playlists.TotalItems,
         };
     }
 
