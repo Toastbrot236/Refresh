@@ -100,15 +100,8 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         // Dont let people add levels to other's playlists
         if (playlist.Publisher.UserId != user.UserId) 
             return Unauthorized;
-
-        foreach (int levelId in body.LevelIds)
-        {
-            GameLevel? level = dataContext.Database.GetLevelById(levelId);
-            if (level == null) continue;
-
-            dataContext.Database.AddLevelToPlaylist(level, playlist);
-        }
-
+        
+        dataContext.Database.AddLevelsToPlaylist(playlist, body.LevelIds, user);
         return OK;
     }
 
@@ -124,7 +117,7 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (playlist.Publisher.UserId != user.UserId)
             return Unauthorized;
 
-        dataContext.Database.UpdatePlaylistLevelOrder(playlist, body.LevelIds);
+        dataContext.Database.UpdatePlaylistLevelOrder(playlist, body.LevelIds, user);
         return OK;
     }
 
