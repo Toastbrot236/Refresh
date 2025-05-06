@@ -4,7 +4,7 @@ using Refresh.GameServer.Extensions;
 
 namespace Refresh.Database.Query.Filtering;
 
-public class ResultsFilterSettings(TokenGame game)
+public class ResultsFilterSettings
 {
     // result type
     public bool DisplayLevels { get; set; }
@@ -23,13 +23,13 @@ public class ResultsFilterSettings(TokenGame game)
     public PropertyFilterType DisplayMoveLevels { get; set; }
     public bool DisplayAdventures { get; set; }
     public bool? DisplayModdedLevels { get; set; }
+    public byte? Players { get; set; }
     public byte? MinPlayers { get; set; }
     public byte? MaxPlayers { get; set; }
     public string[] Labels { get; set; } = [];
-    public TokenGame GameVersion { get; set; } = game;
 
     // user relations
-    public bool? ExcludeMyLevels { get; set; }
+    public bool? IncludeMyLevels { get; set; }
     public bool? IncludePlayedLevels { get; set; }
 
     // other
@@ -39,8 +39,6 @@ public class ResultsFilterSettings(TokenGame game)
     {
         if (context.IsApi())
             return FromApiRequest(context, game);
-        else if (game == TokenGame.LittleBigPlanet3)
-            return FromLbp3Request(context, game);
         else
             return FromGameRequest(context, game);
     }
@@ -50,7 +48,7 @@ public class ResultsFilterSettings(TokenGame game)
     /// </summary>
     public static ResultsFilterSettings FromGameRequest(RequestContext context, TokenGame game)
     {
-        ResultsFilterSettings settings = new(game)
+        ResultsFilterSettings settings = new()
         {
             DisplayLbp1 = false,
             DisplayLbp2 = false,
@@ -58,44 +56,46 @@ public class ResultsFilterSettings(TokenGame game)
             DisplayVita = false,
             DisplayPsp = false,
             DisplayBeta = false,
-            DisplayMoveLevels = PropertyFilterType.Include,
+            
+            IncludeMyLevels = true,
+            IncludePlayedLevels = true,
 
-            // Does not get specified by games which are not LBP3
-            ExcludeMyLevels = false,
-
-            // Playlist Results, User Results, and Adventures are not supported by games which are not LBP3
             DisplayLevels = true,
             DisplayPlaylists = false,
             DisplayUsers = false,
 
-            // for LBP3-like beta builds
+            DisplayMoveLevels = PropertyFilterType.Include,
             DisplayAdventures = false,
         };
 
-        switch (game)
-        {
-            case TokenGame.LittleBigPlanet1:
-                settings.DisplayLbp1 = true;
-                break;
-            case TokenGame.LittleBigPlanet2:
-                settings.DisplayLbp1 = true;
-                settings.DisplayLbp2 = true;
-                break;
-            case TokenGame.LittleBigPlanetVita:
-                settings.DisplayVita = true;
-                break;
-            case TokenGame.LittleBigPlanetPSP:
-                settings.DisplayPsp = true;
-                break;
-            case TokenGame.BetaBuild:
-                settings.DisplayBeta = true;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(game), game, "Game not supported for filtering using ResultsFilterSettings.FromLbp2Request");
-        }
-
+        bool gamesSpecified = false;
+        string[]? gameFilters = context.QueryString.GetValues("gameFilter[]");
         string? gameFilterType = context.QueryString.Get("gameFilterType");
-        if (gameFilterType != null)
+
+        if (game == TokenGame.BetaBuild)
+        {
+            settings.DisplayBeta = true;
+        }
+        else if (gameFilters != null)
+        {
+            gamesSpecified = true;
+            foreach (string gameFilter in gameFilters)
+            {
+                switch (gameFilter)
+                {
+                    case "lbp1":
+                        settings.DisplayLbp1 = true;
+                        break;
+                    case "lbp2":
+                        settings.DisplayLbp2 = true;
+                        break;
+                    case "lbp3":
+                        settings.DisplayLbp3 = true;
+                        break;
+                }
+            }
+        }
+        else if (gameFilterType != null)
         {
             switch (gameFilterType)
             {
@@ -115,73 +115,30 @@ public class ResultsFilterSettings(TokenGame game)
                     throw new ArgumentOutOfRangeException(nameof(gameFilterType), gameFilterType, "Unsupported value");
             };
         }
-        
-        string? players = context.QueryString.Get("players");
-        if (players != null && byte.TryParse(players, out byte playerCount))
+        else
         {
-            settings.MinPlayers = playerCount;
-            settings.MaxPlayers = playerCount;
-        }
-            
-        // level labels are currently not supported anyway, so leave as empty array
-        //string? labelFilter0 = context.QueryString.Get("labelFilter0");
-        //string? labelFilter1 = context.QueryString.Get("labelFilter1");
-        //string? labelFilter2 = context.QueryString.Get("labelFilter2");
-
-        string? seedStr = context.QueryString.Get("seed");
-        if (seedStr != null && int.TryParse(seedStr, out int seed))
-        {
-            settings.Seed = seed;
-        }
-
-        return settings;
-    }
-
-    /// <summary>
-    /// Gets the filter settings from a request sent by LBP3
-    /// </summary>
-    public static ResultsFilterSettings FromLbp3Request(RequestContext context, TokenGame game)
-    {
-        if (game != TokenGame.LittleBigPlanet3)
-            throw new ArgumentOutOfRangeException(nameof(game), game, "Game not supported by ResultsFilterSettings.FromLbp3Request()");
-
-        ResultsFilterSettings settings = new(game)
-        {
-            DisplayLbp1 = false,
-            DisplayLbp2 = false,
-            DisplayLbp3 = false,
-            DisplayVita = false,
-            DisplayPsp = false,
-            DisplayBeta = false,
-
-            DisplayMoveLevels = PropertyFilterType.Include,
-            DisplayAdventures = true,
-            ExcludeMyLevels = false,
-
-            DisplayLevels = false,
-            DisplayPlaylists = false,
-            DisplayUsers = false,
-        };
-
-        bool gamesSpecified = false;
-        string[]? gameFilters = context.QueryString.GetValues("gameFilter[]");
-        if (gameFilters != null)
-        {
-            gamesSpecified = true;
-            foreach (string gameFilter in gameFilters)
+            switch (game)
             {
-                switch (gameFilter)
-                {
-                    case "lbp1":
-                        settings.DisplayLbp1 = true;
-                        break;
-                    case "lbp2":
-                        settings.DisplayLbp2 = true;
-                        break;
-                    case "lbp3":
-                        settings.DisplayLbp3 = true;
-                        break;
-                }
+                case TokenGame.LittleBigPlanet1:
+                    settings.DisplayLbp1 = true;
+                    break;
+                case TokenGame.LittleBigPlanet2:
+                    settings.DisplayLbp1 = true;
+                    settings.DisplayLbp2 = true;
+                    break;
+                case TokenGame.LittleBigPlanet3:
+                    settings.DisplayLbp1 = true;
+                    settings.DisplayLbp2 = true;
+                    settings.DisplayLbp3 = true;
+                    break;
+                case TokenGame.LittleBigPlanetVita:
+                    settings.DisplayVita = true;
+                    break;
+                case TokenGame.LittleBigPlanetPSP:
+                    settings.DisplayPsp = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(game), game, "Unsupported value");
             }
         }
 
@@ -204,12 +161,26 @@ public class ResultsFilterSettings(TokenGame game)
                 }
             }
         }
-        
+
         string? move = context.QueryString.Get("move");
         if (move != null)
         {
             switch (move)
             {
+                // LBP2 options
+                case "true":
+                    settings.DisplayMoveLevels = PropertyFilterType.Include;
+                    break;
+                case "false":
+                    settings.DisplayMoveLevels = PropertyFilterType.Exclude;
+                    break;
+                case "only":
+                    if (settings.DisplayLbp1)
+                        settings.DisplayMoveLevels = PropertyFilterType.Include;
+                    else
+                        settings.DisplayMoveLevels = PropertyFilterType.Only;
+                    break;
+                // LBP3 options
                 case "dontCare":
                     // atleast one game selected, but move unselected -> exclude move levels
                     if (gamesSpecified)
@@ -226,9 +197,11 @@ public class ResultsFilterSettings(TokenGame game)
                     else
                         settings.DisplayMoveLevels = PropertyFilterType.Only;
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(move), move, "Unsupported value");
             }
         }
-            
+
         string? adventure = context.QueryString.Get("adventure");
         if (adventure != null)
         {
@@ -239,12 +212,11 @@ public class ResultsFilterSettings(TokenGame game)
                 _ => throw new ArgumentOutOfRangeException(nameof(adventure), adventure, "Unsupported value"),
             };
         }
-
-        string? players = context.QueryString.Get("players");
-        if (players != null && byte.TryParse(players, out byte playerCount))
+        
+        string? playersStr = context.QueryString.Get("players");
+        if (playersStr != null && byte.TryParse(playersStr, out byte players))
         {
-            settings.MinPlayers = playerCount;
-            settings.MaxPlayers = playerCount;
+            settings.Players = players;
         }
             
         // level labels are currently not supported anyway, so leave as empty array
@@ -263,6 +235,6 @@ public class ResultsFilterSettings(TokenGame game)
 
     public static ResultsFilterSettings FromApiRequest(RequestContext context, TokenGame game)
     {
-        return new(game);
+        return new();
     }
 }
