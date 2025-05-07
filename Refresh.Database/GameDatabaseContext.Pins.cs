@@ -97,6 +97,100 @@ public partial class GameDatabaseContext // Pins
         }
     }
 
+    private PinProgressRelation CreateUserPinProgress(long pinId, int progress, GameUser user, DateTimeOffset now, bool isBeta)
+    {
+        PinProgressRelation relation = new()
+        {
+            PinId = pinId,
+            Progress = progress,
+            Publisher = user,
+            FirstPublished = now,
+            LastUpdated = now,
+            IsBeta = isBeta,
+        };
+
+        this.PinProgressRelations.Add(relation);
+        return relation;
+    }
+
+    public PinProgressRelation? UpdateUserPinProgress(long pinId, int newProgress, GameUser user, bool isBeta)
+    {
+        DateTimeOffset now = this._time.Now;
+        PinProgressRelation? relation = null;
+
+        this.Write(() => 
+        {
+            if (isBeta != false) // true or null
+            {
+                relation = this.UpdateUserPinProgressInternal(pinId, newProgress, user, true, now);
+            }
+            if (isBeta != true) // false or null
+            {
+                relation = this.UpdateUserPinProgressInternal(pinId, newProgress, user, false, now);
+            }
+        });
+        return relation;
+    }
+
+    private PinProgressRelation UpdateUserPinProgressInternal(long pinId, int newProgress, GameUser user, bool isBeta, DateTimeOffset now)
+    {
+        PinProgressRelation? relation = this.GetUserPinProgress(pinId, user, isBeta);
+
+        if (relation == null)
+        {
+            relation = CreateUserPinProgress(pinId, newProgress, user, now, isBeta);
+        }
+        else
+        {
+            relation.Progress = newProgress;
+            relation.LastUpdated = now;
+        }
+            
+        Console.WriteLine($"UpdateUserPinProgress: id {pinId}, newProgress: {newProgress}, progress: {relation!.Progress}, isBeta: {relation!.IsBeta}");
+        return relation;
+    }
+
+    public PinProgressRelation? IncrementUserPinProgress(long pinId, int progressSummand, GameUser user, bool? isBeta)
+    {
+        DateTimeOffset now = this._time.Now;
+        PinProgressRelation? relation = null;
+
+        this.Write(() => 
+        {
+            if (isBeta != false) // true or null
+            {
+                relation = this.IncrementUserPinProgressInternal(pinId, progressSummand, user, true, now);
+            }
+            if (isBeta != true) // false or null
+            {
+                relation = this.IncrementUserPinProgressInternal(pinId, progressSummand, user, false, now);
+            }
+        });
+        return relation;
+    }
+
+    private PinProgressRelation IncrementUserPinProgressInternal(long pinId, int progressSummand, GameUser user, bool isBeta, DateTimeOffset now)
+    {
+        PinProgressRelation? relation = this.GetUserPinProgress(pinId, user, isBeta);
+
+        if (relation == null)
+        {
+            relation = CreateUserPinProgress(pinId, progressSummand, user, now, isBeta);
+        }
+        else
+        {
+            relation.Progress += progressSummand;
+            relation.LastUpdated = now;
+        }
+            
+        Console.WriteLine($"UpdateUserPinProgress: id {pinId}, progressSummand: {progressSummand}, progress: {relation!.Progress}, isBeta: {relation!.IsBeta}");
+        return relation;
+    }
+
+    public PinProgressRelation? GetUserPinProgress(long pinId, GameUser user, bool isBeta)
+        => this.PinProgressRelations.FirstOrDefault(p => p.PinId == pinId && p.Publisher == user && p.IsBeta == isBeta);
+
+
     private IEnumerable<PinProgressRelation> GetPinProgressesByUser(GameUser user, bool isBeta)
         => this.PinProgressRelations
             .Where(p => p.Publisher == user && p.IsBeta == isBeta)
