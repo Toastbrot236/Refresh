@@ -54,6 +54,8 @@ public class ApiGameLevelResponse : IApiResponse, IDataConvertableFrom<ApiGameLe
     public required float Score { get; set; }
     public required IEnumerable<Tag> Tags { get; set; }
 
+    public required ApiGameLevelRelationsResponse? OwnRelations { get; set; }
+
     public static ApiGameLevelResponse? FromOld(GameLevel? level, DataContext dataContext)
     {
         if (level == null) return null;
@@ -95,6 +97,7 @@ public class ApiGameLevelResponse : IApiResponse, IDataConvertableFrom<ApiGameLe
             Reviews = dataContext.Database.GetTotalReviewsForLevel(level),
             Tags = dataContext.Database.GetTagsForLevel(level).Select(t => t.Tag),
             IsModded = level.IsModded,
+            OwnRelations = ApiGameLevelRelationsResponse.FromOld(level, dataContext),
         };
     }
     
