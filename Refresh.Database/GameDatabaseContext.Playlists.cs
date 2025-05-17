@@ -105,13 +105,18 @@ public partial class GameDatabaseContext // Playlists
             if (this.SubPlaylistRelations.Any(p => p.SubPlaylist == child && p.Playlist == parent))
                 return;
             
+            DateTimeOffset now = this._time.Now;
+            
             // Add the relation
             this.SubPlaylistRelations.Add(new SubPlaylistRelation
             {
                 Playlist = parent,
                 SubPlaylist = child,
-                Timestamp = this._time.Now,
+                Timestamp = now,
             });
+
+            // The parent playlist has been updated
+            parent.LastUpdateDate = now;
         });
     }
     
@@ -128,27 +133,143 @@ public partial class GameDatabaseContext // Playlists
             this.SubPlaylistRelations.Remove(relation);
         });
     }
-    
-    public void AddLevelToPlaylist(GameLevel level, GamePlaylist parent)
+
+    /// <remarks>
+    /// This method assumes it is called inside a write operation
+    /// </remarks>
+    private void AddLevelToPlaylistInternal(GameLevel level, GamePlaylist parent, DateTimeOffset timestamp, int index)
     {
-        this.Write(() =>
+        this.LevelPlaylistRelations.Add(new LevelPlaylistRelation
         {
-            // Make sure to not create a duplicate object
-            if (this.LevelPlaylistRelations.Any(p => p.Level == level && p.Playlist == parent))
-                return;
-            
-            // Add the relation
-            this.LevelPlaylistRelations.Add(new LevelPlaylistRelation
-            {
-                Level = level,
-                Playlist = parent,
-                // index of new relation = index of last relation + 1 = relation count (without new relation)
-                Index = this.GetTotalLevelsInPlaylistCount(parent),
-                Timestamp = this._time.Now,
-            });
+            Level = level,
+            Playlist = parent,
+            Index = index,
+            Timestamp = timestamp,
         });
     }
     
+    public void AddLevelToPlaylist(GameLevel level, GamePlaylist parent)
+    {
+        // Make sure to not create a duplicate object
+        if (this.LevelPlaylistRelations.Any(p => p.Level == level && p.Playlist == parent))
+            return;
+        
+        DateTimeOffset now = this._time.Now;
+
+        this.Write(() =>
+        {
+            // Increment all other relations' index by 1
+            this.IncrementPlaylistLevelIndicesInternal(parent, 1);
+
+            // Create the new relation with an index which will put its level infront of all others
+            this.AddLevelToPlaylistInternal(level, parent, now, 0);
+
+            // The parent playlist has been updated
+            parent.LastUpdateDate = now;
+        });
+    }
+
+    public void AddLevelsToPlaylist(IEnumerable<int> levelIds, GamePlaylist parent)
+    {
+        // Ensure these levels actually do exist
+        IEnumerable<GameLevel> levelsToAdd = this.GetLevelsByIdsInternal(levelIds);
+        int levelsToAddCount = levelsToAdd.Count();
+        DateTimeOffset now = this._time.Now;
+        
+        this.Write(() => 
+        {
+            // Increment every already existing playlist level relations' index by levelsToAddCount
+            this.IncrementPlaylistLevelIndicesInternal(parent, levelsToAddCount);
+
+            // Now add the relations with indices which will put their levels infront of all others
+            int index = 0;
+            foreach (GameLevel level in levelsToAdd)
+            {
+                // Make sure to not create a duplicate object
+                if (this.LevelPlaylistRelations.Any(p => p.Level == level && p.Playlist == parent))
+                    continue;
+                
+                this.AddLevelToPlaylistInternal(level, parent, now, index);
+                index++;
+            }
+
+            // The parent playlist has been updated
+            parent.LastUpdateDate = now;
+        });
+
+        int levelIdsCount = levelIds.Count();
+        if (levelsToAddCount < levelIdsCount)
+        {
+            this.AddErrorNotification
+            (
+                "Failed to add levels to playlist",
+                $"Failed to add {levelIdsCount - levelsToAddCount} out of {levelIdsCount} levels to playlist {parent.Name} " +
+                $"because they couldn't be found on the server.",
+                parent.Publisher
+            );
+        }
+    }
+
+    /// <remarks>
+    /// This method assumes it is called inside a write operation
+    /// </remarks>
+    private void IncrementPlaylistLevelIndicesInternal(GamePlaylist parent, int summand)
+    {
+        IEnumerable<LevelPlaylistRelation> relations = this.GetLevelRelationsForPlaylist(parent);
+
+        foreach (LevelPlaylistRelation relation in relations)
+        {
+            relation.Index += summand;
+        }
+    }
+
+    public void ReorderLevelsInPlaylist(IEnumerable<int> levelIds, GamePlaylist parent)
+    {
+        IEnumerable<LevelPlaylistRelation> relations = this.GetLevelRelationsForPlaylist(parent);
+        IEnumerable<LevelPlaylistRelation> includedRelations = relations.Where(r => levelIds.Contains(r.Level.LevelId));
+        IEnumerable<LevelPlaylistRelation> excludedRelations = relations.Where(r => !levelIds.Contains(r.Level.LevelId));
+        int failedUpdates = 0;
+
+        this.Write(() => 
+        {
+            // update playlist levels referenced in the given list
+            int newIndex = 0;
+            foreach (int levelId in levelIds)
+            {
+                LevelPlaylistRelation? includedRelation = includedRelations.FirstOrDefault(r => r.Level.LevelId == levelId);
+
+                // only update if the playlist actually contains the level
+                if (includedRelation != null)
+                {
+                    includedRelation.Index = newIndex;
+                    newIndex++;
+                }
+                else
+                {
+                    failedUpdates++;
+                }
+            }
+
+            // update levels not included in the list to retain their previously set order, but to be behind the newly ordered levels
+            foreach (LevelPlaylistRelation excludedRelation in excludedRelations)
+            {
+                excludedRelation.Index = newIndex;
+                newIndex++;
+            }
+        });
+
+        if (failedUpdates > 0)
+        {
+            this.AddErrorNotification
+            (
+                "Failed to reorder levels in playlist",
+                $"Failed to reorder {failedUpdates} out of {includedRelations.Count()} levels in playlist {parent.Name} " +
+                $"because they were not in the playlist. Please add them first.",
+                parent.Publisher
+            );
+        }
+    }
+
     public void RemoveLevelFromPlaylist(GameLevel level, GamePlaylist parent)
     {
         LevelPlaylistRelation? relation =
@@ -157,53 +278,9 @@ public partial class GameDatabaseContext // Playlists
         if (relation == null)
             return;
 
-        // decrease index of every playlist level after this one by 1
-        this.DecreasePlaylistLevelIndicesAfterIndex(parent, relation.Index);
-
         this.Write(() =>
         {
             this.LevelPlaylistRelations.Remove(relation);
-        });
-    }
-
-    private void DecreasePlaylistLevelIndicesAfterIndex(GamePlaylist playlist, int startIndex)
-    {
-        IEnumerable<LevelPlaylistRelation> relations = this.LevelPlaylistRelations
-            .Where(r => r.Playlist == playlist && r.Index >= startIndex)
-            .AsEnumerable();
-
-        this.Write(() => {
-            foreach(LevelPlaylistRelation relation in relations)
-            {
-                relation.Index--;
-            }
-        });
-    }
-
-    public void UpdatePlaylistLevelOrder(GamePlaylist playlist, List<int> levelIds)
-    {
-        IEnumerable<LevelPlaylistRelation> relations = this.LevelPlaylistRelations.Where(p => p.Playlist == playlist).OrderBy(r => r.Index);
-        int relationCount = relations.Count();
-
-        int newIndex = 0;
-        this.Write(() => {
-            // overwrite the indices of relations whose level IDs appear in the given list, based on the order of these IDs
-            foreach (int levelId in levelIds)
-            {
-                LevelPlaylistRelation? relation = relations.FirstOrDefault(r => r.Level.LevelId == levelId);
-                if (relation != null)
-                {
-                    relation.Index = newIndex;
-                    newIndex++;
-                }
-            }
-
-            // now "append" the relations whose level IDs did not appear in the given list
-            while (newIndex < relationCount)
-            {
-                relations.ElementAt(newIndex).Index = newIndex;
-                newIndex++;
-            }
         });
     }
 
@@ -226,12 +303,15 @@ public partial class GameDatabaseContext // Playlists
             .Select(r => this.GamePlaylists.First(p => p.PlaylistId == r.Playlist.PlaylistId))
             .Where(p => p.Publisher.UserId == user.UserId)
             .Where(p => !p.IsRoot), skip, count);
+    
+    private IEnumerable<LevelPlaylistRelation> GetLevelRelationsForPlaylist(GamePlaylist playlist)
+        => this.LevelPlaylistRelations
+            .Where(l => l.Playlist == playlist)
+            .OrderBy(r => r.Index);
 
     public IEnumerable<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist, TokenGame game)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => this.LevelPlaylistRelations
-            .Where(l => l.Playlist == playlist)
-            .OrderBy(r => r.Index)
+        => GetLevelRelationsForPlaylist(playlist)
             .AsEnumerable()
             .Select(l => l.Level)
             .FilterByGameVersion(game);
@@ -242,9 +322,7 @@ public partial class GameDatabaseContext // Playlists
 
     public DatabaseList<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist, int skip, int count)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => new(this.LevelPlaylistRelations
-            .Where(l => l.Playlist == playlist)
-            .OrderBy(r => r.Index)
+        => new(GetLevelRelationsForPlaylist(playlist)
             .AsEnumerable()
             .Select(l => l.Level), skip, count);
 

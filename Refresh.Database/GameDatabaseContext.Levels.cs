@@ -494,6 +494,9 @@ public partial class GameDatabaseContext // Levels
     [Pure]
     public GameLevel? GetLevelById(int id) => this.GameLevels.FirstOrDefault(l => l.LevelId == id);
 
+    private IEnumerable<GameLevel> GetLevelsByIdsInternal(IEnumerable<int> levelIds)
+        => this.GameLevels.Where(l => levelIds.Contains(l.LevelId));
+
     public void AddTeamPickToLevel(GameLevel level)
     {
         this.Write(() =>
