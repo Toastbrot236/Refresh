@@ -308,17 +308,13 @@ public partial class GameDatabaseContext // Playlists
         => this.LevelPlaylistRelations
             .Where(l => l.Playlist == playlist)
             .OrderBy(r => r.Index);
-
-    public IEnumerable<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist, TokenGame game)
-        // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => GetLevelRelationsForPlaylist(playlist)
-            .AsEnumerable()
-            .Select(l => l.Level)
-            .FilterByGameVersion(game);
         
     public DatabaseList<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist, TokenGame game, int skip, int count)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => new(this.GetLevelsInPlaylist(playlist, game), skip, count);
+        => new(GetLevelRelationsForPlaylist(playlist)
+            .AsEnumerable()
+            .Select(l => l.Level)
+            .FilterByGameVersion(game), skip, count);
 
     public DatabaseList<GameLevel> GetLevelsInPlaylist(GamePlaylist playlist, int skip, int count)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
@@ -336,26 +332,19 @@ public partial class GameDatabaseContext // Playlists
     public int GetTotalLevelsInPlaylistCount(GamePlaylist playlist) => 
         this.LevelPlaylistRelations.Count(l => l.Playlist == playlist);
 
-    public IEnumerable<GamePlaylist> GetPlaylistsInPlaylist(GamePlaylist playlist)
+    public DatabaseList<GamePlaylist> GetPlaylistsInPlaylist(GamePlaylist playlist, int skip, int count)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => this.SubPlaylistRelations
+        => new(this.SubPlaylistRelations
             .Where(p => p.Playlist == playlist)
             .OrderByDescending(r => r.Timestamp)
             .AsEnumerable()
-            .Select(l => l.SubPlaylist);
-
-    public DatabaseList<GamePlaylist> GetPlaylistsInPlaylist(GamePlaylist playlist, int skip, int count)
-        // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
-        => new(this.GetPlaylistsInPlaylist(playlist), skip, count);
-
-    public IEnumerable<GamePlaylist> GetPlaylistsByAuthor(GameUser author)
-        => this.GamePlaylists
+            .Select(l => l.SubPlaylist), skip, count);
+    
+    public DatabaseList<GamePlaylist> GetPlaylistsByAuthor(GameUser author, int skip, int count)
+        => new(this.GamePlaylists
             .Where(p => p.Publisher == author)
             .Where(p => !p.IsRoot)
-            .OrderByDescending(p => p.LastUpdateDate);
-    
-    public DatabaseList<GamePlaylist> GetPlaylistsByAuthor(GameUser author, int count, int skip)
-        => new(this.GetPlaylistsByAuthor(author), skip, count);
+            .OrderByDescending(p => p.LastUpdateDate), skip, count);
 
     public DatabaseList<GamePlaylist> GetPlaylistsByAuthorContainingLevel(GameUser author, GameLevel level, int skip, int count)
         // TODO: When we have postgres, remove the `AsEnumerable` call for performance. 
