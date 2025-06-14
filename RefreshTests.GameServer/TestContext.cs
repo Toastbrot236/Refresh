@@ -12,6 +12,8 @@ using RefreshTests.GameServer.Time;
 using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Levels;
 using Refresh.Interfaces.Game.Types.UserData.Leaderboard;
+using Refresh.Database.Models.Levels.Challenges;
+using Refresh.Interfaces.Game.Types.Challenges.LbpHub;
 
 namespace RefreshTests.GameServer;
 
@@ -146,6 +148,51 @@ public class TestContext : IDisposable
         };
         
         GameSubmittedScore submittedScore = this.Database.SubmitScore(scoreObject, user, level, game, platform);
+        Assert.That(submittedScore, Is.Not.Null);
+
+        return submittedScore;
+    }
+
+    public GameChallenge CreateChallenge(GameUser publisher, GameLevel level, string name = "Test Challenge")
+    {
+        SerializedChallenge newChallenge = new SerializedChallenge() 
+        {
+            Name = $"Test Challenge",
+            StartCheckpointUid = 1,
+            FinishCheckpointUid = 2,
+            ExpiresAt = 5,
+            Criteria = 
+            [
+                new SerializedChallengeCriterion
+                {
+                    Type = 1,
+                    Value = 0,
+                }
+            ]
+        };
+
+        GameChallenge challenge = this.Database.CreateChallenge(newChallenge, level, publisher);
+        return challenge;
+    }
+
+    public void FillChallengeLeaderboard(GameChallenge challenge, int count)
+    {
+        for (byte i = 0; i < count; i++)
+        {
+            GameUser scoreUser = this.CreateUser("score" + i);
+            this.SubmitChallengeScore(i, "fakeHash", challenge, scoreUser);
+        }
+    }
+
+    public GameChallengeScore SubmitChallengeScore(long score, string hash, GameChallenge challenge, GameUser user)
+    {
+        SerializedChallengeAttempt attempt = new()
+        {
+            Score = score,
+            GhostHash = hash,
+        };
+        
+        GameChallengeScore submittedScore = this.Database.CreateChallengeScore(attempt, challenge, user, 2);
         Assert.That(submittedScore, Is.Not.Null);
 
         return submittedScore;

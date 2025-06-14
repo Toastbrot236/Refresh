@@ -125,13 +125,13 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user,
-        SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService ghostService,
+        SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService? ghostService,
         GameServerConfig config)
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
 
-        ghostService.RemoveUserFromChallengeGhostRateLimit(user.UserId);
+        ghostService?.RemoveUserFromChallengeGhostRateLimit(user.UserId);
 
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return NotFound;
@@ -182,9 +182,9 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScore? GetUsersHighScoreForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username, ChallengeGhostRateLimitService ghostService) 
+    public SerializedChallengeScore? GetUsersHighScoreForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username, ChallengeGhostRateLimitService? ghostService) 
     {
-        ghostService.RemoveUserFromChallengeGhostRateLimit(user.UserId);
+        ghostService?.RemoveUserFromChallengeGhostRateLimit(user.UserId);
 
         if (string.IsNullOrEmpty(username)) return null;
 
@@ -201,9 +201,9 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService ghostService)
+    public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService? ghostService)
     {
-        ghostService.RemoveUserFromChallengeGhostRateLimit(user.UserId);
+        ghostService?.RemoveUserFromChallengeGhostRateLimit(user.UserId);
 
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
@@ -222,9 +222,9 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/friends", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetScoresByUsersFriendsForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService ghostService)
+    public SerializedChallengeScoreList? GetScoresByUsersFriendsForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService? ghostService)
     {
-        ghostService.RemoveUserFromChallengeGhostRateLimit(user.UserId);
+        ghostService?.RemoveUserFromChallengeGhostRateLimit(user.UserId);
 
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
@@ -247,9 +247,9 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    public SerializedChallengeScoreList? GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService ghostService) 
+    public SerializedChallengeScoreList? GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService? ghostService) 
     {
-        ghostService.RemoveUserFromChallengeGhostRateLimit(user.UserId);
+        ghostService?.RemoveUserFromChallengeGhostRateLimit(user.UserId);
 
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return null;
