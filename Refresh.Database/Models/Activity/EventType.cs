@@ -50,6 +50,8 @@ public enum EventType : byte
     LevelScore = 20,
     
     // Custom events
+    [XmlEnum("cheated_level_score")]
+    CheatedLevelScore = 126,
     [XmlEnum("firstlogin")]
     UserFirstLogin = 127,
 }

@@ -80,6 +80,7 @@ public abstract class SerializedEvent : IDataConvertableFrom<SerializedEvent, Ev
                 return SerializedPhotoUploadEvent.FromSerializedLevelEvent(FromOldLevelEvent(old, level!), photo!);
             case EventType.LevelScore:
                 return SerializedScoreSubmitEvent.FromSerializedLevelEvent(FromOldLevelEvent(old, level!), score!);
+            case EventType.CheatedLevelScore:
             case EventType.NewsPost:
                 return null;
             default:

@@ -114,7 +114,23 @@ public class LeaderboardEndpoints : EndpointGroup
             return BadRequest;
         }
 
-        GameScore score = database.SubmitScore(body, token, level);
+        GameScore score;
+
+        // Do something funny if the score is higher than possible
+        if (body.Score > 16_000_000)
+        {
+            score = database.SubmitCheatedScore(body, token, level);
+            context.Logger.LogInfo(BunkumCategory.LevelScores, $"User {user} (ID: {user.UserId}) tried to upload a cheated score of {body.Score} with type {body.ScoreType}");
+        }
+        // A user has to play a level in order to submit a score
+        else if (!database.HasUserPlayedLevel(level, user))
+        {
+            return Unauthorized;
+        }
+        else
+        {
+            score = database.SubmitScore(body, token, level);
+        }
 
         IEnumerable<ScoreWithRank>? scores = database.GetRankedScoresAroundScore(score, 5);
         Debug.Assert(scores != null);

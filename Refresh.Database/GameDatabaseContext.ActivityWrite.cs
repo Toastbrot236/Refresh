@@ -206,6 +206,24 @@ public partial class GameDatabaseContext // ActivityWrite
         return e;
     }
 
+    /// <summary>
+    /// Creates a new CheatedLevelScore event from a <see cref='GameScore'/>, and adds it to the event list.
+    /// </summary>
+    public Event CreateCheatedLevelScoreEvent(GameUser userFrom, GameScore score)
+    {
+        Event e = new()
+        {
+            EventType = EventType.CheatedLevelScore,
+            StoredDataType = EventDataType.Score,
+            Timestamp = this._time.Now,
+            User = userFrom,
+            StoredObjectId = score.ScoreId,
+        };
+
+        this.Write(() => this.Events.Add(e));
+        return e;
+    }
+
     public Event CreatePhotoUploadEvent(GameUser userFrom, GamePhoto photo)
     {
         Event e = new()

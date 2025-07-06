@@ -157,7 +157,7 @@ public class DatabaseActivityPage
 
     private void GenerateScoreGroups(IReadOnlyCollection<Event> events)
     {
-        foreach (Event @event in events.Where(e => e.EventType == EventType.LevelScore))
+        foreach (Event @event in events.Where(e => e.EventType == EventType.LevelScore || e.EventType == EventType.CheatedLevelScore))
         {
             GameScore score = this.Scores.First(u => u.ScoreId == @event.StoredObjectId);
             GameLevel level = score.Level;

@@ -14,16 +14,13 @@ public partial class GameDatabaseContext // Leaderboard
     private IQueryable<GameScore> GameScoresIncluded => this.GameScores
         .Include(s => s.Level)
         .Include(s => s.Level.Publisher);
-    
-    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
-        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
 
-    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
+    private GameScore CreateScoreInternal(int score, byte type, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
     {
         GameScore newScore = new()
         {
-            Score = score.Score,
-            ScoreType = score.ScoreType,
+            Score = score,
+            ScoreType = type,
             Level = level,
             PlayerIdsRaw = [ user.UserId.ToString() ],
             ScoreSubmitted = this._time.Now,
@@ -36,6 +33,15 @@ public partial class GameDatabaseContext // Leaderboard
             this.GameScores.Add(newScore);
         });
 
+        return newScore;
+    }
+
+    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
+        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
+
+    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
+    {
+        GameScore newScore = this.CreateScoreInternal(score.Score, score.ScoreType, user, level, game, platform);
         this.CreateLevelScoreEvent(user, newScore);
 
         #region Notifications
@@ -59,6 +65,16 @@ public partial class GameDatabaseContext // Leaderboard
         
         #endregion
 
+        return newScore;
+    }
+
+    public GameScore SubmitCheatedScore(ISerializedScore score, Token token, GameLevel level)
+        => this.SubmitCheatedScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
+
+    public GameScore SubmitCheatedScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
+    {
+        GameScore newScore = this.CreateScoreInternal(-9_999, score.ScoreType, user, level, game, platform);
+        this.CreateCheatedLevelScoreEvent(user, newScore);
         return newScore;
     }
     
