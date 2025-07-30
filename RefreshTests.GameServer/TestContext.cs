@@ -14,6 +14,9 @@ using Refresh.Database.Models.Levels;
 using Refresh.Interfaces.Game.Types.UserData.Leaderboard;
 using Refresh.Interfaces.Workers;
 using Refresh.Workers;
+using Refresh.Database.Models.Playlists;
+using Refresh.Interfaces.Game.Types.Playlists;
+using Refresh.Database.Models;
 
 namespace RefreshTests.GameServer;
 
@@ -165,6 +168,18 @@ public class TestContext : IDisposable
         Assert.That(submittedScore, Is.Not.Null);
 
         return submittedScore;
+    }
+
+    public GamePlaylist CreatePlaylist(GameUser author, string name = "", string description = "", string iconHash = "")
+    {
+        GamePlaylist playlist = this.Database.CreatePlaylist(author, new SerializedLbp1Playlist()
+        {
+            Name = name,
+            Description = description,
+            Icon = iconHash,
+            Location = GameLocation.Random,
+        }, false);
+        return playlist;
     }
 
     [Pure]
