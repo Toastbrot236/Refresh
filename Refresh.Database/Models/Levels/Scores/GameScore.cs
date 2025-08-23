@@ -24,4 +24,7 @@ public partial class GameScore
     public List<string> PlayerIdsRaw { get; set; } = [];
     [NotMapped] public List<ObjectId> PlayerIds => PlayerIdsRaw.Select(ObjectId.Parse).ToList();
     // set => PlayerIdsRaw = value.Select(v => v.ToString()).ToList();
+
+    [ForeignKey(nameof(PublisherId)), Required] public GameUser Publisher { get; set; }
+    public ObjectId PublisherId { get; set; }
 }

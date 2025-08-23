@@ -12,20 +12,23 @@ namespace Refresh.Database;
 public partial class GameDatabaseContext // Leaderboard
 {
     private IQueryable<GameScore> GameScoresIncluded => this.GameScores
+        .Include(s => s.Publisher)
         .Include(s => s.Level)
         .Include(s => s.Level.Publisher);
     
-    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
-        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
+    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level, IEnumerable<GameUser> players)
+        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform, players);
 
-    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
+    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform, IEnumerable<GameUser> players)
     {
         GameScore newScore = new()
         {
             Score = score.Score,
             ScoreType = score.ScoreType,
             Level = level,
-            PlayerIdsRaw = [ user.UserId.ToString() ],
+            PlayerIdsRaw = players.Select(u => u.UserId.ToString()).ToList(),
+            PublisherId = user.UserId,
+            Publisher = user,
             ScoreSubmitted = this._time.Now,
             Game = game,
             Platform = platform,
@@ -55,12 +58,24 @@ public partial class GameDatabaseContext // Leaderboard
         // Only do this part of notifying after actually adding the new score to the database incase that fails
         if (showOvertakeNotification)
         {
-            // Notify the last #1 users that they've been overtaken
-            foreach (GameUser player in this.GetPlayersFromScore(currentFirstPlace!).ToArray())
+            string usernamesToShow = "";
+            List<string> usernames = players.Select(u => u.Username).ToList();
+
+            // Formats the shown usernames to look like this: "UserA, UserB, UserC and UserD"
+            for (int i = 0; i < usernames.Count; i++)
             {
-                this.AddNotification("Score overtaken", 
-                    $"Your #1 score on {level.Title} has been overtaken by {user.Username}!", 
-                    player, "medal");   
+                usernamesToShow += usernames[i];
+
+                if (i < usernames.Count - 2) usernamesToShow += ", ";
+                else if (i < usernames.Count - 1) usernamesToShow += " and ";
+            }
+
+            // Notify the last #1 users that they've been overtaken
+            foreach (ObjectId playerId in currentFirstPlace!.PlayerIds)
+            {
+                this.AddNotification("Score overtaken",
+                    $"Your #1 score on {level.Title} has been overtaken by {usernamesToShow}!",
+                    playerId, "medal");
             }
         }
 

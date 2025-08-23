@@ -9,6 +9,9 @@ namespace Refresh.Database;
 public partial class GameDatabaseContext // Notifications
 {
     public void AddNotification(string title, string text, GameUser user, string? icon = null)
+        => this.AddNotification(title, text, user.UserId, icon);
+
+    public void AddNotification(string title, string text, ObjectId userId, string? icon = null)
     {
         icon ??= "bell";
 
@@ -16,7 +19,7 @@ public partial class GameDatabaseContext // Notifications
         {
             Title = title,
             Text = text,
-            UserId = user.UserId,
+            UserId = userId,
             FontAwesomeIcon = icon,
             CreatedAt = this._time.Now,
         };

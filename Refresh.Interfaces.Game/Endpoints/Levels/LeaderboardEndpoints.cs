@@ -115,7 +115,10 @@ public class LeaderboardEndpoints : EndpointGroup
             return Unauthorized;
         }
 
-        // LBP PSP doesn't have any score limits, and checking the score type isn't really useful
+        // Add the uploader to the list of player GameUsers to not have to search for them in the database aswell
+        List<GameUser> players = [user];
+
+        // LBP PSP doesn't have any score limits, and checking the score type and player list isn't really useful
         // since there is no multiplayer in that game
         if (!context.IsPSP())
         {
@@ -131,13 +134,34 @@ public class LeaderboardEndpoints : EndpointGroup
             {
                 return BadRequest;
             }
-        }
-        else
-        {
-            body.ScoreType = 1;
+
+            // Validate the player list
+            if (body.PlayerUsernames.Count > 4 || !body.PlayerUsernames.Contains(user.Username))
+            {
+                return BadRequest;
+            }
+
+            // Normally the score type is the total of both online and local users who participated in a score.
+            // If type is 7, fall back to at least setting it to the number of online players, to avoid showing
+            // scores by 7 people.
+            if (body.ScoreType is 7)
+            {
+                body.ScoreType = (byte)body.PlayerUsernames.Count;
+            }
+
+            foreach (string username in body.PlayerUsernames)
+            {
+                if (string.IsNullOrWhiteSpace(username) || username == user.Username) continue;
+                GameUser? player = database.GetUserByUsername(username, true);
+
+                // The user isn't on the server
+                if (player == null) continue;
+                
+                players.Add(player);
+            }
         }
 
-        GameScore score = database.SubmitScore(body, token, level);
+        GameScore score = database.SubmitScore(body, token, level, players);
         DatabaseList<ScoreWithRank> scores = database.GetRankedScoresAroundScore(score, 5);
 
         this.AwardScoreboardPins(scores, dataContext, user, level);

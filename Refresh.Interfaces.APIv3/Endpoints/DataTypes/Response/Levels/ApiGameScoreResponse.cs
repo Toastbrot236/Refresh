@@ -11,6 +11,7 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
     public required string ScoreId { get; set; }
     public required ApiGameLevelResponse Level { get; set; }
     public required IEnumerable<ApiGameUserResponse> Players { get; set; }
+    public required ApiMinimalUserResponse Publisher { get; set; }
     public required DateTimeOffset ScoreSubmitted { get; set; }
     public required int Score { get; set; }
     public required byte ScoreType { get; set; }
@@ -27,6 +28,7 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
             ScoreId = old.ScoreId.ToString()!,
             Level = ApiGameLevelResponse.FromOld(old.Level, dataContext)!,
             Players = ApiGameUserResponse.FromOldList(dataContext.Database.GetPlayersFromScore(old).ToArray(), dataContext),
+            Publisher = ApiMinimalUserResponse.FromOld(old.Publisher, dataContext)!,
             ScoreSubmitted = old.ScoreSubmitted,
             Score = old.Score,
             ScoreType = old.ScoreType,
