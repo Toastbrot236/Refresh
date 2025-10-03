@@ -50,4 +50,17 @@ public partial class Event
     /// The ObjectId of the object this event is referencing. If null, use <see cref="StoredSequentialId"/>.
     /// </summary>
     public ObjectId? StoredObjectId { get; set; }
+
+    #nullable restore
+
+    /// <summary>
+    /// An additional description of this event. Useful if this event is a moderation action (to store the reason), for example.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Can be used by various events to indicate whether content has been initially created or edited 
+    /// (can show this for levels and reviews in-game, for instance, or for other UGC edited by staff on the API).
+    /// </summary>
+    public bool IsModified { get; set; }
 }
