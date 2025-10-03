@@ -62,7 +62,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
         return ApiGameLevelResponse.FromOld(level, dataContext);
     }
     
-    [ApiV3Endpoint("admin/levels/id/{id}", HttpMethods.Delete), MinimumRole(GameUserRole.Admin)]
+    [ApiV3Endpoint("admin/levels/id/{id}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     public ApiOkResponse DeleteLevel(RequestContext context, GameDatabaseContext database, int id)
@@ -74,7 +74,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
         return new ApiOkResponse();
     }
     
-    [ApiV3Endpoint("admin/levels/id/{id}/setAuthor", HttpMethods.Post), MinimumRole(GameUserRole.Curator)]
+    [ApiV3Endpoint("admin/levels/id/{id}/setAuthor", HttpMethods.Post), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Changes the author of a level. The new author must be an existing user on the server..")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
