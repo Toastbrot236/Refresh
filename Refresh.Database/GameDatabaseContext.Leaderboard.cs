@@ -50,7 +50,11 @@ public partial class GameDatabaseContext // Leaderboard
             this.GameScores.Add(newScore);
         });
 
-        this.CreateLevelScoreEvent(user, newScore);
+        this.CreateEvent(newScore, new()
+        {
+            EventType = EventType.LevelScore,
+            Actor = user,
+        }, user);
 
         // Only do this part of notifying after actually adding the new score to the database incase that fails
         if (showOvertakeNotification)

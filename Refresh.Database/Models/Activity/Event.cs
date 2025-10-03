@@ -21,12 +21,18 @@ public partial class Event
     
     public EventType EventType { get; set; }
 
+    /// <summary>
+    /// The user in question that created this event, the "actor".
+    /// </summary>
+    [Required, ForeignKey(nameof(UserId))] public GameUser User { get; set; }
+    [Required] public ObjectId UserId { get; set; }
 
     /// <summary>
-    /// The user in question that created this event.
+    /// A direct reference to the publisher of this event's object (eg. level/photo publisher). 
+    /// Useful for private event filtering.
     /// </summary>
-    [Required]
-    public GameUser User { get; set; }
+    [Required, ForeignKey(nameof(ObjectPublisherId))] public GameUser ObjectPublisher { get; set; }
+    [Required] public ObjectId ObjectPublisherId { get; set; }
     
     /// <summary>
     /// Should this event be shown to other users on the server?
@@ -40,6 +46,9 @@ public partial class Event
     /// The type of data that this event is referencing.
     /// </summary>
     public EventDataType StoredDataType { get; set; }
+
+    // TODO: Combine StoredSequentialId and StoredObjectId into one ID attribute since only one of them is ever filled out.
+    // This would also allow string IDs like asset hashes and contest keys to be stored.
     
     /// <summary>
     /// The sequential ID of the object this event is referencing. If null, use <see cref="StoredObjectId"/>.
@@ -51,12 +60,10 @@ public partial class Event
     /// </summary>
     public ObjectId? StoredObjectId { get; set; }
 
-    #nullable restore
-
     /// <summary>
     /// An additional description of this event. Useful if this event is a moderation action (to store the reason), for example.
     /// </summary>
-    public string? Description { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// Can be used by various events to indicate whether content has been initially created or edited 

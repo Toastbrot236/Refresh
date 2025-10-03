@@ -3,11 +3,11 @@ using Newtonsoft.Json.Converters;
 
 namespace Refresh.Database.Models.Activity;
 
-[JsonConverter(typeof(StringEnumConverter))]
 /// <summary>
 /// Contains both types shown in-game, API-exclusive custom events, and also many moderation-related events
 /// as some sort of audit log (incase a user starts rapidly editing their stuff, or a mod starts causing trouble)
 /// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
 public enum EventType : byte
 {
     [XmlEnum("publish_level")] LevelUpload = 0,
@@ -34,9 +34,6 @@ public enum EventType : byte
 
     // Custom events, mostly additional moderation events.
     
-    // No Create event for pin progress and no profile pin events at all because that'd get very spammy very quickly
-    // wwithout any benefit. However tracking deleted pin progresses is probably a useful moderation event.
-    [XmlEnum("delete_pin_progress")] DeletePinProgress = 105,
     [XmlEnum("delete_photo")] DeletePhoto = 106,
     [XmlEnum("un_mm_pick_level")] LevelUnTeamPick = 107,
     // For some weird reason the lower two specifically don't exist in LBP2

@@ -12,6 +12,7 @@ using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
+using Refresh.Database.Models.Activity;
 using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
@@ -238,6 +239,13 @@ public class PublishEndpoints : EndpointGroup
                 dataContext.Database.UpdateLevelModdedStatus(levelToUpdate);
             }
 
+            dataContext.Database.CreateEvent(levelToUpdate, new()
+            {
+                EventType = EventType.LevelUpload,
+                Actor = user,
+                IsModified = true,
+            });
+
             dataContext.Database.UpdateSkillRewardsForLevel(levelToUpdate, body.SkillRewards);
             return new Response(GameLevelResponse.FromOld(levelToUpdate, dataContext)!, ContentType.Xml);
         }
@@ -258,7 +266,12 @@ public class PublishEndpoints : EndpointGroup
         // NOTE: this wont do anything if the slot is uploaded before the level resource,
         //       so we also do this same operation inside of ResourceEndpoints.UploadAsset to catch that case aswell
         dataContext.Database.UpdateLevelModdedStatus(newLevel);
-        dataContext.Database.CreateLevelUploadEvent(user, newLevel);
+        dataContext.Database.CreateEvent(newLevel, new()
+        {
+            EventType = EventType.LevelUpload,
+            Actor = user,
+            IsModified = false,
+        });
 
         return new Response(GameLevelResponse.FromOld(newLevel, dataContext)!, ContentType.Xml);
     }

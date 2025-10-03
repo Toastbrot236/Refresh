@@ -7,6 +7,7 @@ using Refresh.Database.Models.Comments;
 using Refresh.Database.Models.Users;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Relations;
+using Refresh.Database.Models.Activity;
 
 namespace Refresh.Database;
 
@@ -58,7 +59,11 @@ public partial class GameDatabaseContext // Relations
                 level.Statistics!.FavouriteCountExcludingPublisher++;
         });
 
-        this.CreateLevelFavouriteEvent(user, level);
+        this.CreateEvent(level, new()
+        {
+            EventType = EventType.LevelFavourite,
+            Actor = user,
+        });
 
         return true;
     }
@@ -151,7 +156,11 @@ public partial class GameDatabaseContext // Relations
             userToFavourite.Statistics!.FavouriteCount++;
         });
 
-        this.CreateUserFavouriteEvent(userFavouriting, userToFavourite);
+        this.CreateEvent(userToFavourite, new()
+        {
+            EventType = EventType.UserFavourite,
+            Actor = userFavouriting,
+        });
 
         if (this.AreUsersMutual(userFavouriting, userToFavourite))
         {
@@ -605,7 +614,11 @@ public partial class GameDatabaseContext // Relations
                     Timestamp = this._time.Now,
                 });
 
-                this.CreateLevelPlayEvent(user, level);
+                this.CreateEvent(level, new()
+                {
+                    EventType = EventType.LevelPlay,
+                    Actor = user,
+                });
 
                 level.Statistics!.UniquePlayCount++;
                 if(user != level.Publisher)

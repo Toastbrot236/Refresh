@@ -4,238 +4,164 @@ using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Relations;
+using Refresh.Database.Query;
+using Refresh.Database.Models.Comments;
+using Refresh.Database.Models.Playlists;
+using Refresh.Database.Models.Levels.Challenges;
 namespace Refresh.Database;
 
 public partial class GameDatabaseContext // ActivityWrite
 {
-    /// <summary>
-    /// Creates a new LevelUpload event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelUploadEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
+    public Event CreateEvent(GameUser user, EventCreationParams param) => 
+        this.CreateEvent(new()
         {
-            EventType = EventType.LevelUpload,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelFavourite event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelFavouriteEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelFavourite,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelUnfavourite event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelUnfavouriteEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelUnfavourite,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new UserFavourite event from a <see cref='GameUser'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateUserFavouriteEvent(GameUser userFrom, GameUser user)
-    {
-        Event e = new()
-        {
-            EventType = EventType.UserFavourite,
+            EventType = param.EventType,
             StoredDataType = EventDataType.User,
             Timestamp = this._time.Now,
-            User = userFrom,
+            User = param.Actor,
+            ObjectPublisher = user,
             StoredObjectId = user.UserId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new UserUnfavourite event from a <see cref='GameUser'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateUserUnfavouriteEvent(GameUser userFrom, GameUser user)
-    {
-        Event e = new()
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(GameLevel level, EventCreationParams param) => 
+        this.CreateEvent(new()
         {
-            EventType = EventType.UserUnfavourite,
-            StoredDataType = EventDataType.User,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredObjectId = user.UserId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelPlay event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelPlayEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelPlay,
+            EventType = param.EventType,
             StoredDataType = EventDataType.Level,
             Timestamp = this._time.Now,
-            User = userFrom,
+            User = param.Actor,
+            ObjectPublisher = level.Publisher,
             StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelTag event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelTagEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(GameScore score, EventCreationParams param, GameUser scoreUploader) => 
+        this.CreateEvent(new()
         {
-            EventType = EventType.LevelTag,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelTeamPick event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelTeamPickEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelTeamPick,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelRate event from a <see cref='RateLevelRelation'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateRateLevelEvent(GameUser userFrom, RateLevelRelation relation)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelRate,
-            StoredDataType = EventDataType.RateLevelRelation,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredObjectId = relation.RateLevelRelationId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelReview event from a <see cref='GameLevel'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelReviewEvent(GameUser userFrom, GameLevel level)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelReview,
-            StoredDataType = EventDataType.Level,
-            Timestamp = this._time.Now,
-            User = userFrom,
-            StoredSequentialId = level.LevelId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new LevelScore event from a <see cref='GameScore'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateLevelScoreEvent(GameUser userFrom, GameScore score)
-    {
-        Event e = new()
-        {
-            EventType = EventType.LevelScore,
+            EventType = param.EventType,
             StoredDataType = EventDataType.Score,
             Timestamp = this._time.Now,
-            User = userFrom,
+            User = param.Actor,
+            // TODO: store the foreign key of the actual score uploader seperately from the player list, and use that here
+            ObjectPublisher = scoreUploader,
             StoredObjectId = score.ScoreId,
-        };
-
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    public Event CreatePhotoUploadEvent(GameUser userFrom, GamePhoto photo)
-    {
-        Event e = new()
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(RateLevelRelation relation, EventCreationParams param) => 
+        this.CreateEvent(new()
         {
-            EventType = EventType.PhotoUpload,
+            EventType = param.EventType,
+            StoredDataType = EventDataType.RateLevelRelation,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = relation.User,
+            StoredObjectId = relation.RateLevelRelationId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(GamePhoto photo, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
             StoredDataType = EventDataType.Photo,
             Timestamp = this._time.Now,
-            User = userFrom,
+            User = param.Actor,
+            ObjectPublisher = photo.Publisher,
             StoredSequentialId = photo.PhotoId,
-        };
-        
-        this.Write(() => this.Events.Add(e));
-        return e;
-    }
-
-    /// <summary>
-    /// Creates a new UserFirstLogin event from a <see cref='GameUser'/>, and adds it to the event list.
-    /// </summary>
-    public Event CreateUserFirstLoginEvent(GameUser user)
-    {
-        Event e = new()
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(GameReview review, EventCreationParams param) => 
+        this.CreateEvent(new()
         {
-            EventType = EventType.UserFirstLogin,
-            StoredDataType = EventDataType.User,
+            EventType = param.EventType,
+            StoredDataType = EventDataType.Review,
             Timestamp = this._time.Now,
-            User = user,
-            StoredObjectId = user.UserId,
-        };
+            User = param.Actor,
+            ObjectPublisher = review.Publisher,
+            StoredSequentialId = review.ReviewId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    public Event CreateEvent(GameProfileComment comment, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
+            StoredDataType = EventDataType.UserComment,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = comment.Author,
+            StoredSequentialId = comment.SequentialId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
 
-        this.Write(() => this.Events.Add(e));
+    public Event CreateEvent(GameLevelComment comment, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
+            StoredDataType = EventDataType.LevelComment,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = comment.Author,
+            StoredSequentialId = comment.SequentialId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+
+    public Event CreateEvent(GamePlaylist playlist, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
+            StoredDataType = EventDataType.Playlist,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = playlist.Publisher,
+            StoredSequentialId = playlist.PlaylistId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+
+    public Event CreateEvent(GameChallenge challenge, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
+            StoredDataType = EventDataType.Challenge,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = challenge.Publisher,
+            StoredSequentialId = challenge.ChallengeId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+
+    public Event CreateEvent(GameChallengeScore score, EventCreationParams param) => 
+        this.CreateEvent(new()
+        {
+            EventType = param.EventType,
+            StoredDataType = EventDataType.ChallengeScore,
+            Timestamp = this._time.Now,
+            User = param.Actor,
+            ObjectPublisher = score.Publisher,
+            StoredObjectId = score.ScoreId,
+            IsModified = param.IsModified,
+            IsPrivate = param.IsPrivate,
+        });
+    
+    // TODO: Event creation methods for Contest, Asset and PinProgress once the ID storing is figured out for them
+
+    private Event CreateEvent(Event e)
+    {
+        this.Events.Add(e);
+        this.SaveChanges();
         return e;
     }
 }
