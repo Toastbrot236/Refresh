@@ -9,5 +9,5 @@ public class EventCreationParams
     public required GameUser Actor { get; set; }
     public bool IsModified { get; set; } = false;
     public bool IsPrivate { get; set; } = false;
-    public string Description { get; set; } = "";
+    public string AdditionalInfo { get; set; } = "";
 }

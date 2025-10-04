@@ -48,7 +48,7 @@ public enum EventType : byte
     [XmlEnum("delete_user_level_scores")] DeleteUserLevelScores = 114, 
     [XmlEnum("moderate_asset")] ModerateAsset = 115,
     [XmlEnum("unmoderate_asset")] UnmoderateAsset = 116,
-    [XmlEnum("moderate_user")] ModerateUser = 117, // Description should also tell whether restricted, banned or anything else
+    [XmlEnum("moderate_user")] ModerateUser = 117, // AdditionalInfo should also tell whether restricted, banned or anything else
     [XmlEnum("pardon_user")] PardonUser = 118,
     [XmlEnum("delete_challenge")] DeleteChallenge = 119,
     [XmlEnum("delete_user_challenges")] DeleteUserChallenges = 120,

@@ -27,12 +27,16 @@ public partial class Event
     [Required, ForeignKey(nameof(UserId))] public GameUser User { get; set; }
     [Required] public ObjectId UserId { get; set; }
 
+    #nullable restore
+
     /// <summary>
-    /// A direct reference to the publisher of this event's object (eg. level/photo publisher). 
-    /// Useful for private event filtering.
+    /// A reference to the user "involved" in this event. They may also see this event even if it's private.
+    /// Usually the object publisher (eg. level/photo publisher).
     /// </summary>
-    [Required, ForeignKey(nameof(ObjectPublisherId))] public GameUser ObjectPublisher { get; set; }
-    [Required] public ObjectId ObjectPublisherId { get; set; }
+    [ForeignKey(nameof(InvolvedUserId))] public GameUser? InvolvedUser { get; set; }
+    public ObjectId? InvolvedUserId { get; set; }
+
+    #nullable disable
     
     /// <summary>
     /// Should this event be shown to other users on the server?
@@ -63,11 +67,11 @@ public partial class Event
     /// <summary>
     /// An additional description of this event. Useful if this event is a moderation action (to store the reason), for example.
     /// </summary>
-    public string Description { get; set; }
+    public string AdditionalInfo { get; set; } = "";
 
     /// <summary>
     /// Can be used by various events to indicate whether content has been initially created or edited 
-    /// (can show this for levels and reviews in-game, for instance, or for other UGC edited by staff on the API).
+    /// (can show this for level and review upload events in-game, for instance, or for other UGC edited by staff on the API).
     /// </summary>
     public bool IsModified { get; set; }
 }
