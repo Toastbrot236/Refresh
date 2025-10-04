@@ -112,8 +112,17 @@ public class DatabaseActivityPage
                 case EventDataType.Photo:
                     // This case is handled by the `Level` part, since the game expects photos to appear in the level groups
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                case EventDataType.Review:
+                case EventDataType.UserComment:
+                case EventDataType.LevelComment:
+                case EventDataType.Playlist:
+                case EventDataType.Challenge:
+                case EventDataType.ChallengeScore:
+                case EventDataType.Contest:
+                case EventDataType.Asset:
+                case EventDataType.PinProgress:
+                    // Not yet implemented, ignore. TODO: Implement new types above
+                    break;
             }
         }
     }

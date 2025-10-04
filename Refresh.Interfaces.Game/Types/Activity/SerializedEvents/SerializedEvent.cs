@@ -73,7 +73,7 @@ public abstract class SerializedEvent : IDataConvertableFrom<SerializedEvent, Ev
             case EventType.UserFirstLogin:
                 return FromOldUserEvent(old, user!);
             case EventType.LevelUpload:
-                return SerializedLevelUploadEvent.FromSerializedLevelEvent(FromOldLevelEvent(old, level!));
+                return SerializedLevelUploadEvent.FromSerializedLevelEvent(FromOldLevelEvent(old, level!), old.IsModified);
             case EventType.LevelPlay:
                 return SerializedLevelPlayEvent.FromSerializedLevelEvent(FromOldLevelEvent(old, level!));
             case EventType.PhotoUpload:
@@ -83,7 +83,8 @@ public abstract class SerializedEvent : IDataConvertableFrom<SerializedEvent, Ev
             case EventType.NewsPost:
                 return null;
             default:
-                throw new ArgumentOutOfRangeException();
+                // Not yet implemented, ignore
+                return null;
         }
     }
 

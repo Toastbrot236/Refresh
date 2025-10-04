@@ -4,17 +4,17 @@ namespace Refresh.Interfaces.Game.Types.Activity.SerializedEvents;
 
 public class SerializedLevelUploadEvent : SerializedLevelEvent
 {
-    [XmlElement("republish")]
-    public bool Republish { get; set; }
+    // 0 = modified, 1 = published
+    [XmlElement("republish")] public int Republish { get; set; } = 1;
 
-    public static SerializedLevelUploadEvent? FromSerializedLevelEvent(SerializedLevelEvent? e)
+    public static SerializedLevelUploadEvent? FromSerializedLevelEvent(SerializedLevelEvent? e, bool isModified)
     {
         if (e == null)
             return null;
         
         return new SerializedLevelUploadEvent
         {
-            Republish = false,
+            Republish = isModified ? 0 : 1,
 
             Actor = e.Actor,
             LevelId = e.LevelId,
