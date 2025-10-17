@@ -39,9 +39,10 @@ public partial class Event
     #nullable disable
     
     /// <summary>
-    /// Should this event be shown to other users on the server?
+    /// Whether this event is for activity, moderation etc.
+    /// Server should use this to determine who this event is visible to.
     /// </summary>
-    public bool IsPrivate { get; set; }
+    public EventOverType OverType { get; set; }
     
     [XmlElement("timestamp")]
     public DateTimeOffset Timestamp { get; set; }

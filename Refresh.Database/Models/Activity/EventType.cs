@@ -34,9 +34,9 @@ public enum EventType : byte
 
     // Custom events, mostly additional moderation events.
     
+    [XmlEnum("delete_user_photos")] DeleteUserPhotos = 105,
     [XmlEnum("delete_photo")] DeletePhoto = 106,
     [XmlEnum("un_mm_pick_level")] LevelUnTeamPick = 107,
-    // For some weird reason the lower two specifically don't exist in LBP2
     [XmlEnum("delete_review")] DeleteReview = 108,
     [XmlEnum("delete_user_comment")] DeleteUserComment = 109, 
     [XmlEnum("create_contest")] CreateContest = 110,

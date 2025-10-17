@@ -31,6 +31,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
         {
             EventType = EventType.LevelTeamPick,
             Actor = user,
+            OverType = EventOverType.Activity,
         });
         return new ApiOkResponse();
     }
@@ -38,12 +39,21 @@ public class AdminLevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/levels/id/{id}/removeTeamPick", HttpMethods.Post), MinimumRole(GameUserRole.Curator)]
     [DocSummary("Removes a level's team pick status.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    public ApiOkResponse RemoveTeamPickFromLevel(RequestContext context, GameDatabaseContext database, int id)
+    public ApiOkResponse RemoveTeamPickFromLevel(RequestContext context, GameDatabaseContext database, GameUser user, int id)
     {
         GameLevel? level = database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;
         
         database.RemoveTeamPickFromLevel(level);
+        database.CreateEvent(level, new()
+        {
+            EventType = EventType.LevelUnTeamPick,
+            Actor = user,
+            // This should rarely happen. If it does, it should be public knowledge.
+            // Also consistent behaviour with the endpoint above, even if this won't
+            // be shown in-game, unlike team picking
+            OverType = EventOverType.Activity,
+        });
         return new ApiOkResponse();
     }
     
@@ -62,7 +72,15 @@ public class AdminLevelApiEndpoints : EndpointGroup
             !dataContext.GuidChecker.IsTextureGuid(level.GameVersion, long.Parse(body.IconHash)))
             return ApiValidationError.InvalidTextureGuidError;
         
-        level = database.UpdateLevel(body, level, user);
+        level = database.UpdateLevel(body, level, user)!;
+        database.CreateEvent(level, new()
+        {
+            EventType = EventType.LevelUpload,
+            IsModified = true,
+            Actor = user,
+            OverType = EventOverType.Moderation,
+            AdditionalInfo = $"Your level '{level.Title}' for game {level.GameVersion} has been updated by moderation"
+        });
 
         return ApiGameLevelResponse.FromOld(level, dataContext);
     }
@@ -70,12 +88,22 @@ public class AdminLevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/levels/id/{id}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    public ApiOkResponse DeleteLevel(RequestContext context, GameDatabaseContext database, int id)
+    public ApiOkResponse DeleteLevel(RequestContext context, GameDatabaseContext database, GameUser user, int id)
     {
         GameLevel? level = database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;
         
         database.DeleteLevel(level);
+
+        // We can just store the level ID here thanks to GameLevelRevisions documenting level revisions
+        database.CreateEvent(level, new()
+        {
+            EventType = EventType.LevelUnpublish,
+            Actor = user,
+            AdditionalInfo = $"Your level '{level.Title}' for game {level.GameVersion} has been deleted by moderation",
+            OverType = EventOverType.Moderation,
+        });
+
         return new ApiOkResponse();
     }
     
@@ -97,6 +125,8 @@ public class AdminLevelApiEndpoints : EndpointGroup
         if (newAuthor == null)
             return ApiNotFoundError.UserMissingError;
 
+        // TODO: Should this be logged using an event? Who would be the involved user? the old or the new user?
+        
         database.UpdateLevelPublisher(level, newAuthor);
         return new ApiOkResponse();
     }

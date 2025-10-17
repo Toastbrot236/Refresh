@@ -53,6 +53,7 @@ public partial class GameDatabaseContext // Leaderboard
         this.CreateEvent(newScore, new()
         {
             EventType = EventType.LevelScore,
+            OverType = EventOverType.Activity,
             Actor = user,
         }, user);
 
