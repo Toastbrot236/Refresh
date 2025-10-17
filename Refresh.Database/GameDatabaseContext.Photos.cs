@@ -133,7 +133,7 @@ public partial class GameDatabaseContext // Photos
                 .Where(e => e.StoredDataType == EventDataType.Photo && e.StoredSequentialId == photo.PhotoId);
                 
             // Remove all events referencing the photo
-            this.Events.RemoveRange(photoEvents);
+            //this.Events.RemoveRange(photoEvents);
             
             // Remove the photo
             this.GamePhotos.Remove(photo);

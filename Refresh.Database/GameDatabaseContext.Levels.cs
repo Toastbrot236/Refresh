@@ -257,7 +257,7 @@ public partial class GameDatabaseContext // Levels
             IQueryable<Event> levelEvents = this.Events
                 .Where(e => e.StoredDataType == EventDataType.Level && e.StoredSequentialId == level.LevelId);
             
-            this.Events.RemoveRange(levelEvents);
+            //this.Events.RemoveRange(levelEvents);
 
             this.FavouriteLevelRelations.RemoveRange(r => r.Level == level);
             this.PlayLevelRelations.RemoveRange(r => r.Level == level);
@@ -282,7 +282,7 @@ public partial class GameDatabaseContext // Levels
             {
                 IQueryable<Event> scoreEvents = this.Events
                     .Where(e => e.StoredDataType == EventDataType.Score && e.StoredObjectId == score.ScoreId);
-                this.Events.RemoveRange(scoreEvents);
+                //this.Events.RemoveRange(scoreEvents);
             }
             
             this.GameScores.RemoveRange(scores);

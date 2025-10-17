@@ -153,7 +153,7 @@ public partial class GameDatabaseContext // Leaderboard
         
         this.Write(() =>
         {
-            this.Events.RemoveRange(scoreEvents);
+            //this.Events.RemoveRange(scoreEvents);
             this.GameScores.Remove(score);
         });
     }
@@ -176,7 +176,7 @@ public partial class GameDatabaseContext // Leaderboard
                 IQueryable<Event> scoreEvents = this.Events
                     .Where(e => e.StoredDataType == EventDataType.Score && e.StoredObjectId == score.ScoreId);
                 
-                this.Events.RemoveRange(scoreEvents);
+                //this.Events.RemoveRange(scoreEvents);
                 this.GameScores.Remove(score);
             }
         });
