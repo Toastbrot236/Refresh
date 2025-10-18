@@ -4,6 +4,7 @@ using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
+using Refresh.Common.Constants;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Core.Services;
@@ -82,6 +83,10 @@ public class ChallengeEndpoints : EndpointGroup
         if (body.Criteria.Count > 1)
             dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"Challenge by {user.Username} on level ID {level.LevelId} has {body.Criteria.Count} criteria, only the first one will be saved");
 
+        // Trim name
+        if (body.Name.Length > UgcLimits.TitleLimit) 
+            body.Name = body.Name[..UgcLimits.TitleLimit];
+            
         GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
 
         // Return a SerializedChallenge which is not body, else the game will not send the first score

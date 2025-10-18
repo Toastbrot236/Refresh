@@ -3,6 +3,7 @@ using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Protocols.Http;
 using MongoDB.Bson;
+using Refresh.Common.Constants;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -57,6 +58,13 @@ public class AdminLevelApiEndpoints : EndpointGroup
             !dataContext.GuidChecker.IsTextureGuid(level.GameVersion, long.Parse(body.IconHash)))
             return ApiValidationError.InvalidTextureGuidError;
         
+        // Trim name and description
+        if (body.Title != null && body.Title.Length > UgcLimits.TitleLimit) 
+            body.Title = body.Title[..UgcLimits.TitleLimit];
+
+        if (body.Description != null && body.Description.Length > UgcLimits.DescriptionLimit)
+            body.Description = body.Description[..UgcLimits.DescriptionLimit];
+
         level = database.UpdateLevel(body, level, user);
 
         return ApiGameLevelResponse.FromOld(level, dataContext);
