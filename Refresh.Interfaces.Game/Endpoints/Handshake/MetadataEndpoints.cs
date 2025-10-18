@@ -74,6 +74,8 @@ public class MetadataEndpoints : EndpointGroup
         // OverheatingThreshholdDisallowMidgameJoin is set to >1.0 so that it never triggers
         // ShowLevelBoos, EnableCommunityDecorations, EnablePlayedFilter enable various game features
         // DisableDLCPublishCheck disables the game's DLC publish check.
+        // SECONDS_BETWEEN_PINS_AWARDED_UPLOADS defines the intervall in seconds between /update_my_pins (or /get_my_pins) requests. 
+        //     Set to LBP2 and 3's relatively decent default, incase a beta build decides to set a smaller value.
         networkSettings ??= $"""
                             AllowOnlineCreate true
                             ShowErrorNumbers true
@@ -89,6 +91,7 @@ public class MetadataEndpoints : EndpointGroup
                             EnableHackChecks false
                             DisableDLCPublishCheck true
                             AlexDB true
+                            SECONDS_BETWEEN_PINS_AWARDED_UPLOADS 300.0
 
                             """;
         
