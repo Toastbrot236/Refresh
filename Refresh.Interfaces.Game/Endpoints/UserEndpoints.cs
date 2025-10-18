@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -60,7 +61,15 @@ public class UserEndpoints : EndpointGroup
         return new SerializedFriendsList(GameUserResponse.FromOldList(friends, dataContext).ToList());
     }
 
+    private const int UserTimeoutDuration = 900; // 15 minutes
+    // Amount is only this high because a user might try batch-moving their levels multiple times, 
+    // and because of LBP3 sometimes sending DLC information to this endpoint
+    private const int UserUpdateRequestAmount = 8; 
+    private const int UserUpdateBlockDuration = UserTimeoutDuration;
+    private const string UserUpdateBucket = "user-update";
+
     [GameEndpoint("updateUser", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(UserTimeoutDuration, UserUpdateRequestAmount, UserUpdateBlockDuration, UserUpdateBucket)] 
     [NullStatusCode(BadRequest)]
     public string? UpdateUser(RequestContext context, DataContext dataContext, GameUser user, string body, GuidCheckerService guidChecker)
     {
@@ -147,7 +156,17 @@ public class UserEndpoints : EndpointGroup
         return string.Empty;
     }
 
+    private const int PinTimeoutDuration = 900; // 15 minutes
+    // Might be a little low incase someone changes their profile pins multiple times, we'll see if this becomes a problem.
+    // Also gets called outside the intervall defined in the NWS if the user sets atleast 1 "undefined" profile pin
+    // (in that case lbp immediately updates the pin on that index to whatever pin has had its progress updated recently),
+    // but that's less of a concern
+    private const int PinRequestAmount = 8; 
+    private const int PinBlockDuration = PinTimeoutDuration;
+    private const string PinBucket = "pin-sync";
+
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
+    [RateLimitSettings(PinTimeoutDuration, PinRequestAmount, PinBlockDuration, PinBucket)]
     [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
     public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body)
@@ -194,6 +213,7 @@ public class UserEndpoints : EndpointGroup
     }
 
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
+    [RateLimitSettings(PinTimeoutDuration, PinRequestAmount, PinBlockDuration, PinBucket)]
     [MinimumRole(GameUserRole.Restricted)]
     public SerializedPins GetPins(RequestContext context, DataContext dataContext, GameUser user)
         => SerializedPins.FromOld

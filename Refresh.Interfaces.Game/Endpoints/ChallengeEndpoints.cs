@@ -1,6 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.Endpoints.Debugging;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -11,7 +11,6 @@ using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
 using Refresh.Database;
-using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Levels.Challenges;
 using Refresh.Database.Models.Users;
@@ -28,7 +27,13 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Challenges
 
+    private const int ChallengeTimeoutDuration = 900; // 15 minutes
+    private const int ChallengeRequestAmount = 8;
+    private const int ChallengeBlockDuration = ChallengeTimeoutDuration;
+    private const string ChallengeBucket = "player-challenge-upload";
+
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(ChallengeTimeoutDuration, ChallengeRequestAmount, ChallengeBlockDuration, ChallengeBucket)]
     [RequireEmailVerified]
     public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body, GameServerConfig config)
     {
@@ -86,7 +91,7 @@ public class ChallengeEndpoints : EndpointGroup
         // Trim name
         if (body.Name.Length > UgcLimits.TitleLimit) 
             body.Name = body.Name[..UgcLimits.TitleLimit];
-            
+
         GameChallenge challenge = dataContext.Database.CreateChallenge(body, level, user);
 
         // Return a SerializedChallenge which is not body, else the game will not send the first score
@@ -175,11 +180,17 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Scores
 
+    private const int ScoreTimeoutDuration = 900; // 15 minutes
+    private const int ScoreRequestAmount = 16;
+    private const int ScoreBlockDuration = ScoreTimeoutDuration;
+    private const string ScoreBucket = "player-challenge-score-upload";
+
     /// <summary>
     /// Gets called when submitting a challenge score after either beating an opponent's challenge score or right after uploading a challenge.
     /// Usually this endpoint only gets called after the game is done uploading the ChallengeGhost asset for this score.
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(ScoreTimeoutDuration, ScoreRequestAmount, ScoreBlockDuration, ScoreBucket)]
     [RequireEmailVerified]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user,
         SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService ghostService,

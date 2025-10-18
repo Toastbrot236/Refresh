@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -19,7 +20,14 @@ namespace Refresh.Interfaces.Game.Endpoints;
 
 public class ReviewEndpoints : EndpointGroup
 {
+    private const int RatingTimeoutDuration = 300; // 5 minutes
+    private const int RatingRequestAmount = 10;
+    private const int RatingBlockDuration = RatingTimeoutDuration;
+    private const string LevelRatingBucket = "level-rate";
+    private const string ReviewRatingBucket = "review-rate";
+
     [GameEndpoint("dpadrate/{slotType}/{id}", HttpMethods.Post)]
+    [RateLimitSettings(RatingTimeoutDuration, RatingRequestAmount, RatingBlockDuration, LevelRatingBucket)]
     [RequireEmailVerified]
     public Response SubmitRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
         int id, GameServerConfig config)
@@ -46,6 +54,7 @@ public class ReviewEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rate/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
+    [RateLimitSettings(RatingTimeoutDuration, RatingRequestAmount, RatingBlockDuration, LevelRatingBucket)]
     [AllowEmptyBody]
     public Response RateUserLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id)
     {
@@ -116,7 +125,13 @@ public class ReviewEndpoints : EndpointGroup
         return new Response(new SerializedGameReviewResponse(SerializedGameReview.FromOldList(items, dataContext).ToList()), ContentType.Xml);
     }
 
+    private const int ReviewTimeoutDuration = 900; // 15 minutes
+    private const int ReviewRequestAmount = 8;
+    private const int ReviewBlockDuration = ReviewTimeoutDuration;
+    private const string ReviewBucket = "post-review";
+
     [GameEndpoint("postReview/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
+    [RateLimitSettings(ReviewTimeoutDuration, ReviewRequestAmount, ReviewBlockDuration, ReviewBucket)]
     [RequireEmailVerified]
     public Response PostReviewForLevel(RequestContext context,
         GameDatabaseContext database,
@@ -169,6 +184,7 @@ public class ReviewEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateReview/user/{levelId}/{username}", HttpMethods.Post)]
+    [RateLimitSettings(RatingTimeoutDuration, RatingRequestAmount, RatingBlockDuration, ReviewRatingBucket)]
     [RequireEmailVerified]
     public Response SubmitReviewRating(RequestContext request, GameDatabaseContext database, GameUser user, int levelId,
         string username, GameServerConfig config)
