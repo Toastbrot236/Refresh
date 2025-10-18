@@ -4,8 +4,7 @@ using Newtonsoft.Json.Converters;
 namespace Refresh.Database.Models.Activity;
 
 /// <summary>
-/// Contains both types shown in-game, API-exclusive custom events, and also many moderation-related events
-/// as some sort of audit log (incase a user starts rapidly editing their stuff, or a mod starts causing trouble)
+/// Contains both activity and moderation event types
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter))]
 public enum EventType : byte
@@ -34,29 +33,32 @@ public enum EventType : byte
 
     // Custom events, mostly additional moderation events.
     
-    [XmlEnum("delete_user_photos")] DeleteUserPhotos = 105,
-    [XmlEnum("delete_photo")] DeletePhoto = 106,
-    [XmlEnum("un_mm_pick_level")] LevelUnTeamPick = 107,
-    [XmlEnum("delete_review")] DeleteReview = 108,
-    [XmlEnum("delete_user_comment")] DeleteUserComment = 109, 
-    [XmlEnum("create_contest")] CreateContest = 110,
-    [XmlEnum("delete_contest")] DeleteContest = 111,
-    [XmlEnum("delete_score")] DeleteScore = 112,
-    [XmlEnum("delete_user_scores")] DeleteUserScores = 113,
-    // Useful if the user has submitted multiple cheated scores on a single level, only one is showing as a highscore at a time, 
-    // but you don't want to snipe the user's other level scores because they're mostly legit
-    [XmlEnum("delete_user_level_scores")] DeleteUserLevelScores = 114, 
-    [XmlEnum("moderate_asset")] ModerateAsset = 115,
-    [XmlEnum("unmoderate_asset")] UnmoderateAsset = 116,
-    [XmlEnum("moderate_user")] ModerateUser = 117, // AdditionalInfo should also tell whether restricted, banned or anything else
-    [XmlEnum("pardon_user")] PardonUser = 118,
-    [XmlEnum("delete_challenge")] DeleteChallenge = 119,
-    [XmlEnum("delete_user_challenges")] DeleteUserChallenges = 120,
-    [XmlEnum("delete_challenge_score")] DeleteChallengeScore = 121,
-    [XmlEnum("delete_user_challenge_scores")] DeleteUserChallengeScores = 122,
-    [XmlEnum("create_challenge")] CreateChallenge = 123,
-    [XmlEnum("create_challenge_score")] CreateChallengeScore = 124,
-    [XmlEnum("add_playlist_to_playlist")] PlaylistAddPlaylist = 125,
-    [XmlEnum("delete_playlist")] DeletePlaylist = 126,
     [XmlEnum("firstlogin")] UserFirstLogin = 127,
+    [XmlEnum("create_challenge")] CreateChallenge,
+    [XmlEnum("create_challenge_score")] CreateChallengeScore,
+    [XmlEnum("add_playlist_to_playlist")] PlaylistAddPlaylist,
+    [XmlEnum("delete_playlist")] DeletePlaylist,
+    [XmlEnum("delete_user_photos")] DeleteUserPhotos,
+    [XmlEnum("delete_photo")] DeletePhoto,
+    [XmlEnum("delete_review")] DeleteReview,
+    [XmlEnum("delete_user_comment")] DeleteUserComment, 
+    [XmlEnum("create_contest")] CreateContest,
+    [XmlEnum("delete_contest")] DeleteContest,
+    [XmlEnum("un_mm_pick_level")] LevelUnTeamPick,
+    [XmlEnum("delete_score")] DeleteScore,
+    [XmlEnum("delete_user_scores")] DeleteUserScores,
+    // Useful if the user has submitted multiple cheated scores on a single level, only one is showing as a highscore at a time, 
+    // but staff doesn't want to snipe the user's other level scores because they're mostly legit
+    [XmlEnum("delete_user_level_scores")] DeleteUserLevelScores, 
+    [XmlEnum("moderate_asset")] ModerateAsset,
+    [XmlEnum("unmoderate_asset")] UnmoderateAsset,
+    [XmlEnum("restrict_user")] RestrictUser,
+    [XmlEnum("ban_user")] BanUser,
+    [XmlEnum("delete_user")] DeleteUser,
+    [XmlEnum("pardon_user")] PardonUser,
+    [XmlEnum("update_user")] UpdateUser,
+    [XmlEnum("delete_challenge")] DeleteChallenge,
+    [XmlEnum("delete_user_challenges")] DeleteUserChallenges,
+    [XmlEnum("delete_challenge_score")] DeleteChallengeScore,
+    [XmlEnum("delete_user_challenge_scores")] DeleteUserChallengeScores,
 }

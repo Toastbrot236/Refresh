@@ -60,6 +60,7 @@ public partial class GameDatabaseContext // Tokens
             {
                 EventType = EventType.UserFirstLogin,
                 Actor = user,
+                OverType = EventOverType.Activity,
             });
         }
 

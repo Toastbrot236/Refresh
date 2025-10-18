@@ -63,6 +63,7 @@ public partial class GameDatabaseContext // Relations
         {
             EventType = EventType.LevelFavourite,
             Actor = user,
+            OverType = EventOverType.Activity,
         });
 
         return true;
@@ -160,6 +161,7 @@ public partial class GameDatabaseContext // Relations
         {
             EventType = EventType.UserFavourite,
             Actor = userFavouriting,
+            OverType = EventOverType.Activity,
         });
 
         if (this.AreUsersMutual(userFavouriting, userToFavourite))
@@ -618,6 +620,7 @@ public partial class GameDatabaseContext // Relations
                 {
                     EventType = EventType.LevelPlay,
                     Actor = user,
+                    OverType = EventOverType.Activity,
                 });
 
                 level.Statistics!.UniquePlayCount++;

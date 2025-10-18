@@ -1,5 +1,7 @@
+namespace Refresh.Database.Models.Activity;
+
 // EventType was already taken and i had no better ideas on what to name this
-public enum EventOverType
+public enum EventOverType : byte
 {
     /// <summary>
     /// A recent activity event, public to everyone.

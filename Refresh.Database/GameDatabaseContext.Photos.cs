@@ -99,6 +99,7 @@ public partial class GameDatabaseContext // Photos
         {
             EventType = EventType.PhotoUpload,
             Actor = publisher,
+            OverType = EventOverType.Activity,
         });
     }
 

@@ -19,7 +19,7 @@ public partial class GameDatabaseContext // ActivityWrite
     public Event CreateEvent(GameLevel level, EventCreationParams param) 
         => this.CreateEventInternal(level.LevelId, EventDataType.Level, param, level.Publisher);
     
-    // TODO: store the foreign key of the actual score uploader seperately from the player ID list in GameScore, and use that here
+    // TODO: use GameScore.Publisher as InvolvedUser
     public Event CreateEvent(GameScore score, EventCreationParams param, GameUser scoreUploader) 
         => this.CreateEventInternal(score.ScoreId, EventDataType.Score, param, scoreUploader);
     
@@ -59,7 +59,7 @@ public partial class GameDatabaseContext // ActivityWrite
             User = param.Actor,
             EventType = param.EventType,
             IsModified = param.IsModified,
-            IsPrivate = param.IsPrivate,
+            OverType = param.OverType,
             AdditionalInfo = param.AdditionalInfo,
         });
     
@@ -73,7 +73,7 @@ public partial class GameDatabaseContext // ActivityWrite
             User = param.Actor,
             EventType = param.EventType,
             IsModified = param.IsModified,
-            IsPrivate = param.IsPrivate,
+            OverType = param.OverType,
             AdditionalInfo = param.AdditionalInfo,
         });
 
