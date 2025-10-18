@@ -244,6 +244,7 @@ public class PublishEndpoints : EndpointGroup
                 EventType = EventType.LevelUpload,
                 Actor = user,
                 IsModified = true,
+                OverType = EventOverType.Activity,
             });
 
             dataContext.Database.UpdateSkillRewardsForLevel(levelToUpdate, body.SkillRewards);
@@ -271,6 +272,7 @@ public class PublishEndpoints : EndpointGroup
             EventType = EventType.LevelUpload,
             Actor = user,
             IsModified = false,
+            OverType = EventOverType.Activity,
         });
 
         return new Response(GameLevelResponse.FromOld(newLevel, dataContext)!, ContentType.Xml);
