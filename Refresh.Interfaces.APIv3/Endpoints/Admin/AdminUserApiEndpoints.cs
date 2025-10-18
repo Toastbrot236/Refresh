@@ -7,6 +7,7 @@ using Refresh.Common.Verification;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
+using Refresh.Database.Models.Activity;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.APIv3.Documentation.Attributes;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
@@ -57,7 +58,7 @@ public class AdminUserApiEndpoints : EndpointGroup
         return list;
     }
 
-    private static ApiOkResponse ResetUserPassword(GameDatabaseContext database, ApiResetUserPasswordRequest body, GameUser user)
+    private static ApiOkResponse ResetUserPassword(GameDatabaseContext database, ApiResetUserPasswordRequest body, GameUser actor, GameUser target)
     {
         if (body.PasswordSha512.Length != 128 || !CommonPatterns.Sha512Regex().IsMatch(body.PasswordSha512))
             return new ApiValidationError("Password is definitely not SHA512. Please hash the password.");
@@ -65,7 +66,14 @@ public class AdminUserApiEndpoints : EndpointGroup
         string? passwordBcrypt = BC.HashPassword(body.PasswordSha512, AuthenticationApiEndpoints.WorkFactor);
         if (passwordBcrypt == null) return new ApiInternalError("Could not BCrypt the given password.");
         
-        database.SetUserPassword(user, passwordBcrypt, true);
+        database.SetUserPassword(target, passwordBcrypt, true);
+        database.CreateEvent(target, new()
+        {
+            EventType = EventType.UpdateUser,
+            Actor = actor,
+            AdditionalInfo = $"Password has been reset",
+            OverType = EventOverType.Moderation,
+        });
         return new ApiOkResponse();
     }
 
@@ -73,24 +81,24 @@ public class AdminUserApiEndpoints : EndpointGroup
     [DocSummary("Reset's a user password by their UUID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocRequestBody(typeof(ApiResetUserPasswordRequest))]
-    public ApiOkResponse ResetUserPasswordByUuid(RequestContext context, GameDatabaseContext database, ApiResetUserPasswordRequest body, string uuid)
+    public ApiOkResponse ResetUserPasswordByUuid(RequestContext context, GameDatabaseContext database, ApiResetUserPasswordRequest body, GameUser user, string uuid)
     {
-        GameUser? user = database.GetUserByUuid(uuid);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUuid(uuid);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        return ResetUserPassword(database, body, user);
+        return ResetUserPassword(database, body, user, target);
     }
     
     [ApiV3Endpoint("admin/users/name/{username}/resetPassword", HttpMethods.Put), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Reset's a user password by their username.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocRequestBody(typeof(ApiResetUserPasswordRequest))]
-    public ApiOkResponse ResetUserPasswordByUsername(RequestContext context, GameDatabaseContext database, ApiResetUserPasswordRequest body, string username)
+    public ApiOkResponse ResetUserPasswordByUsername(RequestContext context, GameDatabaseContext database, ApiResetUserPasswordRequest body, GameUser user, string username)
     {
-        GameUser? user = database.GetUserByUsername(username);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUsername(username);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        return ResetUserPassword(database, body, user);
+        return ResetUserPassword(database, body, user, target);
     }
     
     [ApiV3Endpoint("admin/users/uuid/{uuid}/planets"), MinimumRole(GameUserRole.Moderator)]
@@ -128,48 +136,74 @@ public class AdminUserApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/users/uuid/{uuid}/planets", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Resets a user's planets. Gets user by their UUID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse ResetUserPlanetsByUuid(RequestContext context, GameDatabaseContext database, string uuid)
+    public ApiOkResponse ResetUserPlanetsByUuid(RequestContext context, GameDatabaseContext database, GameUser user, string uuid)
     {
-        GameUser? user = database.GetUserByUuid(uuid);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUuid(uuid);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        database.ResetUserPlanets(user);
+        database.ResetUserPlanets(target);
+        database.CreateEvent(target, new()
+        {
+            EventType = EventType.UpdateUser,
+            Actor = user,
+            AdditionalInfo = $"Your planets have been reset",
+            OverType = EventOverType.Moderation,
+        });
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/name/{username}/planets", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Resets a user's planets. Gets user by their username.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse ResetUserPlanetsByUsername(RequestContext context, GameDatabaseContext database, string username)
+    public ApiOkResponse ResetUserPlanetsByUsername(RequestContext context, GameDatabaseContext database, GameUser user, string username)
     {
-        GameUser? user = database.GetUserByUsername(username);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUsername(username);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        database.ResetUserPlanets(user);
+        database.ResetUserPlanets(target);
+        database.CreateEvent(target, new()
+        {
+            EventType = EventType.UpdateUser,
+            Actor = user,
+            AdditionalInfo = $"Your planets have been reset",
+            OverType = EventOverType.Moderation,
+        });
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/uuid/{uuid}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a user by their UUID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse DeleteUserByUuid(RequestContext context, GameDatabaseContext database, string uuid)
+    public ApiOkResponse DeleteUserByUuid(RequestContext context, GameDatabaseContext database, GameUser user, string uuid)
     {
-        GameUser? user = database.GetUserByUuid(uuid);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUuid(uuid);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        database.DeleteUser(user);
+        database.DeleteUser(target);
+        database.CreateEvent(target, new()
+        {
+            EventType = EventType.DeleteUser,
+            Actor = user,
+            OverType = EventOverType.Moderation,
+        });
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/name/{username}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a user by their UUID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse DeleteUserByUsername(RequestContext context, GameDatabaseContext database, string username)
+    public ApiOkResponse DeleteUserByUsername(RequestContext context, GameDatabaseContext database, GameUser user, string username)
     {
-        GameUser? user = database.GetUserByUsername(username);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? target = database.GetUserByUsername(username);
+        if (target == null) return ApiNotFoundError.UserMissingError;
 
-        database.DeleteUser(user);
+        database.DeleteUser(target);
+        database.CreateEvent(target, new()
+        {
+            EventType = EventType.DeleteUser,
+            Actor = user,
+            OverType = EventOverType.Moderation,
+        });
         return new ApiOkResponse();
     }
 }
