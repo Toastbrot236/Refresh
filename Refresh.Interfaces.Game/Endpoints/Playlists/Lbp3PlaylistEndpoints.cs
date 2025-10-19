@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -18,7 +19,15 @@ namespace Refresh.Interfaces.Game.Endpoints.Playlists;
 
 public class Lbp3PlaylistEndpoints : EndpointGroup 
 {
+    private const int TimeoutDuration = 900; // 15 minutes
+    private const int BlockDuration = TimeoutDuration;
+    private const int CreateAmount = 6;
+    private const string CreateBucket = "create-playlist";
+    private const int UpdateAmount = 12; 
+    private const string UpdateBucket = "update-playlist";
+
     [GameEndpoint("playlists", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(TimeoutDuration, CreateAmount, BlockDuration, CreateBucket)]
     [RequireEmailVerified]
     public Response CreatePlaylist(RequestContext context, GameServerConfig config, DataContext dataContext, GameUser user, SerializedLbp3Playlist body)
     {
@@ -39,6 +48,7 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     }
 
     [GameEndpoint("playlists/{playlistId}", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(TimeoutDuration, UpdateAmount, BlockDuration, UpdateBucket)]
     [RequireEmailVerified]
     public Response UpdatePlaylist(RequestContext context, GameServerConfig config, DataContext dataContext, GameUser user, SerializedLbp3Playlist body, int playlistId)
     {

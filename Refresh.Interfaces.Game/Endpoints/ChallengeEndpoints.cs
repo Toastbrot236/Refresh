@@ -1,6 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.Endpoints.Debugging;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -10,7 +10,6 @@ using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
 using Refresh.Database;
-using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Levels.Challenges;
 using Refresh.Database.Models.Users;
@@ -27,7 +26,15 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Challenges
 
+    private const int TimeoutDuration = 900; // 15 minutes
+    private const int BlockDuration = TimeoutDuration;
+    private const int ChallengeRequestAmount = 8;
+    private const string ChallengeBucket = "player-challenge-upload";
+    private const int ScoreRequestAmount = 12;
+    private const string ScoreBucket = "player-challenge-score-upload";
+
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(TimeoutDuration, ChallengeRequestAmount, BlockDuration, ChallengeBucket)]
     [RequireEmailVerified]
     public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body, GameServerConfig config)
     {
@@ -170,11 +177,14 @@ public class ChallengeEndpoints : EndpointGroup
 
     #region Scores
 
+    
+
     /// <summary>
     /// Gets called when submitting a challenge score after either beating an opponent's challenge score or right after uploading a challenge.
     /// Usually this endpoint only gets called after the game is done uploading the ChallengeGhost asset for this score.
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(TimeoutDuration, ScoreRequestAmount, BlockDuration, ScoreBucket)]
     [RequireEmailVerified]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user,
         SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService ghostService,

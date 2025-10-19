@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -19,7 +20,15 @@ namespace Refresh.Interfaces.Game.Endpoints;
 
 public class CommentEndpoints : EndpointGroup
 {
+    private const int TimeoutDuration = 900; // 15 minutes
+    private const int BlockDuration = 600;
+    private const int PostAmount = 60;
+    private const string PostBucket = "post-comment";
+    private const int RateAmount = 30;
+    private const string RateBucket = "rate-comment";
+
     [GameEndpoint("postUserComment/{username}", ContentType.Xml, HttpMethods.Post)]
+    [RateLimitSettings(TimeoutDuration, PostAmount, BlockDuration, PostBucket)]
     [RequireEmailVerified]
     public Response PostProfileComment(RequestContext context, GameDatabaseContext database, string username, SerializedComment body, GameUser user, IDateTimeProvider timeProvider, GameServerConfig config)
     {
@@ -84,6 +93,7 @@ public class CommentEndpoints : EndpointGroup
     }
 
     [GameEndpoint("postComment/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
+    [RateLimitSettings(TimeoutDuration, PostAmount, BlockDuration, PostBucket)]
     [RequireEmailVerified]
     public Response PostLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id,
         SerializedComment body, GameUser user, GameServerConfig config)
@@ -149,6 +159,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateUserComment/{content}", HttpMethods.Post)] // profile comments
+    [RateLimitSettings(TimeoutDuration, RateAmount, BlockDuration, RateBucket)]
     public Response RateProfileComment(RequestContext context, GameDatabaseContext database, GameUser user, string content)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -163,6 +174,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateComment/{slotType}/{content}", HttpMethods.Post)]
+    [RateLimitSettings(TimeoutDuration, RateAmount, BlockDuration, RateBucket)]
     public Response RateLevelComment(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, string content)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;

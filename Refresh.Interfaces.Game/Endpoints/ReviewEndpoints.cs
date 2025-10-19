@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -19,7 +20,17 @@ namespace Refresh.Interfaces.Game.Endpoints;
 
 public class ReviewEndpoints : EndpointGroup
 {
+    // Treat level rating and reviewing the same in rate limiting for consistency with API (since the endpoint for rating
+    // and reviewing a level is the same there). Keep star-rating out of this rate limit to not accidentally screw up LBP PSP.
+    private const int ReviewTimeoutDuration = 900; // 15 minutes
+    private const int ReviewBlockDuration = ReviewTimeoutDuration;
+    private const int ReviewRequestAmount = 10;
+    private const string ReviewBucket = "post-review";
+    private const int RateReviewAmount = 30;
+    private const string RateReviewBucket = "rate-review";
+
     [GameEndpoint("dpadrate/{slotType}/{id}", HttpMethods.Post)]
+    [RateLimitSettings(ReviewTimeoutDuration, ReviewRequestAmount, ReviewBlockDuration, ReviewBucket)]
     [RequireEmailVerified]
     public Response SubmitRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
         int id, GameServerConfig config)
@@ -117,6 +128,7 @@ public class ReviewEndpoints : EndpointGroup
     }
 
     [GameEndpoint("postReview/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
+    [RateLimitSettings(ReviewTimeoutDuration, ReviewRequestAmount, ReviewBlockDuration, ReviewBucket)]
     [RequireEmailVerified]
     public Response PostReviewForLevel(RequestContext context,
         GameDatabaseContext database,
@@ -170,6 +182,7 @@ public class ReviewEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateReview/user/{levelId}/{username}", HttpMethods.Post)]
+    [RateLimitSettings(ReviewTimeoutDuration, RateReviewAmount, ReviewBlockDuration, RateReviewBucket)]
     [RequireEmailVerified]
     public Response SubmitReviewRating(RequestContext request, GameDatabaseContext database, GameUser user, int levelId,
         string username, GameServerConfig config)

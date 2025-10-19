@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
@@ -19,7 +20,13 @@ namespace Refresh.Interfaces.Game.Endpoints;
 
 public class PhotoEndpoints : EndpointGroup
 {
+    private const int UploadTimeoutDuration = 900; // 15 minutes
+    private const int UploadRequestAmount = 12;
+    private const int UploadBlockDuration = UploadTimeoutDuration;
+    private const string UploadBucket = "photo-upload";
+
     [GameEndpoint("uploadPhoto", HttpMethods.Post, ContentType.Xml)]
+    [RateLimitSettings(UploadTimeoutDuration, UploadRequestAmount, UploadBlockDuration, UploadBucket)]
     [RequireEmailVerified]
     public Response UploadPhoto(RequestContext context, SerializedPhoto body, GameDatabaseContext database,
         GameUser user, IDataStore dataStore,
