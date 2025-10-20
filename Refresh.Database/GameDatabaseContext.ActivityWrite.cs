@@ -19,9 +19,8 @@ public partial class GameDatabaseContext // ActivityWrite
     public Event CreateEvent(GameLevel level, EventCreationParams param) 
         => this.CreateEventInternal(level.LevelId, EventDataType.Level, param, level.Publisher);
     
-    // TODO: use GameScore.Publisher as InvolvedUser
-    public Event CreateEvent(GameScore score, EventCreationParams param, GameUser scoreUploader) 
-        => this.CreateEventInternal(score.ScoreId, EventDataType.Score, param, scoreUploader);
+    public Event CreateEvent(GameScore score, EventCreationParams param) 
+        => this.CreateEventInternal(score.ScoreId, EventDataType.Score, param, score.Publisher);
     
     public Event CreateEvent(RateLevelRelation relation, EventCreationParams param) 
         => this.CreateEventInternal(relation.RateLevelRelationId, EventDataType.RateLevelRelation, param, relation.User);
@@ -47,7 +46,7 @@ public partial class GameDatabaseContext // ActivityWrite
     public Event CreateEvent(GameChallengeScore score, EventCreationParams param) 
         => this.CreateEventInternal(score.ScoreId, EventDataType.ChallengeScore, param, score.Publisher);
 
-    // TODO: Event creation methods for Contest, Asset and PinProgress once the ID storing is figured out for them
+    // TODO: Event creation methods for Contests and Assets once the ID storing is figured out for them
 
     private Event CreateEventInternal(ObjectId objectId, EventDataType eventDataType, EventCreationParams param, GameUser? involvedUser = null) => 
         this.CreateEventInternal(new()

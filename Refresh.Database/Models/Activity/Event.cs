@@ -52,8 +52,7 @@ public partial class Event
     /// </summary>
     public EventDataType StoredDataType { get; set; }
 
-    // TODO: Combine StoredSequentialId and StoredObjectId into one ID attribute since only one of them is ever filled out.
-    // This would also allow string IDs like asset hashes and contest keys to be stored.
+    // TODO: Find out and decide how to also store string IDs which are not object IDs (e.g. GameAsset hash or Contest ID)
     
     /// <summary>
     /// The sequential ID of the object this event is referencing. If null, use <see cref="StoredObjectId"/>.

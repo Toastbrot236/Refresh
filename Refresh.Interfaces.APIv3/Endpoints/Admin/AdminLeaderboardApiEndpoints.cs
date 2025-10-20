@@ -27,11 +27,11 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
         GameLevel level = score.Level;
 
         database.DeleteScore(score);
-        database.CreateEvent(level, new()
+        database.CreateEvent(score, new()
         {
             EventType = EventType.DeleteScore,
             Actor = user,
-            AdditionalInfo = $"Your score of {score.Score} in {score.ScoreType}-player-mode has been deleted by moderation.",
+            AdditionalInfo = $"Your score of {score.Score} in {score.ScoreType}-player-mode has been deleted from level '{level.Title}' (ID: {level.LevelId}).",
             OverType = EventOverType.Moderation,
         });
 
@@ -52,7 +52,7 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
         {
             EventType = EventType.DeleteUserScores,
             Actor = user,
-            AdditionalInfo = $"All your scores have been moderated", // TODO: Ability for mod to enter an actual reason for all these endpoints
+            AdditionalInfo = $"All your scores have been moderated", // TODO: Ability for staff to enter an actual reason for all these endpoints
             OverType = EventOverType.Moderation,
         });
 
