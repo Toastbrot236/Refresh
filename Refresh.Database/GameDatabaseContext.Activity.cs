@@ -38,22 +38,21 @@ public partial class GameDatabaseContext // Activity
         {
             List<ObjectId?> userFriends = this.GetUsersMutuals(parameters.User).Select(u => (ObjectId?)u.UserId).ToList();
 
-            // Filter the query to events which do not contain friends as actor
-            query = query.Where(e => !userFriends.Contains(e.User.UserId));
+            // Filter the query to events which do not contain friends
+            query = query.Where(e => (e.StoredDataType != EventDataType.User || !userFriends.Contains(e.StoredObjectId)) &&
+                                                                               !userFriends.Contains(e.User.UserId));
         }
 
         if (parameters is { ExcludeFavouriteUsers: true, User: not null })
         {
             List<GameUser> favouriteUsers = this.GetUsersFavouritedByUser(parameters.User, 0, 1000).Items.ToList();
             
-            // Filter the query to events which do not contain favourited users as actor
-            query = query.Where(e => favouriteUsers.All(r => r.UserId != e.User.UserId)); 
+            query = query.Where(e => favouriteUsers.All(r => r.UserId != e.User.UserId && (e.StoredDataType != EventDataType.User || r.UserId != e.StoredObjectId)));
         }
 
         if (parameters is { ExcludeMyself: true, User: not null })
         {
-            // Filter the query to events which do not contain the user themselves as actor
-            query = query.Where(e => e.User.UserId != parameters.User.UserId);  
+            query = query.Where(e => e.User.UserId != parameters.User.UserId && (e.StoredDataType != EventDataType.User || e.StoredObjectId != parameters.User.UserId));    
         }
 
         return query;
