@@ -23,15 +23,25 @@ public partial class GameDatabaseContext // Activity
 
         // DO NOT USE INCLUDE ON THIS QUERY
         // this will severely hurt performance as postgres will not use the index efficiently due to the joins.
-        // Also, filter out all moderation events which are irrelevant for the requesting user, and all 
-        // irrelevant events for deleted objects
-        IEnumerable<Event> query = this.Events
-            .Where(e => e.Timestamp <= timestamp && e.Timestamp >= endTimestamp)
-            .Where(e => e.OverType == EventOverType.Activity
+        IEnumerable<Event> query = this.Events.Where(e => e.Timestamp <= timestamp && e.Timestamp >= endTimestamp);
+
+        // Filter out all moderation and deleted object events which are irrelevant for the requesting user.
+        // Moderators and above may view all moderation and deleted object events anyway.
+        // Don't bother showing non-activity events in-game, that will likely break things and cause chaos,
+        // and users who are not logged in may not see them either.
+        if (!parameters.IsGameRequest && parameters.User != null)
+        {
+            query = query.Where(e => e.OverType == EventOverType.Activity
                 // No need to compare the other enum values yet, as Moderation and DeletedObjectActivity are
-                // the only other values for now, both of which are handelled the same here
-                || (parameters.User != null 
-                && (e.InvolvedUserId == parameters.User.UserId || e.UserId == parameters.User.UserId)));
+                // the only other values for now, both of which should be equivalent in visibility.
+                || parameters.User.Role >= GameUserRole.Moderator
+                || e.InvolvedUserId == parameters.User.UserId 
+                || e.UserId == parameters.User.UserId);
+        }
+        else
+        {
+            query = query.Where(e => e.OverType == EventOverType.Activity);
+        }
 
         // If this is a game request, exclude all custom events to not unnessesarily bloat the response
         if (parameters.IsGameRequest)
@@ -92,9 +102,21 @@ public partial class GameDatabaseContext // Activity
             .Where(e => eventIds.Contains(e.EventId))
             .Include(e => e.User)
             .Include(e => e.User.Statistics)
+            .Include(e => e.InvolvedUser)
             .AsEnumerable()
             .OrderByDescending(e => e.Timestamp)
             .ToList();
+        
+        // step 3: Include statistics for involved users which are not null. Only do this for non-game requests,
+        // as involved users can't be shown in-game
+        if (!parameters.IsGameRequest)
+        {
+            foreach (Event e in events)
+            {
+                if (e.InvolvedUser != null)
+                    e.InvolvedUser.Statistics = this.GameUserStatistics.FirstOrDefault(s => s.UserId == e.InvolvedUserId!);
+            }
+        }
 
         DatabaseActivityPage page = new(this, events, parameters);
 
