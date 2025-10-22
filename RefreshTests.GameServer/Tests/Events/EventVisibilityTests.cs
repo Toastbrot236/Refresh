@@ -89,7 +89,6 @@ public class EventVisibilityTests : GameServerTest
             QuerySource = ActivityQuerySource.Api,
         });
 
-        // Assert
         Assert.That(page.EventGroups.Count, Is.Zero);
         Assert.That(page.Levels.Count, Is.Zero);
         Assert.That(page.Users.Count, Is.Zero);
@@ -120,7 +119,6 @@ public class EventVisibilityTests : GameServerTest
             QuerySource = ActivityQuerySource.Api,
         });
 
-        // Assert
         Assert.That(page.EventGroups.Count, Is.EqualTo(1));
         Assert.That(page.Levels.Count, Is.EqualTo(1));
         Assert.That(page.Users.Count, Is.EqualTo(2));
@@ -151,9 +149,90 @@ public class EventVisibilityTests : GameServerTest
             QuerySource = ActivityQuerySource.Api,
         });
 
-        // Assert
         Assert.That(page.EventGroups.Count, Is.EqualTo(1));
         Assert.That(page.Levels.Count, Is.EqualTo(1));
         Assert.That(page.Users.Count, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void ActivityEventsCorrectlyModifiedOnObjectDeletion()
+    {
+        using TestContext context = this.GetServer();
+        GameUser user = context.CreateUser();
+        GameUser stalker = context.CreateUser();
+        GameLevel level = context.CreateLevel(user);
+
+        // Create some level events
+        context.Database.CreateEvent(level, new()
+        {
+            Actor = user,
+            EventType = EventType.LevelUpload,
+            OverType = EventOverType.Activity,
+        });
+        context.Database.CreateEvent(level, new()
+        {
+            Actor = user,
+            EventType = EventType.LevelPlay,
+            OverType = EventOverType.Activity,
+        });
+
+        // Ensure both can see the events
+        DatabaseActivityPage page = context.Database.GetGlobalRecentActivityPage(new()
+        {
+            Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
+            EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
+            User = stalker,
+            QuerySource = ActivityQuerySource.Api,
+        });
+        Assert.That(page.EventGroups.Count, Is.EqualTo(1));
+        Assert.That(page.EventGroups[0].Children.Count, Is.EqualTo(1));
+        Assert.That(page.EventGroups[0].Children[0].Events.Count, Is.EqualTo(2));
+        Assert.That(page.Levels.Count, Is.EqualTo(1));
+
+        page = context.Database.GetGlobalRecentActivityPage(new()
+        {
+            Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
+            EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
+            User = user,
+            QuerySource = ActivityQuerySource.Api,
+        });
+        Assert.That(page.EventGroups.Count, Is.EqualTo(1));
+        Assert.That(page.EventGroups[0].Children.Count, Is.EqualTo(1));
+        Assert.That(page.EventGroups[0].Children[0].Events.Count, Is.EqualTo(2));
+        Assert.That(page.Levels.Count, Is.EqualTo(1));
+
+        context.Database.DeleteLevel(level);
+        context.Database.Refresh();
+
+        // Ensure the involved user can still see the events, but the uninvolved user no longer can
+        // Also ensure the events have been correctly modified
+        page = context.Database.GetGlobalRecentActivityPage(new()
+        {
+            Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
+            EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
+            User = user,
+            QuerySource = ActivityQuerySource.Api,
+        });
+        
+        // Since the level doesn't exist anymore, events no longer get grouped into sub-groups and
+        // stay in the root group instead.
+        // TODO: Implement proper grouping of deleted object events in the future
+        Assert.That(page.EventGroups.Count, Is.EqualTo(1));
+        Assert.That(page.EventGroups[0].Events.Count, Is.EqualTo(2));
+        foreach (Event e in page.EventGroups[0].Events)
+        {
+            Assert.That(e.OverType, Is.EqualTo(EventOverType.DeletedObjectActivity));
+        }
+        Assert.That(page.Levels.Count, Is.Zero);
+
+        page = context.Database.GetGlobalRecentActivityPage(new()
+        {
+            Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
+            EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
+            User = stalker,
+            QuerySource = ActivityQuerySource.Api,
+        });
+        Assert.That(page.EventGroups.Count, Is.Zero);
+        Assert.That(page.Levels.Count, Is.Zero);
     }
 }
