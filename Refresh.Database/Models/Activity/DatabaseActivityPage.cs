@@ -52,31 +52,16 @@ public class DatabaseActivityPage
     private void StoreReferencedObjects(GameDatabaseContext database, IReadOnlyCollection<Event> events)
     {
         // Users
-        this.Users.AddRange(events
-            .Select(e => e.User)
-            .DistinctBy(e => e.UserId));
-
-        this.Users.AddRange(events.Where(e => e.StoredDataType == EventDataType.User)
-            .DistinctBy(e => e.StoredObjectId)
-            .Select(e => database.GetUserFromEvent(e)!));
+        this.Users.AddRange(database.GetUsersFromEvents(events));
 
         // Photos
-        this.Photos.AddRange(events
-            .Where(e => e.StoredDataType == EventDataType.Photo)
-            .DistinctBy(e => e.StoredSequentialId)
-            .Select(e => database.GetPhotoFromEvent(e)!));
+        this.Photos.AddRange(database.GetPhotosFromEvents(events));
         
         // Scores
-        this.Scores.AddRange(events
-            .Where(e => e.StoredDataType == EventDataType.Score)
-            .DistinctBy(e => e.StoredObjectId)
-            .Select(e => database.GetScoreFromEvent(e)!));
+        this.Scores.AddRange(database.GetScoresFromEvents(events));
         
         // Levels
-        this.Levels.AddRange(events
-            .Where(e => e.StoredDataType == EventDataType.Level)
-            .DistinctBy(e => e.StoredSequentialId)
-            .Select(e => database.GetLevelFromEvent(e)!));
+        this.Levels.AddRange(database.GetLevelsFromEvents(events));
         
         // Levels (from photos)
         foreach (GamePhoto photo in this.Photos)
