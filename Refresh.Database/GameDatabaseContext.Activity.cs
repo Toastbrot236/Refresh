@@ -22,9 +22,22 @@ public partial class GameDatabaseContext // Activity
         DateTimeOffset endTimestamp = DateTimeOffset.FromUnixTimeMilliseconds(parameters.EndTimestamp);
 
         // DO NOT USE INCLUDE ON THIS QUERY
-        // this will severely hurt performance as postgres will not use the index efficiently due to the joins
+        // this will severely hurt performance as postgres will not use the index efficiently due to the joins.
+        // Also, filter out all moderation events which are irrelevant for the requesting user, and all 
+        // irrelevant events for deleted objects
         IEnumerable<Event> query = this.Events
-            .Where(e => e.Timestamp < timestamp && e.Timestamp >= endTimestamp);
+            .Where(e => e.Timestamp <= timestamp && e.Timestamp >= endTimestamp)
+            .Where(e => e.OverType == EventOverType.Activity
+                // No need to compare the other enum values yet, as Moderation and DeletedObjectActivity are
+                // the only other values for now, both of which are handelled the same here
+                || (parameters.User != null 
+                && (e.InvolvedUserId == parameters.User.UserId || e.UserId == parameters.User.UserId)));
+
+        // If this is a game request, exclude all custom events to not unnessesarily bloat the response
+        if (parameters.IsGameRequest)
+        {
+            query = query.Where(e => e.EventType < EventType.UserFirstLogin);
+        }
 
         if (parameters is { ExcludeMyLevels: true, User: not null })
         {
