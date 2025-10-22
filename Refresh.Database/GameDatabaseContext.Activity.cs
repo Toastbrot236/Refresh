@@ -32,6 +32,12 @@ public partial class GameDatabaseContext // Activity
         // and users who are not logged in may not see them either.
         // Also prevent e.g. the Discord integration from accidentally posting mod events in public
         // by explicitly ensuring the query has originated from the API.
+
+        // For now, disable that filtering and only return activity events because both deleted object
+        // event grouping and API activity filtering aren't implemented yet. That will have to be done in a
+        // future PR because this one is already way too large and i don't want to stretch it even further
+        // anymore.
+#if false
         if (parameters.QuerySource == ActivityQuerySource.Api && parameters.User != null)
         {
             query = query.Where(e => e.OverType == EventOverType.Activity
@@ -45,6 +51,9 @@ public partial class GameDatabaseContext // Activity
         {
             query = query.Where(e => e.OverType == EventOverType.Activity);
         }
+#else
+        query = query.Where(e => e.OverType == EventOverType.Activity);
+#endif
 
         // If this is a game request, exclude all custom events to not unnessesarily bloat the response
         if (parameters.QuerySource == ActivityQuerySource.Game)
