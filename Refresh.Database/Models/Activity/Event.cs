@@ -74,4 +74,11 @@ public partial class Event
     /// (can show this for level and review upload events in-game, for instance, or for other UGC edited by staff on the API).
     /// </summary>
     public bool IsModified { get; set; }
+
+    /// <summary>
+    /// Caches whether the object referenced still exists or has been deleted, so we could hide events for 
+    /// deleted objects like we hide moderation events, without looking up whether the object exists
+    /// every time.
+    /// </summary>
+    public bool IsObjectDeleted { get; set; }
 }
