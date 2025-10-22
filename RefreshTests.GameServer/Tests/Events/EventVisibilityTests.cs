@@ -51,7 +51,7 @@ public class EventVisibilityTests : GameServerTest
             Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
             EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
             User = user,
-            IsGameRequest = isGame,
+            QuerySource = isGame ? ActivityQuerySource.Game : ActivityQuerySource.Api,
         });
 
         // Assert
@@ -86,6 +86,7 @@ public class EventVisibilityTests : GameServerTest
             Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
             EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
             User = moron,
+            QuerySource = ActivityQuerySource.Api,
         });
 
         // Assert
@@ -116,6 +117,7 @@ public class EventVisibilityTests : GameServerTest
             Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
             EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
             User = user,
+            QuerySource = ActivityQuerySource.Api,
         });
 
         // Assert
@@ -146,6 +148,7 @@ public class EventVisibilityTests : GameServerTest
             Timestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds(),
             EndTimestamp = DateTimeOffset.MinValue.ToUnixTimeMilliseconds(),
             User = mod,
+            QuerySource = ActivityQuerySource.Api,
         });
 
         // Assert

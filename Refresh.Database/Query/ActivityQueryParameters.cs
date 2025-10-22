@@ -15,7 +15,7 @@ public struct ActivityQueryParameters
     public bool ExcludeMyself = false;
 
     public GameUser? User = null;
-    public bool IsGameRequest;
+    public ActivityQuerySource QuerySource = ActivityQuerySource.Other;
 
     public ActivityQueryParameters()
     {}

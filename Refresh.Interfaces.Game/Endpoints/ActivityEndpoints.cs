@@ -64,7 +64,7 @@ public class ActivityEndpoints : EndpointGroup
             ExcludeFavouriteUsers = excludeFavouriteUsers,
             ExcludeMyself = excludeMyself,
             User = user,
-            IsGameRequest = true,
+            QuerySource = ActivityQuerySource.Game,
         }), dataContext);
     }
 
@@ -110,7 +110,7 @@ public class ActivityEndpoints : EndpointGroup
             ExcludeFavouriteUsers = excludeFavouriteUsers,
             ExcludeMyself = excludeMyself,
             User = user,
-            IsGameRequest = true,
+            QuerySource = ActivityQuerySource.Game,
         }), dataContext);
         
         return new Response(page, ContentType.Xml);
@@ -169,7 +169,7 @@ public class ActivityEndpoints : EndpointGroup
             ExcludeFavouriteUsers = excludeFavouriteUsers,
             ExcludeMyself = excludeMyself,
             User = user,
-            IsGameRequest = true,
+            QuerySource = ActivityQuerySource.Game,
         }), dataContext), ContentType.Xml);
         */
     }

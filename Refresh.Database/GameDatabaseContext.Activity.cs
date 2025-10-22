@@ -29,7 +29,9 @@ public partial class GameDatabaseContext // Activity
         // Moderators and above may view all moderation and deleted object events anyway.
         // Don't bother showing non-activity events in-game, that will likely break things and cause chaos,
         // and users who are not logged in may not see them either.
-        if (!parameters.IsGameRequest && parameters.User != null)
+        // Also prevent e.g. the Discord integration from accidentally posting mod events in public
+        // by explicitly ensuring the query has originated from the API.
+        if (parameters.QuerySource == ActivityQuerySource.Api && parameters.User != null)
         {
             query = query.Where(e => e.OverType == EventOverType.Activity
                 // No need to compare the other enum values yet, as Moderation and DeletedObjectActivity are
@@ -44,7 +46,7 @@ public partial class GameDatabaseContext // Activity
         }
 
         // If this is a game request, exclude all custom events to not unnessesarily bloat the response
-        if (parameters.IsGameRequest)
+        if (parameters.QuerySource == ActivityQuerySource.Game)
         {
             query = query.Where(e => e.EventType < EventType.UserFirstLogin);
         }
@@ -109,7 +111,7 @@ public partial class GameDatabaseContext // Activity
         
         // step 3: Include statistics for involved users which are not null. Only do this for non-game requests,
         // as involved users can't be shown in-game
-        if (!parameters.IsGameRequest)
+        if (parameters.QuerySource != ActivityQuerySource.Game)
         {
             foreach (Event e in events)
             {
