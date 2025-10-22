@@ -23,7 +23,8 @@ public partial class GameDatabaseContext // Activity
 
         // DO NOT USE INCLUDE ON THIS QUERY
         // this will severely hurt performance as postgres will not use the index efficiently due to the joins.
-        IEnumerable<Event> query = this.Events.Where(e => e.Timestamp <= timestamp && e.Timestamp >= endTimestamp);
+        IEnumerable<Event> query = this.Events
+            .Where(e => e.Timestamp <= timestamp && e.Timestamp >= endTimestamp);
 
         // Filter out all moderation and deleted object events which are irrelevant for the requesting user.
         // Moderators and above may view all moderation and deleted object events anyway.

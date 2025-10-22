@@ -105,7 +105,6 @@ public class DatabaseActivityPage
                 case EventDataType.ChallengeScore:
                 case EventDataType.Contest:
                 case EventDataType.Asset:
-                case EventDataType.PinProgress:
                     // Not yet implemented, ignore. TODO: Implement new types above
                     break;
             }

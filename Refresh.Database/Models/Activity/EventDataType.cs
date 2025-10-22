@@ -15,5 +15,4 @@ public enum EventDataType
     ChallengeScore,
     Contest,
     Asset,
-    PinProgress,
 }

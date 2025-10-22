@@ -31,7 +31,7 @@ public partial class Event
 
     /// <summary>
     /// A reference to the user "involved" in this event. They may also see this event even if it's private.
-    /// Usually the object publisher (eg. level/photo publisher).
+    /// Usually the object publisher/owner (eg. level/photo publisher).
     /// </summary>
     [ForeignKey(nameof(InvolvedUserId))] public GameUser? InvolvedUser { get; set; }
     public ObjectId? InvolvedUserId { get; set; }

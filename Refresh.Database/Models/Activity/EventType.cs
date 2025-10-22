@@ -48,7 +48,7 @@ public enum EventType : byte
     [XmlEnum("delete_score")] DeleteScore,
     [XmlEnum("delete_user_scores")] DeleteUserScores,
     // Useful if the user has submitted multiple cheated scores on a single level, only one is showing as a highscore at a time, 
-    // but staff doesn't want to snipe the user's other level scores because they're mostly legit
+    // but staff doesn't want to snipe the user's other level scores because they mostly seem legitimate
     [XmlEnum("delete_user_level_scores")] DeleteUserLevelScores, 
     [XmlEnum("moderate_asset")] ModerateAsset,
     [XmlEnum("unmoderate_asset")] UnmoderateAsset,
