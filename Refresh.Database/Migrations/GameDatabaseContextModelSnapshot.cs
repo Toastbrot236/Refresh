@@ -40,8 +40,8 @@ namespace Refresh.Database.Migrations
                     b.Property<bool>("IsModified")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsPrivate")
-                        .HasColumnType("boolean");
+                    b.Property<byte>("OverType")
+                        .HasColumnType("smallint");
 
                     b.Property<int>("StoredDataType")
                         .HasColumnType("integer");
