@@ -24,23 +24,19 @@ public partial class GameDatabaseContext // ActivityRead
         // First add actors
         List<GameUser> users = events.Select(e => e.User).ToList();
         
-        // Now add all objects which still exist (not deleted) and referenced involved users, 
-        // while making sure there won't be any duplicates in the resulting list.
+        // Now add all objects which still exist (not deleted) aswell as referenced involved users
         foreach (Event e in events)
         {
-            // If the involved user is not null and not already in the list, 
-            // add them
-            if (e.InvolvedUser != null && !users.Any(u => u.UserId == e.InvolvedUserId)) 
-                users.Add(e.InvolvedUser);
+            if (e.InvolvedUser != null) users.Add(e.InvolvedUser);
+            
+            // If this isn't even a user event, skip the object
+            if (e.StoredDataType != EventDataType.User) continue;
 
-            // If the object user is not in the list and hasn't been deleted off
-            // the server yet, add them aswell
-            GameUser? obj;
-            if (!users.Any(u => u.UserId == e.StoredObjectId) && (obj = this.GetUserFromEvent(e)) != null)
-                users.Add(obj);
+            GameUser? obj = this.GetUserFromEvent(e);
+            if (obj != null) users.Add(obj);
         }
 
-        return users;
+        return users.DistinctBy(u => u.UserId).ToList();
     }
 
     public GameLevel? GetLevelFromEvent(Event e)
@@ -58,13 +54,13 @@ public partial class GameDatabaseContext // ActivityRead
         List<GameLevel> levels = [];
 
         // Add all objects which still exist (not deleted)
-        foreach (Event e in events)
+        foreach (Event e in events.Where(e => e.StoredDataType == EventDataType.Level))
         {
             GameLevel? obj = this.GetLevelFromEvent(e);
             if (obj != null) levels.Add(obj);
         }
 
-        return levels;
+        return levels.DistinctBy(l => l.LevelId).ToList();
     }
 
     public GameScore? GetScoreFromEvent(Event e)
@@ -82,13 +78,13 @@ public partial class GameDatabaseContext // ActivityRead
         List<GameScore> scores = [];
 
         // Add all objects which still exist (not deleted)
-        foreach (Event e in events)
+        foreach (Event e in events.Where(e => e.StoredDataType == EventDataType.Score))
         {
             GameScore? obj = this.GetScoreFromEvent(e);
             if (obj != null) scores.Add(obj);
         }
 
-        return scores;
+        return scores.DistinctBy(s => s.ScoreId).ToList();
     }
 
     public GamePhoto? GetPhotoFromEvent(Event e)
@@ -106,13 +102,13 @@ public partial class GameDatabaseContext // ActivityRead
         List<GamePhoto> photos = [];
 
         // Add all objects which still exist (not deleted)
-        foreach (Event e in events)
+        foreach (Event e in events.Where(e => e.StoredDataType == EventDataType.Photo))
         {
             GamePhoto? obj = this.GetPhotoFromEvent(e);
             if (obj != null) photos.Add(obj);
         }
 
-        return photos;
+        return photos.DistinctBy(p => p.PhotoId).ToList();
     }
     
     public RateLevelRelation? GetRateLevelRelationFromEvent(Event e)
@@ -131,12 +127,12 @@ public partial class GameDatabaseContext // ActivityRead
         List<RateLevelRelation> relations = [];
 
         // Add all objects which still exist (not deleted)
-        foreach (Event e in events)
+        foreach (Event e in events.Where(e => e.StoredDataType == EventDataType.RateLevelRelation))
         {
             RateLevelRelation? obj = this.GetRateLevelRelationFromEvent(e);
             if (obj != null) relations.Add(obj);
         }
 
-        return relations;
+        return relations.DistinctBy(r => r.RateLevelRelationId).ToList();
     }
 }
