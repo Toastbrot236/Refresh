@@ -131,11 +131,13 @@ public partial class GameDatabaseContext // Photos
         this.WriteEnsuringStatistics(photo.Publisher, () =>
         {
             IQueryable<Event> photoEvents = this.Events
-                .Where(e => e.StoredDataType == EventDataType.Photo && e.StoredSequentialId == photo.PhotoId);
+                .Where(e => e.OverType == EventOverType.Activity
+                    && e.StoredDataType == EventDataType.Photo 
+                    && e.StoredSequentialId == photo.PhotoId);
                 
             foreach (Event e in photoEvents)
             {
-                e.IsObjectDeleted = true;
+                e.OverType = EventOverType.DeletedObjectActivity;
             }
             
             // Remove the photo

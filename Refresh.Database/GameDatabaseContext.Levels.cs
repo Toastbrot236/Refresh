@@ -256,11 +256,13 @@ public partial class GameDatabaseContext // Levels
         this.Write(() =>
         {
             IQueryable<Event> levelEvents = this.Events
-                .Where(e => e.StoredDataType == EventDataType.Level && e.StoredSequentialId == level.LevelId);
+                .Where(e => e.OverType == EventOverType.Activity
+                    && e.StoredDataType == EventDataType.Level 
+                    && e.StoredSequentialId == level.LevelId);
             
             foreach (Event e in levelEvents)
             {
-                e.IsObjectDeleted = true;
+                e.OverType = EventOverType.DeletedObjectActivity;
             }
 
             this.FavouriteLevelRelations.RemoveRange(r => r.Level == level);
@@ -285,11 +287,13 @@ public partial class GameDatabaseContext // Levels
             foreach (GameScore score in scores)
             {
                 IQueryable<Event> scoreEvents = this.Events
-                    .Where(e => e.StoredDataType == EventDataType.Score && e.StoredObjectId == score.ScoreId);
+                    .Where(e => e.OverType == EventOverType.Activity
+                        && e.StoredDataType == EventDataType.Score 
+                        && e.StoredObjectId == score.ScoreId);
 
                 foreach (Event e in scoreEvents)
                 {
-                    e.IsObjectDeleted = true;
+                    e.OverType = EventOverType.DeletedObjectActivity;
                 }
             }
             
