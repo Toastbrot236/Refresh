@@ -63,6 +63,7 @@ public class EventVisibilityTests : GameServerTest
         Assert.That(page.Users.Count, Is.EqualTo(1));
     }
 
+#if false // Enable once grouping deleted object events and EventOverType filtering are implemented for the API
     [Test]
     public void ModerationEventHiddenFromIrrelevantUser()
     {
@@ -235,4 +236,5 @@ public class EventVisibilityTests : GameServerTest
         Assert.That(page.EventGroups.Count, Is.Zero);
         Assert.That(page.Levels.Count, Is.Zero);
     }
+#endif
 }

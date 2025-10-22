@@ -27,8 +27,8 @@ namespace Refresh.Database.Migrations
                 nullable: false,
                 defaultValue: false);
 
-            // No need to set involved user here, as there have never been any private events before
-            // (which involve a non-mod user, additionally)
+            // No need to set involved user here, as there have never been any private events
+            // which involve a non-mod user before
             migrationBuilder.AddColumn<string>(
                 name: "InvolvedUserId",
                 table: "Events",

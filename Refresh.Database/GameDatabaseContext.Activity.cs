@@ -28,12 +28,12 @@ public partial class GameDatabaseContext // Activity
 
         // Filter out all moderation and deleted object events which are irrelevant for the requesting user.
         // Moderators and above may view all moderation and deleted object events anyway.
-        // Don't bother showing non-activity events in-game, that will likely break things and cause chaos,
-        // and users who are not logged in may not see them either.
+        // Don't bother showing non-activity events in-game to not accidentally break anything.
+        // Users who are not logged into the API may not see non-activity events either.
         // Also prevent e.g. the Discord integration from accidentally posting mod events in public
         // by explicitly ensuring the query has originated from the API.
 
-        // For now, disable that filtering and only return activity events because both deleted object
+        // For now, ignore the above and only return activity events because both deleted object
         // event grouping and API activity filtering aren't implemented yet. That will have to be done in a
         // future PR because this one is already way too large and i don't want to stretch it even further
         // anymore.
@@ -42,7 +42,7 @@ public partial class GameDatabaseContext // Activity
         {
             query = query.Where(e => e.OverType == EventOverType.Activity
                 // No need to compare the other enum values yet, as Moderation and DeletedObjectActivity are
-                // the only other values for now, both of which should be equivalent in visibility.
+                // the only other values for now, both of which are equivalent in visibility.
                 || parameters.User.Role >= GameUserRole.Moderator
                 || e.InvolvedUserId == parameters.User.UserId 
                 || e.UserId == parameters.User.UserId);
@@ -87,7 +87,7 @@ public partial class GameDatabaseContext // Activity
 
         if (parameters is { ExcludeMyself: true, User: not null })
         {
-            query = query.Where(e => e.User.UserId != parameters.User.UserId && (e.StoredDataType != EventDataType.User || e.StoredObjectId != parameters.User.UserId));    
+            query = query.Where(e => e.User.UserId != parameters.User.UserId && (e.StoredDataType != EventDataType.User || e.StoredObjectId != parameters.User.UserId));
         }
 
         return query;
