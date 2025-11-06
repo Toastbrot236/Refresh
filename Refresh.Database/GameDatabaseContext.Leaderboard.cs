@@ -53,9 +53,10 @@ public partial class GameDatabaseContext // Leaderboard
             && currentFirstPlace.Score < score.Score 
             && currentFirstPlace.PublisherId != user.UserId;
 
-        this.Write(() =>
+        this.WriteEnsuringStatistics(level, () =>
         {
             this.GameScores.Add(newScore);
+            level.Statistics!.CompletionCount++;
         });
 
         this.CreateLevelScoreEvent(user, newScore);
