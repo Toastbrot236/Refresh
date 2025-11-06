@@ -59,6 +59,7 @@ public partial class GameDatabaseContext // Leaderboard
             level.Statistics!.CompletionCount++;
         });
 
+        this.RecalculateLevelLeaderboardStatistics(level, score.ScoreType);
         this.CreateLevelScoreEvent(user, newScore);
 
         // Notify the last #1 users that they've been overtaken

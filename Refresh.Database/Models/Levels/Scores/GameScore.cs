@@ -30,4 +30,10 @@ public partial class GameScore
     /// </summary>
     [ForeignKey(nameof(PublisherId)), Required] public GameUser Publisher { get; set; }
     [Required] public ObjectId PublisherId { get; set; }
+
+    /// <summary>
+    /// This score's cached rank on the global (non-friends) leaderboard.
+    /// Null if this isn't a personal highscore and therefore not on the leaderboard.
+    /// </summary>
+    public int? Rank { get; set; }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Refresh.Common.Constants;
 using Refresh.Database.Models.Comments;
 using Refresh.Database.Models.Levels;
+using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Playlists;
 using Refresh.Database.Models.Statistics;
 using Refresh.Database.Models.Users;
@@ -212,6 +213,87 @@ public partial class GameDatabaseContext // Statistics
         if(level.Statistics.RecalculateAt == null)
             level.Statistics.RecalculateAt = this._time.Now + TimeSpan.FromMinutes(5);
     }
+    #endregion
+
+    #region Level Leaderboards
+
+    internal const int LevelLeaderboardStatisticsVersion = 1;
+
+    public IEnumerable<GameLevel> GetLevelsNeedingLeaderboardStatisticsUpdates()
+    {
+        DateTimeOffset now = this._time.Now;
+
+        return this.GameLevelLeaderboardStatistics
+            .Include(s => s.Level)
+            .Where(s => s.RecalculateAt <= now || s.Version != LevelLeaderboardStatisticsVersion)
+            .GroupBy(s => s.LevelId) // Deduplicate levels, score type doesn't matter at this point
+            .Select(g => g.First().Level);
+    }
+
+    private void RecalculateHighScoreRanks(GameLevel level, byte scoreType)
+    {
+        List<GameScore> highScores = this.GameScores
+            .Where(s => s.LevelId == level.LevelId && s.ScoreType == scoreType)
+            .GroupBy(s => s.PublisherId) // Only keep high scores
+            .Select(g => g.MaxBy(s => s.Score)!)
+            .OrderByDescending(s => s.Score)
+            .ToList();
+
+        // Scores with the same value should have the same rank for more consistent behaviour as in-game.
+        // Also makes multiplayer score ranking fairer, as every player in a lobby uploads the score themselves.
+        // TODO: Refactor this into an own method so friend leaderboards could also use this without any score caching
+        int currentRank = 1;
+        int previousScore = highScores.FirstOrDefault()?.Score ?? 0;
+        foreach (GameScore score in highScores)
+        {
+            if (score.Score < previousScore)
+            {
+                previousScore = score.Score;
+                currentRank++;
+            }
+
+            this.Update(score);
+            score.Rank = currentRank;
+        }
+    }
+
+    public void RecalculateLevelLeaderboardStatistics(GameLevel level)
+    {
+        this.RecalculateLevelLeaderboardStatistics(level, 1, false);
+        this.RecalculateLevelLeaderboardStatistics(level, 2, false);
+        this.RecalculateLevelLeaderboardStatistics(level, 3, false);
+        this.RecalculateLevelLeaderboardStatistics(level, 4, false);
+        this.SaveChanges();
+    }
+
+    public void RecalculateLevelLeaderboardStatistics(GameLevel level, byte scoreType, bool save = true)
+    {
+        GameLevelLeaderboardStatistics? stats = this.GameLevelLeaderboardStatistics
+            .FirstOrDefault(s => s.LevelId == level.LevelId && s.ScoreType == scoreType);
+        
+        // Create new object if there is none yet
+        if (stats == null)
+        {
+            stats = new()
+            {
+                LevelId = level.LevelId,
+                Level = level,
+                ScoreType = scoreType,
+            };
+
+            this.GameLevelLeaderboardStatistics.Add(stats);
+        }
+
+        // Recalculate ranks
+        this.RecalculateHighScoreRanks(level, scoreType);
+
+        // Mark as dirty and update version
+        stats.RecalculateAt = this._time.Now + TimeSpan.FromMinutes(5);
+        stats.Version = LevelLeaderboardStatisticsVersion;
+
+        if (save) this.SaveChanges();
+    }
+
     #endregion
 
     #region Users

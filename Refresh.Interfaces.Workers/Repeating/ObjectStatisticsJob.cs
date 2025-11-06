@@ -22,6 +22,15 @@ public class ObjectStatisticsJob : RepeatingJob
         {
             context.Database.RecalculateLevelStatistics(level);
         }
+
+        levels = context.Database.GetLevelsNeedingLeaderboardStatisticsUpdates()
+            .Take(500)
+            .ToArray();
+
+        foreach (GameLevel level in levels)
+        {
+            context.Database.RecalculateLevelLeaderboardStatistics(level);
+        }
         
         GameUser[] users = context.Database.GetUsersWithStatisticsNeedingUpdates()
             .Take(500)

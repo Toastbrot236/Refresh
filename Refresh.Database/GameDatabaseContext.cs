@@ -49,6 +49,7 @@ public partial class GameDatabaseContext : DbContext, IDatabaseContext
     internal DbSet<RateLevelRelation> RateLevelRelations { get; set; }
     internal DbSet<Event> Events { get; set; }
     internal DbSet<GameScore> GameScores { get; set; }
+    internal DbSet<GameLevelLeaderboardStatistics> GameLevelLeaderboardStatistics { get; set; }
     internal DbSet<GameAsset> GameAssets { get; set; }
     internal DbSet<GameNotification> GameNotifications { get; set; }
     internal DbSet<GamePhoto> GamePhotos { get; set; }
