@@ -108,7 +108,8 @@ public partial class GameDatabaseContext // Leaderboard
         if (minAge != null)
             scores = scores.Where(s => s.ScoreSubmitted >= minAge);
 
-        return new(scores.ToArray().Select((s, i) => new ScoreWithRank(s, i + 1)), skip, count, user);
+        // Rank 0 = not a highscore
+        return new(scores.ToArray().Select(s => new ScoreWithRank(s, s.CachedRank ?? 0)), skip, count, user);
     }
 
     public DatabaseScoreList GetRankedScoresAroundScore(GameScore score, int count, GameUser? user = null)
@@ -126,7 +127,7 @@ public partial class GameDatabaseContext // Leaderboard
 
         return new
         (
-            scores.Select((s, i) => new ScoreWithRank(s, i + 1)),
+            scores.Select(s => new ScoreWithRank(s, s.CachedRank ?? 0)),
             Math.Min(scores.Count, scores.IndexOf(score) - count / 2), // center user's score around other scores
             count, user
         );
@@ -153,7 +154,7 @@ public partial class GameDatabaseContext // Leaderboard
         if (minAge != null)
             scores = scores.Where(s => s.ScoreSubmitted >= minAge);
 
-        return new(scores.Select((s, i) => new ScoreWithRank(s, i + 1)), skip, count, user);
+        return new(scores.RankScores(), skip, count, user);
     }
 
     [Pure]

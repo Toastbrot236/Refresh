@@ -232,28 +232,17 @@ public partial class GameDatabaseContext // Statistics
 
     private void RecalculateHighScoreRanks(GameLevel level, byte scoreType)
     {
-        List<GameScore> highScores = this.GameScores
+        IEnumerable<ScoreWithRank> highScores = this.GameScores
             .Where(s => s.LevelId == level.LevelId && s.ScoreType == scoreType)
             .GroupBy(s => s.PublisherId) // Only keep high scores
-            .Select(g => g.MaxBy(s => s.Score)!)
-            .OrderByDescending(s => s.Score)
-            .ToList();
-
-        // Scores with the same value should have the same rank for more consistent behaviour as in-game.
-        // Also makes multiplayer score ranking fairer, as every player in a lobby uploads the score themselves.
-        // TODO: Refactor this into an own method so friend leaderboards could also use this without any score caching
-        int currentRank = 1;
-        int previousScore = highScores.FirstOrDefault()?.Score ?? 0;
-        foreach (GameScore score in highScores)
+            // MaxBy() is untranslatable here for some reason
+            .Select(g => g.OrderByDescending(s => s.Score).First())
+            .RankScores();
+        
+        foreach (ScoreWithRank score in highScores)
         {
-            if (score.Score < previousScore)
-            {
-                previousScore = score.Score;
-                currentRank++;
-            }
-
-            this.Update(score);
-            score.Rank = currentRank;
+            //this.Update(score.score);
+            score.score.CachedRank = score.rank;
         }
     }
 

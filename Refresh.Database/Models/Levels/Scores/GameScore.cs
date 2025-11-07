@@ -35,5 +35,5 @@ public partial class GameScore
     /// This score's cached rank on the global (non-friends) leaderboard.
     /// Null if this isn't a personal highscore and therefore not on the leaderboard.
     /// </summary>
-    public int? Rank { get; set; }
+    public int? CachedRank { get; set; }
 }
