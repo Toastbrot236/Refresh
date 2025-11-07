@@ -142,17 +142,17 @@ public partial class GameDatabaseContext // Leaderboard
 
         IEnumerable<GameScore> scores = this.GameScoresIncluded
             .Where(s => s.LevelId == level.LevelId)
-            .OrderByDescending(s => s.Score)
-            .ToArray()
-            .DistinctBy(s => s.PublisherId)
-            //TODO: THIS CALL IS EXTREMELY INEFFECIENT!!! once we are in postgres land, figure out a way to do this effeciently
-            .Where(s => s.PlayerIds.Any(p => mutuals.Contains(p)));
+            // Only keep those actually published by friends, as we only want highscores here
+            .Where(s => mutuals.Contains(s.PublisherId))
+            .OrderByDescending(s => s.Score);
         
         if (scoreType != 0)
             scores = scores.Where(s => s.ScoreType == scoreType);
         
         if (minAge != null)
             scores = scores.Where(s => s.ScoreSubmitted >= minAge);
+
+        scores = scores.ToArray().DistinctBy(s => s.PublisherId);
 
         return new(scores.RankScores(), skip, count, user);
     }
@@ -217,10 +217,5 @@ public partial class GameDatabaseContext // Leaderboard
         IEnumerable<ObjectId> playerIds = score.PlayerIds.Select(p => p);
         return this.GameUsersIncluded
             .Where(u => playerIds.Contains(u.UserId));
-    }
-    
-    public GameUser? GetSubmittingPlayerFromScore(GameScore score)
-    {
-        return this.GetUserByUuid(score.PlayerIdsRaw.FirstOrDefault());
     }
 }
