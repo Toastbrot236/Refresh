@@ -17,11 +17,10 @@ public class HeartedUsersByUserCategory : GameUserCategory
 
     public override DatabaseList<GameUser>? Fetch(RequestContext context, int skip, int count, DataContext dataContext, GameUser? user)
     {
-        // Prefer username from query, but fallback to user passed into this category if it's missing
-        string? username = context.QueryString["u"] ?? context.QueryString["username"];
-        if (username != null) user = dataContext.Database.GetUserByUsername(username);
-
+        // Prefer specified user from query, but fallback to requesting user if it's missing
+        user = this.GetUserFromQuery(context, dataContext.Database) ?? user;
         if (user == null) return null;
+
         return dataContext.Database.GetUsersFavouritedByUser(user, skip, count);
     }
 }
