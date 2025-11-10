@@ -18,7 +18,7 @@ public class SearchLevelCategory : GameLevelCategory
         this.Hidden = true; // The search category is not meant to be shown, as it requires a special implementation on all frontends
     }
 
-    public override DatabaseList<GameLevel>? Fetch(RequestContext context, int skip, int count,
+    public override DatabaseLevelList? Fetch(RequestContext context, int skip, int count,
         DataContext dataContext,
         LevelFilterSettings levelFilterSettings, GameUser? _)
     {
