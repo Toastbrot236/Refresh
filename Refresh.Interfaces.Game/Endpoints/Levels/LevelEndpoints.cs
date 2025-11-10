@@ -7,6 +7,7 @@ using Refresh.Common.Constants;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Categories;
+using Refresh.Core.Types.Categories.Levels;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Authentication;
@@ -67,7 +68,14 @@ public class LevelEndpoints : EndpointGroup
             .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromGameRequest(context, token.TokenGame), user);
 
         if (levels == null) return null;
-        
+
+        // Also return users included by category fetch
+        IEnumerable<GameUserResponse> usersToReturn = [];
+        if (levels is DatabaseLevelList list)
+        {
+            usersToReturn = GameUserResponse.FromOldList(list.Users, dataContext);
+        }
+
         IEnumerable<GameMinimalLevelResponse> slots = levels.Items.ToArray()
             .Select(l => GameMinimalLevelResponse.FromOld(l, dataContext)!);
 
@@ -94,7 +102,7 @@ public class LevelEndpoints : EndpointGroup
             }
         }   
 
-        return new SerializedMinimalLevelList(slots, levels.TotalItems + injectedAmount, skip + count);
+        return new SerializedMinimalLevelList(slots, levels.TotalItems + injectedAmount, skip + count, usersToReturn);
     }
 
     [GameEndpoint("slots/{route}/{username}", ContentType.Xml)]
