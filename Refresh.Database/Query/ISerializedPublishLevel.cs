@@ -5,6 +5,10 @@ namespace Refresh.Database.Query;
 
 public interface ISerializedPublishLevel
 {
+    /// <summary>
+    /// only used for inner adventure levels
+    /// </summary>
+    byte InnerLevelId { get; set; }
     string Title { get; set; }
     string Description { get; set; }
     string IconHash { get; set; }

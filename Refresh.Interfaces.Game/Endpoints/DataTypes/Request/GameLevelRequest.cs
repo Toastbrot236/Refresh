@@ -9,8 +9,8 @@ namespace Refresh.Interfaces.Game.Endpoints.DataTypes.Request;
 [XmlType("slot")]
 public class GameLevelRequest : ISerializedPublishLevel
 {
-    // Not included if its not a republish, in that case default to 0 (invalid ID)
     [XmlElement("id")] public int LevelId { get; set; }
+    [XmlIgnore] public byte InnerLevelId { get; set; }
 
     [XmlElement("name")] public string Title { get; set; } = "";
     [XmlElement("icon")] public string IconHash { get; set; } = "0";
@@ -43,5 +43,8 @@ public class GameLevelRequest : ISerializedPublishLevel
     
     [XmlElement("backgroundGUID")] public string? BackgroundGuid { get; set; }
     
+    /// <summary>
+    /// Contains inner adventure levels
+    /// </summary>
     [XmlArray("slots")] public GameLevelRequest[]? Slots { get; set; }
 }

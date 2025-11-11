@@ -21,6 +21,10 @@ public partial class GameDatabaseContext // Levels
         .Include(l => l.Statistics)
         .Include(l => l.Publisher)
         .Include(l => l.Publisher!.Statistics);
+    
+    private IQueryable<GameAdventureLevel> GameAdventureLevelsIncluded => this.GameAdventureLevels
+        .Include(l => l.Adventure)
+        .Include(l => l.Adventure.Publisher);
 
     private IQueryable<GameSkillReward> SkillRewardsIncluded => this.GameSkillRewards
         .Include(s => s.Level)
@@ -81,6 +85,82 @@ public partial class GameDatabaseContext // Levels
 
         return level;
     }
+
+    public IEnumerable<GameAdventureLevel> UpdateInnerAdventureLevels(GameLevel adventure, IEnumerable<ISerializedPublishLevel> innerLevels)
+    {
+        IEnumerable<GameAdventureLevel> existingLevels = this.GameAdventureLevels
+            .Where(l => l.AdventureId == adventure.LevelId)
+            .ToArray();
+        
+        DateTimeOffset timestamp = this._time.Now;
+        List<GameAdventureLevel> finalLevels = [];
+
+        foreach (ISerializedPublishLevel innerLevel in innerLevels)
+        {
+            GameAdventureLevel? existingLevel = existingLevels
+                .FirstOrDefault(l => l.InnerLevelId == innerLevel.InnerLevelId);
+
+            if (existingLevel == null)
+            {
+                // Create new level
+                existingLevel = new()
+                {
+                    InnerLevelId = innerLevel.InnerLevelId,
+                    Adventure = adventure,
+                    AdventureId = adventure.LevelId,
+                    Title = innerLevel.Title,
+                    IconHash = innerLevel.IconHash,
+                    Description = innerLevel.Description,
+                    LocationX = innerLevel.Location.X,
+                    LocationY = innerLevel.Location.Y,
+                    RootResource = innerLevel.RootResource,
+                    PublishDate = timestamp,
+                    UpdateDate = timestamp,
+                    MinPlayers = innerLevel.MinPlayers,
+                    MaxPlayers = innerLevel.MaxPlayers,
+                    EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers,
+                    LevelType = GameLevelTypeExtensions.FromGameString(innerLevel.LevelType),
+                    IsLocked = innerLevel.IsLocked,
+                    IsSubLevel = innerLevel.IsSubLevel,
+                    IsCopyable = innerLevel.IsCopyable == 1,
+                    RequiresMoveController = innerLevel.RequiresMoveController,
+                };
+
+                this.GameAdventureLevels.Add(existingLevel);
+            }
+            else
+            {
+                // Update existing level
+                existingLevel.Title = innerLevel.Title;
+                existingLevel.IconHash = innerLevel.IconHash;
+                existingLevel.Description = innerLevel.Description;
+                existingLevel.LocationX = innerLevel.Location.X;
+                existingLevel.LocationY = innerLevel.Location.Y;
+                existingLevel.RootResource = innerLevel.RootResource;
+                existingLevel.UpdateDate = timestamp;
+                existingLevel.MinPlayers = innerLevel.MinPlayers;
+                existingLevel.MaxPlayers = innerLevel.MaxPlayers;
+                existingLevel.EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers;
+                existingLevel.LevelType = GameLevelTypeExtensions.FromGameString(innerLevel.LevelType);
+                existingLevel.IsLocked = innerLevel.IsLocked;
+                existingLevel.IsSubLevel = innerLevel.IsSubLevel;
+                existingLevel.IsCopyable = innerLevel.IsCopyable == 1;
+                existingLevel.RequiresMoveController = innerLevel.RequiresMoveController;
+            }
+
+            finalLevels.Add(existingLevel);
+        }
+
+        this.SaveChanges();
+        return finalLevels;
+    }
+
+    public GameAdventureLevel? GetInnerAdventureLevel(GameLevel adventure, byte innerLevelId)
+        => this.GameAdventureLevelsIncluded
+            .FirstOrDefault(l => l.AdventureId == adventure.LevelId && l.InnerLevelId == innerLevelId);
+
+    public DatabaseList<GameAdventureLevel> GetInnerAdventureLevels(GameLevel adventure, int skip, int count)
+        => new(this.GameAdventureLevelsIncluded.Where(l => l.AdventureId == adventure.LevelId), skip, count);
 
     public GameLevel GetStoryLevelById(int id)
     {
