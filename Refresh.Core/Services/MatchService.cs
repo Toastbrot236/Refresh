@@ -12,6 +12,7 @@ using Refresh.Core.Types.Matching.MatchMethods;
 using Refresh.Core.Types.Matching.Responses;
 using Refresh.Core.Types.Matching.RoomAccessors;
 using Refresh.Database.Models.Authentication;
+using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Users;
 
 namespace Refresh.Core.Services;
@@ -81,6 +82,13 @@ public partial class MatchService : EndpointService
     public int GetPlayerCountForLevel(RoomSlotType type, int id)
     {
         return this.RoomAccessor.GetRoomsInLevel(type, id).Sum(r => r.PlayerIds.Count);
+    }
+
+    public int GetPlayerCountForLevel(GameSlotType type, int id, TokenGame game, TokenPlatform platform)
+    {
+        return this.RoomAccessor.GetRoomsInLevel(type, id)
+            .Where(r => r.Game == game && r.Platform == platform)
+            .Sum(r => r.PlayerIds.Count);
     }
 
     public void AddPlayerToRoom(GameUser player, GameRoom targetRoom, TokenPlatform platform, TokenGame game)

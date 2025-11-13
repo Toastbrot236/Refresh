@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using Refresh.Database.Models.Authentication;
+using Refresh.Database.Models.Levels;
 
 namespace Refresh.Core.Types.Matching.RoomAccessors;
 
@@ -47,6 +48,11 @@ public class NullRoomAccessor : IRoomAccessor
     }
 
     public IEnumerable<GameRoom> GetRoomsInLevel(RoomSlotType type, int levelId)
+    {
+        return [];
+    }
+
+    public IEnumerable<GameRoom> GetRoomsInLevel(GameSlotType type, int levelId)
     {
         return [];
     }

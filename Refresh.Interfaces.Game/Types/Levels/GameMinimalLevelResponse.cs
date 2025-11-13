@@ -182,7 +182,8 @@ public class GameMinimalLevelResponse : IDataConvertableFrom<GameMinimalLevelRes
             response.YourStarRating = rating?.ToLBP1() ?? 0;
         }
         
-        response.PlayerCount = dataContext.Match.GetPlayerCountForLevel(RoomSlotType.Online, response.LevelId);
+        // Sort by game and platform, as other rooms can't be dived into
+        response.PlayerCount = dataContext.Match.GetPlayerCountForLevel(old.SlotType, response.LevelId, dataContext.Game, dataContext.Platform);
 
         if (dataContext.Game is TokenGame.LittleBigPlanet1 or TokenGame.BetaBuild)
         {

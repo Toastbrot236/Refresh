@@ -65,6 +65,14 @@ public interface IRoomAccessor
     /// <summary>
     /// Gets all the rooms that are on a particular level
     /// </summary>
+    /// <param name="type">The type of level</param>
+    /// <param name="levelId">The level ID</param>
+    /// <returns>The found rooms</returns>
+    public IEnumerable<GameRoom> GetRoomsInLevel(GameSlotType type, int levelId);
+
+    /// <summary>
+    /// Gets all the rooms that are on a particular level
+    /// </summary>
     /// <param name="level">The level to check</param>
     /// <returns>The found rooms</returns>
     public IEnumerable<GameRoom> GetRoomsInLevel(GameLevel level) => this.GetRoomsInLevel(

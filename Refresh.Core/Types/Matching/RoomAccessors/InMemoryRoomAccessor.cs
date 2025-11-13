@@ -2,6 +2,7 @@ using Bunkum.Core;
 using MongoDB.Bson;
 using NotEnoughLogs;
 using Refresh.Database.Models.Authentication;
+using Refresh.Database.Models.Levels;
 
 namespace Refresh.Core.Types.Matching.RoomAccessors;
 
@@ -133,6 +134,30 @@ public class InMemoryRoomAccessor(Logger logger) : IRoomAccessor
 
             //Return a copy of the room list
             return this._rooms.Where(r => r.LevelId == levelId && r.LevelType == type).ToList();
+        }
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<GameRoom> GetRoomsInLevel(GameSlotType type, int levelId)
+    {
+        lock (this._rooms)
+        {
+            //Clear all expired rooms
+            this.RemoveExpiredRooms();
+            
+            IEnumerable<GameRoom> rooms = this._rooms.Where(r => r.LevelId == levelId);
+
+            rooms = type switch
+            {
+                GameSlotType.Story => rooms.Where(r => r.LevelType is RoomSlotType.Story or RoomSlotType.DLC or RoomSlotType.StoryAdventure),
+                GameSlotType.User => rooms.Where(r => r.LevelType is RoomSlotType.Online or RoomSlotType.OnlineAdventure),
+                GameSlotType.Moon => rooms.Where(r => r.LevelType is RoomSlotType.Moon or RoomSlotType.MoonAdventure),
+                GameSlotType.Pod => rooms.Where(r => r.LevelType is RoomSlotType.Pod),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
+            };
+
+            //Return a copy of the room list
+            return rooms.ToList();
         }
     }
 
