@@ -191,6 +191,8 @@ public class RefreshGameServer : RefreshServer
         {
             this.WorkerManager.AddJob(new DiscordIntegrationJob(this._configStore.Integration, this._configStore.GameServer));
         }
+
+        this.WorkerManager.AddJob(new GuestUserExpiryJob(this._configStore.GameServer));
     }
 
     /// <inheritdoc/>
