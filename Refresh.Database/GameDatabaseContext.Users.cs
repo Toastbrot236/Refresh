@@ -86,7 +86,9 @@ public partial class GameDatabaseContext // Users
     }
 
     public DatabaseList<GameUser> GetUsers(int count, int skip)
-        => new(this.GameUsersIncluded.OrderByDescending(u => u.JoinDate), skip, count);
+        => new(this.GameUsersIncluded
+            .Where(u => u.Role != GameUserRole.Guest)
+            .OrderByDescending(u => u.JoinDate), skip, count);
     
     public DatabaseList<GameUser> GetMostFavouritedUsers(int skip, int count)
         => new(this.GameUsersIncluded

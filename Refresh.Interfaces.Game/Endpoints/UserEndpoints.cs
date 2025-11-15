@@ -64,6 +64,9 @@ public class UserEndpoints : EndpointGroup
     [NullStatusCode(BadRequest)]
     public string? UpdateUser(RequestContext context, DataContext dataContext, GameUser user, string body, GuidCheckerService guidChecker)
     {
+        // Guests may not update this in-game
+        if (user.Role == GameUserRole.Guest) return null;
+
         SerializedUpdateData? data = null;
         
         // This stupid shit is caused by LBP sending two different root elements for this endpoint
