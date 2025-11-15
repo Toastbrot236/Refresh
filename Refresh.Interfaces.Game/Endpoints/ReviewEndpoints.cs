@@ -46,6 +46,7 @@ public class ReviewEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rate/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
+    [RequireEmailVerified]
     [AllowEmptyBody]
     public Response RateUserLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id)
     {
