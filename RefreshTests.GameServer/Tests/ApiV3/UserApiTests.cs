@@ -34,7 +34,7 @@ public class UserApiTests : GameServerTest
 
         const string username = "a_lil_guy";
         
-        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterRequest
+        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterByNameRequest
         {
             Username = username,
             EmailAddress = "guy@lil.com",
@@ -55,7 +55,7 @@ public class UserApiTests : GameServerTest
 
         context.Database.DisallowUser(username);
         
-        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterRequest
+        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterByNameRequest
         {
             Username = username,
             EmailAddress = "guy@lil.com",
@@ -76,7 +76,7 @@ public class UserApiTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         
-        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterRequest
+        ApiResponse<ApiAuthenticationResponse>? response = context.Http.PostData<ApiAuthenticationResponse>("/api/v3/register", new ApiRegisterByNameRequest
         {
             Username = username,
             EmailAddress = "far4@toolkit.vita",
