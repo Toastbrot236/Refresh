@@ -87,6 +87,11 @@ public class GameServerConfig : Config
     public bool MaintenanceMode { get; set; } = false;
     public bool RequireGameLoginToRegister { get; set; } = false;
     /// <summary>
+    /// Whether unknown users may register using the alternative method of having a temporary guest account created on game login,
+    /// and then using a given secret registration code instead of their username to finish registration on the website.
+    /// </summary>
+    public bool EnableRegistrationByCode { get; set; } = false;
+    /// <summary>
     /// Whether to use deflate compression for responses.
     /// If this is disabled, large enough responses will cause LBP to overflow its read buffer and eventually corrupt its own memory to the point of crashing.
     /// </summary>

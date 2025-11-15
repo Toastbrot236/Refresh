@@ -30,6 +30,12 @@ public enum GameUserRole : sbyte
     /// </summary>
     User = 0,
     /// <summary>
+    /// A temporary guest. May view and play content, but not upload anything. Has the same permissions as restricted/email unverified users,
+    /// minus the ability to edit profile icons and description. Permission-wise this is inbetween Restricted and Banned, but there are no
+    /// free inbetween values unfortunately.
+    /// </summary>
+    Guest = -64,
+    /// <summary>
     /// A user with read-only permissions. May log in and play, but cannot do things such as publish levels or post comments.
     /// </summary>
     Restricted = -126,
