@@ -95,6 +95,7 @@ public partial class GameUser : IRateLimitUser
     public DateTimeOffset? BanExpiryDate { get; set; }
     
     public DateTimeOffset LastLoginDate { get; set; }
+    public DateTimeOffset LastGameContactDate { get; set; }
     
     public bool RpcnAuthenticationAllowed { get; set; }
     public bool PsnAuthenticationAllowed { get; set; }
