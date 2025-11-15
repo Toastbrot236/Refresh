@@ -12,6 +12,7 @@ using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
+using Refresh.Database.Models.Users;
 
 namespace Refresh.Interfaces.Game.Endpoints;
 
@@ -75,10 +76,13 @@ public class MatchingEndpoints : EndpointGroup
         RequestContext context, 
         string body, 
         DataContext dataContext,
-        GameServerConfig gameServerConfig)
+        GameServerConfig gameServerConfig,
+        GameUser user)
     {
-        if (dataContext.User!.IsWriteBlocked(gameServerConfig))
+        if (user.IsWriteBlocked(gameServerConfig))
             return Unauthorized;
+
+        dataContext.Database.UpdateUserGameContactDate(user);
         
         (string method, string rawJsonBody) = MatchService.ExtractMethodAndBodyFromJson(body);
 
@@ -136,7 +140,8 @@ public class MatchingEndpoints : EndpointGroup
         
         room.LastContact = DateTimeOffset.Now;
         matchService.RoomAccessor.UpdateRoom(room);
-        
+        dataContext.Database.UpdateUserGameContactDate(token.User);
+
         return OK;
     }
 }

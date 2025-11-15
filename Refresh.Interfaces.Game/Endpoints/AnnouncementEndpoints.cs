@@ -138,6 +138,8 @@ public class AnnouncementEndpoints : EndpointGroup
             
             matchService.RoomAccessor.UpdateRoom(room);
         }
+
+        database.UpdateUserGameContactDate(token.User);
         
         DatabaseList<GameNotification> notifications = database.GetNotificationsByUser(token.User, 3, 0);
         

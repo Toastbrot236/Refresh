@@ -256,6 +256,12 @@ public partial class GameDatabaseContext // Users
         return modded;
     }
 
+    public void UpdateUserGameContactDate(GameUser user)
+    {
+        user.LastGameContactDate = this._time.Now;
+        this.SaveChanges();
+    }
+
     [Pure]
     public int GetTotalUserCount() => this.GameUsers.Count();
     

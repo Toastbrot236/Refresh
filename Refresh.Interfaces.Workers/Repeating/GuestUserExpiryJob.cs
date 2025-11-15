@@ -23,7 +23,7 @@ public class GuestUserExpiryJob : RepeatingJob
         DateTimeOffset now = DateTimeOffset.Now;
 
         GameUser[] guestsToExpire = context.Database.GetAllUsersWithRole(GameUserRole.Guest).Items
-            .Where(u => u.LastLoginDate.AddHours(_hoursToLive) < now)
+            .Where(u => u.LastGameContactDate.AddHours(_hoursToLive) < now)
             .ToArray();
         
         foreach (GameUser user in guestsToExpire)
