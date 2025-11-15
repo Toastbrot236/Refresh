@@ -52,6 +52,12 @@ public class AuthenticationEndpoints : EndpointGroup
         }
 
         string ipAddress = context.RemoteIp();
+
+        if (database.IsUserDisallowed(ticket.Username))
+        {
+            context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {ticket.Username}'s login because they are disallowed");
+            return null;
+        }
         
         TokenPlatform? platform = ticket.DeterminePlatform();
         
