@@ -60,7 +60,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
             return UserInQueueError();
         
         GameUser? user = database.GetUserByEmailAddress(body.EmailAddress);
-        if (user == null)
+        if (user == null || user.Role == GameUserRole.Guest) // Fallback incase somehow a guest gets returned here
         {
             // Do the work of checking the password if there was no user found.
             // If we immediately return when we can't find a user, then it will be a short-lived request.
@@ -286,18 +286,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
         return new ApiOkResponse();
     }
 
-    [ApiV3Endpoint("register", HttpMethods.Post), Authentication(false)]
-    [DocSummary("Registers a new user.")]
-    [DocRequestBody(typeof(ApiRegisterRequest))]
-    #if !DEBUG
-    [RateLimitSettings(3600, 10, 3600 / 2, "register")]
-    #endif
-    public ApiResponse<IApiAuthenticationResponse> Register(RequestContext context,
-        GameDatabaseContext database,
-        ApiRegisterRequest body,
-        GameServerConfig config,
-        IntegrationConfig integrationConfig,
-        SmtpService smtpService)
+    private ApiResponse<IApiAuthenticationResponse>? BasicRegistrationValidation(ApiRegisterRequest body, GameServerConfig config, SmtpService smtpService)
     {
         if (!config.RegistrationEnabled)
             return new ApiAuthenticationError("Registration is not enabled on this server. Check back later.");
@@ -310,7 +299,26 @@ public class AuthenticationApiEndpoints : EndpointGroup
         
         if (!smtpService.CheckEmailDomainValidity(body.EmailAddress))
             return ApiValidationError.EmailDoesNotActuallyExistError;
-        
+
+        return null;
+    }
+
+    [ApiV3Endpoint("register", HttpMethods.Post), Authentication(false)]
+    [DocSummary("Registers a new user either immediately, or after authenticating in-game with a username matching the one sent here.")]
+    [DocRequestBody(typeof(ApiRegisterRequest))]
+    #if !DEBUG
+    [RateLimitSettings(3600, 10, 3600 / 2, "register")]
+    #endif
+    public ApiResponse<IApiAuthenticationResponse> Register(RequestContext context,
+        GameDatabaseContext database,
+        ApiRegisterByNameRequest body,
+        GameServerConfig config,
+        IntegrationConfig integrationConfig,
+        SmtpService smtpService)
+    {
+        ApiResponse<IApiAuthenticationResponse>? basicValidation = this.BasicRegistrationValidation(body, config, smtpService);
+        if (basicValidation != null) return basicValidation;
+
         if (database.IsUserDisallowed(body.Username))
             return new ApiAuthenticationError("You aren't allowed to play on this instance.");
         
@@ -345,6 +353,65 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
         GameUser user = database.CreateUser(body.Username, body.EmailAddress, true);
         database.SetUserPassword(user, passwordBcrypt);
+
+        if (integrationConfig.SmtpEnabled)
+        {
+            EmailVerificationCode code = database.CreateEmailVerificationCode(user);
+            smtpService.SendEmailVerificationRequest(user, code.Code);
+        }
+        else
+        {
+            // if smtp isn't enabled just mark the user's email as verified
+            database.VerifyUserEmail(user);
+        }
+        
+        Token token = database.GenerateTokenForUser(user, TokenType.Api, TokenGame.Website, TokenPlatform.Website, context.RemoteIp());
+
+        return new ApiAuthenticationResponse
+        {
+            TokenData = token.TokenData,
+            UserId = user.UserId.ToString(),
+            ExpiresAt = token.ExpiresAt,
+        };
+    }
+
+    [ApiV3Endpoint("register/code", HttpMethods.Post), Authentication(false)]
+    [DocSummary("Registers a new user under the username of the guest user matching the sent registration code.")]
+    [DocRequestBody(typeof(ApiRegisterRequest))]
+    #if !DEBUG
+    [RateLimitSettings(3600, 10, 3600 / 2, "register")]
+    #endif
+    public ApiResponse<IApiAuthenticationResponse> RegisterByCode(RequestContext context,
+        GameDatabaseContext database,
+        ApiRegisterByCodeRequest body,
+        GameServerConfig config,
+        IntegrationConfig integrationConfig,
+        SmtpService smtpService)
+    { 
+        ApiResponse<IApiAuthenticationResponse>? basicValidation = this.BasicRegistrationValidation(body, config, smtpService);
+        if (basicValidation != null) return basicValidation;
+
+        GameUser? guest = database.GetUserByRegistrationCode(body.Code);
+        if (guest == null) return new ApiAuthenticationError("Your registration code is invalid.");
+
+        if (database.IsUserDisallowed(guest.Username))
+            return new ApiAuthenticationError("You aren't allowed to play on this instance.");
+
+        // Clear queued registration if there is any
+        QueuedRegistration? queuedRegistration = database.GetQueuedRegistrationByUsername(guest.Username);
+        if (queuedRegistration != null) database.RemoveRegistrationFromQueue(queuedRegistration);
+
+        if (database.IsEmailTaken(body.EmailAddress))
+        {
+            return new ApiAuthenticationError("The account could not be registered because email was already taken.");
+        }
+
+        string? passwordBcrypt = BC.HashPassword(body.PasswordSha512, WorkFactor);
+        if (passwordBcrypt == null) return new ApiInternalError("Could not BCrypt the given password.");
+
+        // At this point, registration is complete
+
+        GameUser user = database.FinishGuestRegistration(guest, body.EmailAddress, body.PasswordSha512);
 
         if (integrationConfig.SmtpEnabled)
         {

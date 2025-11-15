@@ -90,8 +90,18 @@ public partial class GameDatabaseContext // Registration
         return user;
     }
 
-    public GameUser FinishGuestRegistration(GameUser user)
+    public GameUser? GetUserByRegistrationCode(string code)
     {
+        return this.GameUsers.FirstOrDefault(u => u.Role != GameUserRole.Guest && u.RegistrationCode == code);
+    }
+
+    public GameUser FinishGuestRegistration(GameUser user, string emailAddress, string passwordBcrypt)
+    {
+        user.EmailAddress = emailAddress;
+        user.EmailAddressVerified = false;
+        user.PasswordBcrypt = passwordBcrypt;
+        user.ShouldResetPassword = false;
+
         user.Role = GameUserRole.User;
         user.RegistrationCode = null;
 
