@@ -59,26 +59,65 @@ public partial class GameDatabaseContext // Registration
         GameUser user = this.CreateUser(registration.Username, registration.EmailAddress);
         this.SetUserPassword(user, registration.PasswordBcrypt);
 
-        if (platform != null)
-        {
-            this.Write(() =>
-            {
-                // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                switch (platform)
-                {
-                    case TokenPlatform.PS3:
-                    case TokenPlatform.Vita:
-                    case TokenPlatform.PSP:
-                        user.PsnAuthenticationAllowed = true;
-                        break;
-                    case TokenPlatform.RPCS3:
-                        user.RpcnAuthenticationAllowed = true;
-                        break;
-                }
-            });
-        }
+        this.EnableUserPlatform(user, platform, true);
 
         return user;
+    }
+
+    public GameUser CreateGuestUser(string username, TokenPlatform? platform = null)
+    {
+        GameUser user = new()
+        {
+            Username = username,
+            EmailAddress = null,
+            EmailAddressVerified = false,
+            JoinDate = this._time.Now,
+            Role = GameUserRole.Guest,
+            RegistrationCode = CodeHelper.GenerateDigitCode(),
+        };
+
+        this.EnableUserPlatform(user, platform, false);
+
+        this.SaveChanges();
+        return user;
+    }
+
+    public GameUser UpdateGuestUser(GameUser user)
+    {
+        user.RegistrationCode = CodeHelper.GenerateDigitCode();
+
+        this.SaveChanges();
+        return user;
+    }
+
+    public GameUser FinishGuestRegistration(GameUser user)
+    {
+        user.Role = GameUserRole.User;
+        user.RegistrationCode = null;
+
+        this.SaveChanges();
+        return user;
+    }
+
+    private void EnableUserPlatform(GameUser user, TokenPlatform? platform, bool save = true)
+    {
+        if (platform != null)
+        {
+            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+            switch (platform)
+            {
+                case TokenPlatform.PS3:
+                case TokenPlatform.Vita:
+                case TokenPlatform.PSP:
+                    user.PsnAuthenticationAllowed = true;
+                    break;
+                case TokenPlatform.RPCS3:
+                    user.RpcnAuthenticationAllowed = true;
+                    break;
+            }
+
+            if (save) this.SaveChanges();
+        }
     }
     
     public bool IsUsernameValid(string username)

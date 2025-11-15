@@ -62,30 +62,40 @@ public class AuthenticationEndpoints : EndpointGroup
             {
                 // look for a registration, then use that to create a user
                 QueuedRegistration? registration = database.GetQueuedRegistrationByUsername(ticket.Username);
-                if (registration == null)
-                {
-                    context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {ticket.Username}'s login because there was no matching queued registration");
-                    return null;
-                }
                 
-                user = database.CreateUserFromQueuedRegistration(registration, platform);
-                
-                if (integrationConfig.SmtpEnabled)
+                // Prefer queued username registration
+                if (registration != null)
                 {
-                    EmailVerificationCode code = database.CreateEmailVerificationCode(user);
-                    smtpService.SendEmailVerificationRequest(user, code.Code);
+                    user = database.CreateUserFromQueuedRegistration(registration, platform);
+                
+                    if (integrationConfig.SmtpEnabled)
+                    {
+                        EmailVerificationCode code = database.CreateEmailVerificationCode(user);
+                        smtpService.SendEmailVerificationRequest(user, code.Code);
 
-                    context.Logger.LogInfo(BunkumCategory.Authentication, $"Telling user {user.Username} to verify their email");
-                    database.AddNotification("Verify your email",
-                        "Your account has been created, but you still need to verify your e-mail." +
-                           "Please check your email for a verification code, and verify it in settings." +
-                           "If you do not see an email verification code, try resending the email or checking your spam folder.",
-                        user, "envelope");
+                        context.Logger.LogInfo(BunkumCategory.Authentication, $"Telling user {user.Username} to verify their email");
+                        database.AddNotification("Verify your email",
+                            "Your account has been created, but you still need to verify your e-mail." +
+                            "Please check your email for a verification code, and verify it in settings." +
+                            "If you do not see an email verification code, try resending the email or checking your spam folder.",
+                            user, "envelope");
+                    }
+                    else
+                    {
+                        // if smtp isn't enabled just mark the user's email as verified
+                        database.VerifyUserEmail(user);
+                    }
+                }
+                // Fall back to registration codes/guest accounts if enabled
+                else if (config.EnableRegistrationByCode)
+                {
+                    user = database.CreateGuestUser(ticket.Username, platform);
+                    context.Logger.LogInfo(BunkumCategory.Authentication, $"Created guest user for {ticket.Username}");
                 }
                 else
                 {
-                    // if smtp isn't enabled just mark the user's email as verified
-                    database.VerifyUserEmail(user);
+                    context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {ticket.Username}'s login because there was no matching queued registration, and registration codes are disabled");
+                    return null;
                 }
             }
             else
@@ -98,6 +108,12 @@ public class AuthenticationEndpoints : EndpointGroup
         {
             context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s login because they are banned");
             return null;
+        }
+
+        if (user.Role == GameUserRole.Guest)
+        {
+            database.UpdateGuestUser(user);
+            context.Logger.LogInfo(BunkumCategory.Authentication, $"Updated guest user {ticket.Username}'s registration code");
         }
 
         if (config.MaintenanceMode && user.Role != GameUserRole.Admin)
