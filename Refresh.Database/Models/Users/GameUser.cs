@@ -21,6 +21,8 @@ public partial class GameUser : IRateLimitUser
     
     public GameUserStatistics? Statistics { get; set; }
 
+    public string? RegistrationCode { get; set; }
+
     /// <summary>
     /// The force match of the user, cleared on login
     /// </summary>

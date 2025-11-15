@@ -92,6 +92,10 @@ public class GameServerConfig : Config
     /// </summary>
     public bool EnableRegistrationByCode { get; set; } = false;
     /// <summary>
+    /// If guest's last contact + this amount of hours is in the past, automatically expire them.
+    /// </summary>
+    public int GuestAccountTimeToLiveInHours { get; set; } = 2;
+    /// <summary>
     /// Whether to use deflate compression for responses.
     /// If this is disabled, large enough responses will cause LBP to overflow its read buffer and eventually corrupt its own memory to the point of crashing.
     /// </summary>
