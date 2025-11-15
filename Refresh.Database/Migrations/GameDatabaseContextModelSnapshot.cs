@@ -18,7 +18,7 @@ namespace Refresh.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1541,6 +1541,9 @@ namespace Refresh.Database.Migrations
                     b.Property<DateTimeOffset>("JoinDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset>("LastGameContactDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("LastLoginDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -1583,6 +1586,9 @@ namespace Refresh.Database.Migrations
 
                     b.Property<bool>("RedirectGriefReportsToPhotos")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("RegistrationCode")
+                        .HasColumnType("text");
 
                     b.Property<short>("Role")
                         .HasColumnType("smallint");
