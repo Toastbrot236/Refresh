@@ -63,6 +63,10 @@ public class RelationEndpoints : EndpointGroup
         // https://discord.com/channels/1049223665243389953/1049225857350254632/1153468991675838474
         if (userToFavourite == null) return context.IsPSP() ? OK : NotFound;
 
+        // Guests may not be hearted
+        if (userToFavourite.Role == GameUserRole.Guest)
+            return context.IsPSP() ? OK : Unauthorized; 
+
         database.FavouriteUser(userToFavourite, user);
         return OK;
     }

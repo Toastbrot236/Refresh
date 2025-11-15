@@ -38,12 +38,14 @@ public class MetadataEndpoints : EndpointGroup
     }
 
     [GameEndpoint("npdata", ContentType.Xml, HttpMethods.Post)]
+    [RequireEmailVerified]
     public Response SetFriendData(RequestContext context, GameUser user, GameDatabaseContext database, SerializedFriendData body)
     {
         IEnumerable<GameUser> friends = body.FriendsList.Names
             .Take(128) // should be way more than enough - we'll see if this becomes a problem
             .Select(username => database.GetUserByUsername(username))
-            .Where(u => u != null)!;
+            .Where(u => u != null)
+            .Where(u => u!.Role != GameUserRole.Guest)!; // Guests may not be hearted
         
         foreach (GameUser userToFavourite in friends)
             database.FavouriteUser(userToFavourite, user);
