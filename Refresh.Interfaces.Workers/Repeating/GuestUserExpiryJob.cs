@@ -15,7 +15,7 @@ public class GuestUserExpiryJob : RepeatingJob
 
     public GuestUserExpiryJob(GameServerConfig gameConfig)
     {
-        this._hoursToLive = gameConfig.GuestAccountTimeToLiveInHours;
+        this._hoursToLive = Math.Clamp(gameConfig.GuestAccountTimeToLiveInHours, 1, 72); // 1 hour - 3 days
     }
 
     public override void ExecuteJob(WorkContext context)

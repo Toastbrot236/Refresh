@@ -10,7 +10,7 @@ namespace Refresh.Core.Configuration;
 [SuppressMessage("ReSharper", "RedundantDefaultMemberInitializer")]
 public class GameServerConfig : Config
 {
-    public override int CurrentConfigVersion => 25;
+    public override int CurrentConfigVersion => 26;
     public override int Version { get; set; } = 0;
     
     protected override void Migrate(int oldVer, dynamic oldConfig)
@@ -92,7 +92,8 @@ public class GameServerConfig : Config
     /// </summary>
     public bool EnableRegistrationByCode { get; set; } = false;
     /// <summary>
-    /// If guest's last contact + this amount of hours is in the past, automatically expire them.
+    /// If guest's last contact + this amount of hours is in the past, automatically expire them. 
+    /// Will fall back to 1 if set to anything lower and to 72 hours (3 days) if above.
     /// </summary>
     public int GuestAccountTimeToLiveInHours { get; set; } = 2;
     /// <summary>
