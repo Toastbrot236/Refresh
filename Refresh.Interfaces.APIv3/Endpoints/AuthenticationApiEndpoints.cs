@@ -319,8 +319,8 @@ public class AuthenticationApiEndpoints : EndpointGroup
         IntegrationConfig integrationConfig,
         SmtpService smtpService)
     {
-        ApiResponse<IApiAuthenticationResponse>? basicValidation = this.BasicRegistrationValidation(body, config, smtpService);
-        if (basicValidation != null) return basicValidation;
+        ApiResponse<IApiAuthenticationResponse>? validationError = this.BasicRegistrationValidation(body, config, smtpService);
+        if (validationError != null) return validationError;
 
         if (database.IsUserDisallowed(body.Username))
             return new ApiAuthenticationError("You aren't allowed to play on this instance.");
@@ -373,8 +373,8 @@ public class AuthenticationApiEndpoints : EndpointGroup
         IntegrationConfig integrationConfig,
         SmtpService smtpService)
     { 
-        ApiResponse<IApiAuthenticationResponse>? basicValidation = this.BasicRegistrationValidation(body, config, smtpService);
-        if (basicValidation != null) return basicValidation;
+        ApiResponse<IApiAuthenticationResponse>? validationError = this.BasicRegistrationValidation(body, config, smtpService);
+        if (validationError != null) return validationError;
 
         GameUser? guest;
         if (string.IsNullOrWhiteSpace(body.Code) || (guest = database.GetUserByRegistrationCode(body.Code)) == null)
