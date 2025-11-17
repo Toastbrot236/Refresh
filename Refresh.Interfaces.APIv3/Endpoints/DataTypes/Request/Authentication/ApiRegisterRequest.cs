@@ -1,10 +1,8 @@
 namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request.Authentication;
 
-#nullable disable
-
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public abstract class ApiRegisterRequest
 {
-    public string EmailAddress { get; set; }
-    public string PasswordSha512 { get; set; }
+    public string EmailAddress { get; set; } = "";
+    public string PasswordSha512 { get; set; } = "";
 }

@@ -290,6 +290,9 @@ public class AuthenticationApiEndpoints : EndpointGroup
     {
         if (!config.RegistrationEnabled)
             return new ApiAuthenticationError("Registration is not enabled on this server. Check back later.");
+        
+        if (string.IsNullOrWhiteSpace(body.EmailAddress) || string.IsNullOrWhiteSpace(body.EmailAddress))
+            return new ApiValidationError("Email address or password is missing.");
             
         if (body.PasswordSha512.Length != 128 || !CommonPatterns.Sha512Regex().IsMatch(body.PasswordSha512))
             return new ApiValidationError("Password is definitely not SHA512. Please hash the password.");
@@ -322,7 +325,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
         if (database.IsUserDisallowed(body.Username))
             return new ApiAuthenticationError("You aren't allowed to play on this instance.");
         
-        if (!database.IsUsernameValid(body.Username))
+        if (string.IsNullOrWhiteSpace(body.Username) || !database.IsUsernameValid(body.Username))
             return new ApiValidationError(
                 "The username must be valid. " +
                 "The requirements are 3 to 16 alphanumeric characters, plus hyphens and underscores. " +
@@ -373,8 +376,9 @@ public class AuthenticationApiEndpoints : EndpointGroup
         ApiResponse<IApiAuthenticationResponse>? basicValidation = this.BasicRegistrationValidation(body, config, smtpService);
         if (basicValidation != null) return basicValidation;
 
-        GameUser? guest = database.GetUserByRegistrationCode(body.Code);
-        if (guest == null) return new ApiAuthenticationError("Your registration code is invalid.");
+        GameUser? guest;
+        if (string.IsNullOrWhiteSpace(body.Code) || (guest = database.GetUserByRegistrationCode(body.Code)) == null)
+            return new ApiAuthenticationError("Your registration code is invalid.");
 
         if (database.IsUserDisallowed(guest.Username))
             return new ApiAuthenticationError("You aren't allowed to play on this instance.");
