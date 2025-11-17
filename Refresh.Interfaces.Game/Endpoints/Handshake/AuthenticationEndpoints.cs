@@ -115,11 +115,10 @@ public class AuthenticationEndpoints : EndpointGroup
             context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s login because they are banned");
             return null;
         }
-
-        if (user.Role == GameUserRole.Guest)
+        else if (user.Role == GameUserRole.Guest)
         {
             database.UpdateGuestUser(user);
-            context.Logger.LogInfo(BunkumCategory.Authentication, $"Updated guest user {ticket.Username}'s registration code");
+            context.Logger.LogInfo(BunkumCategory.Authentication, $"Updated {user}'s registration code");
         }
 
         if (config.MaintenanceMode && user.Role != GameUserRole.Admin)
