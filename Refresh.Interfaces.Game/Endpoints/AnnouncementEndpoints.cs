@@ -92,6 +92,27 @@ public class AnnouncementEndpoints : EndpointGroup
                    """;
         }
 
+        if (user.Role == GameUserRole.Guest)
+        {
+            return "DO NOT SKIP, PLEASE READ CAREFULLY! \n\n"+
+
+                   $"Welcome to {config.InstanceName}, {user.Username}! "+
+                   "You are now signed in as a temporary guest. This means you may view and play content such as levels, "+
+                   "but you may not post anything and you may not dive in. \n\n"+
+                   
+                   "In order to fully register, you will have to visit the REGISTRATION PAGE on our WEBSITE "+
+                   $"at {config.WebExternalUrl} and enter the following registration code into the appropriate field: \n\n"+
+
+                   $"{user.RegistrationCode} \n\n"+
+
+                   "You MAY NOT SHARE this code with anyone, as this code will allow you, or anyone else, to register an account on our server "+
+                   "under your username! \n\n"+
+                   
+                   "You may view it at any time under your Profile Description, where only you may see it. \n"+
+                   "Signing into the game again (for example by restarting the game) will generate a new code, "+
+                   "and being offline for too long will make your guest account expire.";
+        }
+
         if (!user.EmailAddressVerified)
         {
             return $"Your account doesn't have a verified email address. If this is a new account, there should be a verification code in your inbox.\n\n" +

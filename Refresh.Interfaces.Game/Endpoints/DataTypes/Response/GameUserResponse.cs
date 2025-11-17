@@ -114,6 +114,14 @@ public class GameUserResponse : IDataConvertableFrom<GameUserResponse, GameUser>
             return response;
         }
 
+        // If this is a guest viewing their own profile, insert their current registration code and a summary of instructions on how
+        // to finish registration. Guests may nut update their profile description anyway, and it'd otherwise be empty anyway.
+        if (dataContext.User != null && old.UserId == dataContext.User.UserId && dataContext.User.Role == GameUserRole.Guest)
+        {
+            response.Description = $"Your registration code is '{dataContext.User.RegistrationCode ?? "EMPTY, THIS IS AN ERROR"}'. DO NOT SHARE it with anyone else. "+
+                $"This description is only visible to you! You may currently not update your profile. Use the code on the REGISTRATION PAGE of our WEBSITE.";
+        }
+
         // Fill out information only relevant in certain games
         if (game is TokenGame.LittleBigPlanet1 or TokenGame.BetaBuild)
         {
