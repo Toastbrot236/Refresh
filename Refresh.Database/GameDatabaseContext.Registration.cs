@@ -66,17 +66,21 @@ public partial class GameDatabaseContext // Registration
 
     public GameUser CreateGuestUser(string username, TokenPlatform? platform = null)
     {
+        DateTimeOffset now = this._time.Now;
+
         GameUser user = new()
         {
             Username = username,
             EmailAddress = null,
             EmailAddressVerified = false,
-            JoinDate = this._time.Now,
+            JoinDate = now,
+            LastGameContactDate = now,
             Role = GameUserRole.Guest,
             RegistrationCode = CodeHelper.GenerateDigitCode(),
         };
 
         this.EnableUserPlatform(user, platform, false);
+        this.GameUsers.Add(user);
 
         this.SaveChanges();
         return user;
@@ -85,6 +89,7 @@ public partial class GameDatabaseContext // Registration
     public GameUser UpdateGuestUser(GameUser user)
     {
         user.RegistrationCode = CodeHelper.GenerateDigitCode();
+        user.LastGameContactDate = this._time.Now;
 
         this.SaveChanges();
         return user;
@@ -92,15 +97,13 @@ public partial class GameDatabaseContext // Registration
 
     public GameUser? GetUserByRegistrationCode(string code)
     {
-        return this.GameUsers.FirstOrDefault(u => u.Role != GameUserRole.Guest && u.RegistrationCode == code);
+        return this.GameUsers.FirstOrDefault(u => u.Role == GameUserRole.Guest && u.RegistrationCode == code);
     }
 
-    public GameUser FinishGuestRegistration(GameUser user, string emailAddress, string passwordBcrypt)
+    public GameUser FinishGuestRegistration(GameUser user, string emailAddress)
     {
         user.EmailAddress = emailAddress;
         user.EmailAddressVerified = false;
-        user.PasswordBcrypt = passwordBcrypt;
-        user.ShouldResetPassword = false;
 
         user.Role = GameUserRole.User;
         user.RegistrationCode = null;

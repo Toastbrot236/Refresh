@@ -305,7 +305,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("register", HttpMethods.Post), Authentication(false)]
     [DocSummary("Registers a new user either immediately, or after authenticating in-game with a username matching the one sent here.")]
-    [DocRequestBody(typeof(ApiRegisterRequest))]
+    [DocRequestBody(typeof(ApiRegisterByNameRequest))]
     #if !DEBUG
     [RateLimitSettings(3600, 10, 3600 / 2, "register")]
     #endif
@@ -354,30 +354,12 @@ public class AuthenticationApiEndpoints : EndpointGroup
         GameUser user = database.CreateUser(body.Username, body.EmailAddress, true);
         database.SetUserPassword(user, passwordBcrypt);
 
-        if (integrationConfig.SmtpEnabled)
-        {
-            EmailVerificationCode code = database.CreateEmailVerificationCode(user);
-            smtpService.SendEmailVerificationRequest(user, code.Code);
-        }
-        else
-        {
-            // if smtp isn't enabled just mark the user's email as verified
-            database.VerifyUserEmail(user);
-        }
-        
-        Token token = database.GenerateTokenForUser(user, TokenType.Api, TokenGame.Website, TokenPlatform.Website, context.RemoteIp());
-
-        return new ApiAuthenticationResponse
-        {
-            TokenData = token.TokenData,
-            UserId = user.UserId.ToString(),
-            ExpiresAt = token.ExpiresAt,
-        };
+        return this.FinishRegistration(context, integrationConfig, smtpService, database, user);
     }
 
     [ApiV3Endpoint("register/code", HttpMethods.Post), Authentication(false)]
     [DocSummary("Registers a new user under the username of the guest user matching the sent registration code.")]
-    [DocRequestBody(typeof(ApiRegisterRequest))]
+    [DocRequestBody(typeof(ApiRegisterByCodeRequest))]
     #if !DEBUG
     [RateLimitSettings(3600, 10, 3600 / 2, "register")]
     #endif
@@ -409,10 +391,15 @@ public class AuthenticationApiEndpoints : EndpointGroup
         string? passwordBcrypt = BC.HashPassword(body.PasswordSha512, WorkFactor);
         if (passwordBcrypt == null) return new ApiInternalError("Could not BCrypt the given password.");
 
-        // At this point, registration is complete
+        GameUser user = database.FinishGuestRegistration(guest, body.EmailAddress);
+        database.SetUserPassword(user, passwordBcrypt, false);
 
-        GameUser user = database.FinishGuestRegistration(guest, body.EmailAddress, body.PasswordSha512);
+        return this.FinishRegistration(context, integrationConfig, smtpService, database, user);
+    }
 
+    private ApiAuthenticationResponse FinishRegistration(RequestContext context, IntegrationConfig integrationConfig, 
+        SmtpService smtpService, GameDatabaseContext database, GameUser user)
+    {
         if (integrationConfig.SmtpEnabled)
         {
             EmailVerificationCode code = database.CreateEmailVerificationCode(user);
