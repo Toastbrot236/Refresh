@@ -90,12 +90,12 @@ public class GameServerConfig : Config
     /// Whether unknown users may register using the alternative method of having a temporary guest account created on game login,
     /// and then using a given secret registration code instead of their username to finish registration on the website.
     /// </summary>
-    public bool EnableRegistrationByCode { get; set; } = false;
+    public bool EnableGuestAccounts { get; set; } = false;
     /// <summary>
-    /// If guest's last contact + this amount of hours is in the past, automatically expire them. 
+    /// If guest's last contact + this amount of hours is in the past, automatically expire them using a worker. 
     /// Will fall back to 1 if set to anything lower and to 72 hours (3 days) if above.
     /// </summary>
-    public int GuestAccountTimeToLiveInHours { get; set; } = 2;
+    public int GuestAccountHoursToLiveAfterLastContact { get; set; } = 2;
     /// <summary>
     /// Whether to use deflate compression for responses.
     /// If this is disabled, large enough responses will cause LBP to overflow its read buffer and eventually corrupt its own memory to the point of crashing.

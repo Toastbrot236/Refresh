@@ -19,7 +19,7 @@ public class RegistrationByCodeTests : GameServerTest
     {
         GameServerConfig config = context.Server.Value.GameServerConfig;
         config.RequireGameLoginToRegister = true;
-        config.EnableRegistrationByCode = true;
+        config.EnableGuestAccounts = true;
     }
 
     [Test]

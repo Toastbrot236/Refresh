@@ -93,7 +93,7 @@ public class AuthenticationEndpoints : EndpointGroup
                     }
                 }
                 // Fall back to registration codes/guest accounts if enabled
-                else if (config.EnableRegistrationByCode)
+                else if (config.EnableGuestAccounts)
                 {
                     user = database.CreateGuestUser(ticket.Username, platform);
                     context.Logger.LogInfo(BunkumCategory.Authentication, $"Created guest user for {ticket.Username}");
