@@ -10,7 +10,6 @@ using Refresh.Database.Models.Levels.Challenges;
 using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
-using Refresh.Database.Models.Relations;
 using Refresh.Database.Models.Statistics;
 
 namespace Refresh.Database;
@@ -487,113 +486,32 @@ public partial class GameDatabaseContext // Levels
             .OrderByDescending(l => l.PublishDate), skip, count);
 
     [Pure]
-    public DatabaseLevelList SearchForLevels(int count, int skip, GameUser? user, LevelFilterSettings levelFilterSettings, string query)
+    public DatabaseList<GameLevel> SearchForLevels(int skip, int count, GameUser? user, LevelFilterSettings levelFilterSettings, SearchQueryParameters queryParameters)
     {
-        // Get custom commands from query, remove them from query and then use them.
-        List<string> queryParts = query.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-        bool excludeTitle = false;
-        bool excludeDescription = false;
-        List<GameUser> publishers = [];
-        char[] commandPrefixes = ['.', '-'];
-        char[] mentionSeperators = ['.', ':', '@'];
+        IQueryable<GameLevel> validLevels = this
+            .GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+            .FilterByLevelFilterSettings(user, levelFilterSettings);
 
-        for (int i = 0; i < queryParts.Count; i++)
-        {
-            string part = queryParts[i];
-
-            // If this is a command, find out which command this is. 
-            // If it's a valid command, remove it after applying it.
-            if (part.Length >= 2 && commandPrefixes.Contains(part[0]))
-            {
-                string command = part[1..];
-
-                if (command.Equals("nt", StringComparison.InvariantCultureIgnoreCase)
-                    || command.Equals("notitle", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    excludeTitle = true;
-                    queryParts.RemoveAt(i);
-                    i--; // Prevent skipping over a part after removal
-                    continue;
-                }
-                else if (command.Equals("nd", StringComparison.InvariantCultureIgnoreCase)
-                    || command.Equals("nodescription", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    excludeDescription = true;
-                    queryParts.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-            }
-            // If it's a valid user mention, look up the user and add them to the publisher list.
-            // Examples: u.Username or user@userName
-            // Minimum limit is 5 because the shortest prefix can be "u@" and usernames must be atleast 3 characters long.
-            else if (part.Length >= 5 && part[0] is 'u' or 'U')
-            {
-                string? publisherUsername = null;
-                bool isUserMention = false;
-                if (mentionSeperators.Contains(part[1]))
-                {
-                    isUserMention = true;
-                    publisherUsername = part[2..];
-
-                }
-                else if (part.Length >= 8 && part[..4].Equals("user", StringComparison.InvariantCultureIgnoreCase) 
-                    && mentionSeperators.Contains(part[4]))
-                {
-                    isUserMention = true;
-                    publisherUsername = part[5..];
-                }
-
-                if (isUserMention)
-                {
-                    // called method already avoids DB query and returns null if name is empty
-                    GameUser? specified = this.GetUserByUsername(publisherUsername, false);
-
-                    if (specified != null && !publishers.Any(u => u.UserId == specified.UserId))
-                    {
-                        publishers.Add(specified);
-                    }
-
-                    queryParts.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-            }
-        }
-
-        // Finally look up levels
-        IQueryable<GameLevel> validLevels = this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
-                .FilterByLevelFilterSettings(user, levelFilterSettings);
-        
-        // Re-creates query but without valid commands, also removes trailing and double whitespaces
-        string dbQuery = $"%{string.Join(' ', queryParts)}%";
-
-        IEnumerable<GameLevel> levelsEnumerated = validLevels.Where(l =>
-            (!excludeTitle && EF.Functions.ILike(l.Title, dbQuery)) ||
-            (!excludeDescription && EF.Functions.ILike(l.Description, dbQuery)));
-
-        // If any publishers are specified, filter levels to only ones published by them
-        if (publishers.Count > 0)
-        {
-            levelsEnumerated = levelsEnumerated.Where(l => l.PublisherUserId != null && publishers.Any(u => u.UserId == l.PublisherUserId));
-        }
-
-        List<GameLevel> levels = levelsEnumerated.ToList();
+        List<GameLevel> foundLevels = validLevels.Where(l =>
+            (!queryParameters.ExcludeTitle && EF.Functions.ILike(l.Title, queryParameters.DbQuery)) ||
+            (!queryParameters.ExcludeDescription && EF.Functions.ILike(l.Description, queryParameters.DbQuery)))
+            .ToList();
         
         // If the search is just an int, then we should also look for levels which match that ID
-        if (int.TryParse(query, out int id))
+        if (int.TryParse(queryParameters.Query, out int id))
         {
             // Try to find a level with the ID
             GameLevel? idLevel = validLevels.FirstOrDefault(l => l.LevelId == id);
 
-            // If we found it, and it does not duplicate, add it
-            if (idLevel != null && !levels.Contains(idLevel))
+            // If we found it, put it to the front of the list
+            if (idLevel != null)
             {
-                levels.Add(idLevel);
+                foundLevels.RemoveAll(l => l.LevelId == id);
+                foundLevels.Insert(0, idLevel);
             }
         }
 
-        return new(levels.OrderByDescending(l => l.CoolRating), skip, count, publishers);
+        return new(foundLevels.OrderByDescending(l => l.CoolRating), skip, count);
     }
 
     [Pure]

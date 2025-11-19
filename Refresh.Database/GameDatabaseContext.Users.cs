@@ -92,6 +92,17 @@ public partial class GameDatabaseContext // Users
         => new(this.GameUsersIncluded
             .Where(u => u.Statistics!.FavouriteCount > 0)
             .OrderByDescending(u => u.Statistics!.FavouriteCount), skip, count);
+    
+    [Pure]
+    public DatabaseList<GameUser> SearchForUsers(int skip, int count, SearchQueryParameters queryParameters)
+    {
+        List<GameUser> foundUsers = this.GameUsersIncluded.Where(l =>
+            (!queryParameters.ExcludeTitle && EF.Functions.ILike(l.Username, queryParameters.DbQuery)) ||
+            (!queryParameters.ExcludeDescription && EF.Functions.ILike(l.Description, queryParameters.DbQuery)))
+            .ToList();
+
+        return new(foundUsers.OrderByDescending(u => u.Statistics?.FavouriteCount ?? 0), skip, count);
+    }
 
     public void UpdateUserData(GameUser user, ISerializedEditUser data, TokenGame game)
     {
