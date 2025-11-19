@@ -41,7 +41,20 @@ public partial class GameDatabaseContext // Users
                     FakeUser = true,
                 });
             });
-        } 
+        }
+        // Same as above but with the copyable story level publisher
+        else if (username == SystemUsers.StoryUserName && user == null)
+        {
+            this.Write(() =>
+            {
+                this.GameUsers.Add(user = new GameUser
+                {
+                    Username = SystemUsers.StoryUserName,
+                    Description = SystemUsers.StoryUserDescription,
+                    FakeUser = true,
+                });
+            });
+        }
         // If that failed and the username is a fake re-upload user, then we need to create the backing fake user
         else if (username.StartsWith(SystemUsers.SystemPrefix) && user == null)
         {

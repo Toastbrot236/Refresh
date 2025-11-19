@@ -20,4 +20,7 @@ public static class SystemUsers
     
     public const string HashedUserName = "!Hashed";
     public const string HashedUserDescription = "I'm a fake user that represents an unknown publisher for hashed levels.";
+
+    public const string StoryUserName = "!Story";
+    public const string StoryUserDescription = "I'm a fake user that allows you to easily copy your local story levels to your moon.";
 }
