@@ -487,38 +487,42 @@ public partial class GameDatabaseContext // Levels
             .OrderByDescending(l => l.PublishDate), skip, count);
 
     [Pure]
-    public DatabaseList<GameLevel> SearchForLevels(int count, int skip, GameUser? user, LevelFilterSettings levelFilterSettings, string query)
+    public DatabaseList<GameLevel> SearchForLevels(int count, int skip, GameUser? user, LevelFilterSettings levelFilterSettings, SearchQueryParameters searchParams)
     {
-        IQueryable<GameLevel> validLevels = this.GetLevelsByGameVersion(levelFilterSettings.GameVersion)
-                .FilterByLevelFilterSettings(user, levelFilterSettings);
+        IQueryable<GameLevel> validLevels = this
+            .GetLevelsByGameVersion(levelFilterSettings.GameVersion)
+            .FilterByLevelFilterSettings(user, levelFilterSettings);
 
-        string dbQuery = $"%{query}%";
-        List<GameLevel> levels = validLevels.Where(l =>
-            EF.Functions.ILike(l.Title, dbQuery) ||
-            EF.Functions.ILike(l.Description, dbQuery)
-        ).ToList();
+        List<GameLevel> foundLevels = validLevels.Where(l =>
+            (!searchParams.ExcludeTitle && EF.Functions.ILike(l.Title, searchParams.DbQuery)) ||
+            (!searchParams.ExcludeDescription && EF.Functions.ILike(l.Description, searchParams.DbQuery)))
+            .ToList();
         
         // If the search is just an int, then we should also look for levels which match that ID
-        if (int.TryParse(query, out int id))
+        if (int.TryParse(searchParams.Query, out int id))
         {
             // Try to find a level with the ID
             GameLevel? idLevel = validLevels.FirstOrDefault(l => l.LevelId == id);
 
-            // If we found it, and it does not duplicate, add it
-            if (idLevel != null && !levels.Contains(idLevel))
+            // If we found it, put it to the front of the list
+            if (idLevel != null)
             {
-                levels.Add(idLevel);
+                foundLevels.RemoveAll(l => l.LevelId == id);
+                foundLevels.Insert(0, idLevel);
             }
         }
-        
+
         // Try to look up a username to search by publisher.
-        GameUser? publisher = this.GetUserByUsername(query, false); 
+        // TODO: Remove this once searching users is implemented for both the game and the API
+        // (especially for /slots/search) as then this will no longer be necessary.
+        // Would also allow searching users who have no published levels.
+        GameUser? publisher = this.GetUserByUsername(searchParams.Query, false); 
         if (publisher != null)
         {
-            levels.AddRange(validLevels.Where(l => l.Publisher == publisher));
+            foundLevels.AddRange(validLevels.Where(l => l.PublisherUserId == publisher.UserId));
         }
 
-        return new DatabaseList<GameLevel>(levels.OrderByDescending(l => l.CoolRating), skip, count);
+        return new(foundLevels.OrderByDescending(l => l.CoolRating), skip, count);
     }
 
     [Pure]
