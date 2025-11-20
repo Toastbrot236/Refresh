@@ -504,11 +504,10 @@ public partial class GameDatabaseContext // Levels
             // Try to find a level with the ID
             GameLevel? idLevel = validLevels.FirstOrDefault(l => l.LevelId == id);
 
-            // If we found it, put it to the front of the list
-            if (idLevel != null)
+            // If we found it, and it does not duplicate, add it
+            if (idLevel != null && !foundLevels.Contains(idLevel))
             {
-                foundLevels.RemoveAll(l => l.LevelId == id);
-                foundLevels.Insert(0, idLevel);
+                foundLevels.Add(idLevel);
             }
         }
 
