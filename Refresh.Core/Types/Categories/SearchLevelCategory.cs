@@ -27,6 +27,8 @@ public class SearchLevelCategory : GameLevelCategory
                         ?? context.QueryString["textFilter"]; // LBP3 sends this instead of query
         if (query == null) return null;
 
+        bool isApi = context.IsApi();
+
         // Get custom commands from query, remove them from query and then use them.
         List<string> queryParts = query.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
         SearchQueryParameters queryParameters = new();
@@ -55,8 +57,9 @@ public class SearchLevelCategory : GameLevelCategory
                     isCommand = true;
                 }
                 // Incase a LBP1 or 2 user wants to only see levels or only users.
-                // Only allow this for the game for now.
-                else if (!context.IsApi())
+                // Only allow this for the game for now, and don't allow API users to use this category
+                // to search for users
+                else if (!isApi)
                 {
                     if (command.Equals("nu", StringComparison.InvariantCultureIgnoreCase)
                         || command.Equals("nousers", StringComparison.InvariantCultureIgnoreCase))
@@ -91,7 +94,8 @@ public class SearchLevelCategory : GameLevelCategory
             ? dataContext.Database.SearchForLevels(skip, count, dataContext.User, levelFilterSettings, queryParameters)
             : null;
 
-        DatabaseList<GameUser>? users = levelFilterSettings.DisplayUsers 
+        // Don't allow the API to search for users for now
+        DatabaseList<GameUser>? users = levelFilterSettings.DisplayUsers && !isApi
             ? dataContext.Database.SearchForUsers(skip, count, queryParameters)
             : null;
 
