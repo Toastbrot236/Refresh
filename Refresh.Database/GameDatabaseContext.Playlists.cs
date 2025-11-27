@@ -108,7 +108,7 @@ public partial class GameDatabaseContext // Playlists
     public GamePlaylist? GetUserRootPlaylist(GameUser user)
         => this.GamePlaylistsIncluded.FirstOrDefault(p => p.IsRoot && p.PublisherId == user.UserId);
 
-    public void UpdatePlaylist(GamePlaylist playlist, ISerializedCreatePlaylistInfo updateInfo)
+    public GamePlaylist UpdatePlaylist(GamePlaylist playlist, ISerializedCreatePlaylistInfo updateInfo)
     {
         GameLocation location = updateInfo.Location ?? new GameLocation(playlist.LocationX, playlist.LocationY);
         
@@ -121,6 +121,8 @@ public partial class GameDatabaseContext // Playlists
             playlist.LocationY = location.Y;
             playlist.LastUpdateDate = this._time.Now;
         });
+
+        return playlist;
     }
 
     public void DeletePlaylist(GamePlaylist playlist)
