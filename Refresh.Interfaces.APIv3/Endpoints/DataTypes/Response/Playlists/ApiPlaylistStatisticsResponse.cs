@@ -4,7 +4,7 @@ using Refresh.Database.Models.Statistics;
 namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Playlists;
 
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-public class ApiPlaylistStatisticsResponse : IApiResponse, IDataConvertableFrom<ApiPlaylistStatisticsResponse, GamePlaylistStatistics>
+public class ApiPlaylistStatisticsResponse
 {
     public required int Levels { get; set; }
     public required int SubPlaylists { get; set; }
@@ -23,7 +23,4 @@ public class ApiPlaylistStatisticsResponse : IApiResponse, IDataConvertableFrom<
             Hearts = old.FavouriteCount,
         };
     }
-    
-    public static IEnumerable<ApiPlaylistStatisticsResponse> FromOldList(IEnumerable<GamePlaylistStatistics> oldList, DataContext dataContext)
-        => oldList.Select(old => FromOld(old, dataContext)).ToList()!;
 }
