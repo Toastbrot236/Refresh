@@ -11,6 +11,9 @@ public class ApiValidationError : ApiError
     public const string NumberParseErrorWhen = "The number could not be parsed by the server";
     public static readonly ApiValidationError NumberParseError = new(NumberParseErrorWhen);
 
+    public const string InvalidPlaylistIdWhen = "The playlist ID couldn't be parsed by the server";
+    public static readonly ApiValidationError InvalidPlaylistId = new(InvalidPlaylistIdWhen);
+
     public const string RatingParseErrorWhen = "The given rating was invalid";
     public static readonly ApiValidationError RatingParseError = new(RatingParseErrorWhen);
 
@@ -28,6 +31,12 @@ public class ApiValidationError : ApiError
 
     public const string NoReviewDeletionPermissionErrorWhen = "You do not have permission to delete this review";
     public static readonly ApiValidationError NoReviewDeletionPermissionError = new(NoReviewDeletionPermissionErrorWhen);
+
+    public const string NoPlaylistEditPermissionErrorWhen = "You do not have permission to update this playlist";
+    public static readonly ApiValidationError NoPlaylistEditPermissionError = new(NoPlaylistEditPermissionErrorWhen);
+
+    public const string NoPlaylistDeletionPermissionErrorWhen = "You do not have permission to delete this playlist";
+    public static readonly ApiValidationError NoPlaylistDeletionPermissionError = new(NoPlaylistDeletionPermissionErrorWhen);
 
     public const string DontRateOwnContentWhen = "You may not rate your own content";
     public static readonly ApiValidationError DontRateOwnContent = new(DontRateOwnContentWhen);
@@ -52,6 +61,12 @@ public class ApiValidationError : ApiError
 
     public const string BodyMustBeImageErrorWhen = "The asset must be a PNG/JPEG file";
     public static readonly ApiValidationError BodyMustBeImageError = new(BodyMustBeImageErrorWhen);
+
+    public const string IconMustBeImageErrorWhen = "The icon must be a PNG/JPEG file";
+    public static readonly ApiValidationError IconMustBeImageError = new(IconMustBeImageErrorWhen);
+
+    public const string IconMissingErrorWhen = "The icon is missing from the server";
+    public static readonly ApiValidationError IconMissingError = new(IconMissingErrorWhen);
     
     public const string ResourceExistsErrorWhen = "The resource you are attempting to create already exists.";
     public static readonly ApiValidationError ResourceExistsError = new(ResourceExistsErrorWhen);

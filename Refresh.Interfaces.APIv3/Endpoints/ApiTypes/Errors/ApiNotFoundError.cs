@@ -24,7 +24,16 @@ public class ApiNotFoundError : ApiError
     
     public const string PhotoMissingErrorWhen = "The photo could not be found";
     public static readonly ApiNotFoundError PhotoMissingError = new(PhotoMissingErrorWhen);
-    
+
+    public const string PlaylistMissingErrorWhen = "The playlist could not be found";
+    public static readonly ApiNotFoundError PlaylistMissingError = new(PlaylistMissingErrorWhen);
+
+    public const string ParentPlaylistMissingErrorWhen = "The parent playlist could not be found";
+    public static readonly ApiNotFoundError ParentPlaylistMissingError = new(ParentPlaylistMissingErrorWhen);
+
+    public const string SubPlaylistMissingErrorWhen = "The sub-playlist could not be found";
+    public static readonly ApiNotFoundError SubPlaylistMissingError = new(SubPlaylistMissingErrorWhen);
+
     public const string ContestMissingErrorWhen = "The contest could not be found";
     public static readonly ApiNotFoundError ContestMissingError = new(ContestMissingErrorWhen);
     
