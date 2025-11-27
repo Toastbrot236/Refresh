@@ -20,6 +20,8 @@ public class ApiGamePlaylistResponse : IApiResponse, IDataConvertableFrom<ApiGam
     public required DateTimeOffset CreationDate { get; set; }
     public required DateTimeOffset UpdateDate { get; set; }
 
+    public ApiPlaylistStatisticsResponse? Statistics { get; set; }
+
     public static ApiGamePlaylistResponse? FromOld(GamePlaylist? playlist, DataContext dataContext)
     {
         if (playlist == null) return null;
@@ -39,6 +41,7 @@ public class ApiGamePlaylistResponse : IApiResponse, IDataConvertableFrom<ApiGam
             Location = ApiGameLocationResponse.FromLocation(playlist.LocationX, playlist.LocationY)!,
             CreationDate = playlist.CreationDate,
             UpdateDate = playlist.LastUpdateDate,
+            Statistics = ApiPlaylistStatisticsResponse.FromOld(playlist.Statistics, dataContext),
         };
     }
 
