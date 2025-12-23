@@ -21,7 +21,7 @@ public class AdminRegistrationApiEndpoints : EndpointGroup
         GameDatabaseContext database, DataContext dataContext) 
         => new(ApiAdminQueuedRegistrationResponse.FromOldList(database.GetAllQueuedRegistrations().Items, dataContext));
 
-    [ApiV3Endpoint("admin/registrations/{uuid}"), MinimumRole(GameUserRole.Admin)]
+    [ApiV3Endpoint("admin/registrations/{uuid}"), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Retrieves a single registration by its UUID.")]
     [DocError(typeof(ApiValidationError), ApiValidationError.ObjectIdParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The registration could not be found")]
