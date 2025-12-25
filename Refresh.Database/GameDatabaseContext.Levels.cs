@@ -119,12 +119,12 @@ public partial class GameDatabaseContext // Levels
         return level;
     }
 
-    public GameLevel? GetAdventureContainingInnerLevel(string innerLevelRootHash, int? innerLevelId)
+    public GameLevel? GetAdventureContainingInnerLevel(string innerLevelRootHash)
     {
         GameAsset? levelRootAsset = this.GetAssetFromHash(innerLevelRootHash);
         if (levelRootAsset == null) return null;
 
-        // Find all ADC assets which depend on the inner level asset, as we currently don't ensure
+        // Find all ADC (adventure root) assets which depend on the inner level asset, as we currently don't ensure
         // that inner levels must be unique across all uploaded adventures, since that'd require asset deserialization,
         // as for some reason, LBP3 doesn't include the root hashes of inner levels alongside their other data when
         // publishing an adventure.
