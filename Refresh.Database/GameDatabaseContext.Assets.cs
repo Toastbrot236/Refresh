@@ -7,6 +7,10 @@ public partial class GameDatabaseContext // Assets
 {
     public IQueryable<GameAsset> GameAssetsIncluded => this.GameAssets
         .Include(a => a.OriginalUploader);
+
+    public IQueryable<AssetDependencyRelation> AssetDependencyRelationsIncluded => this.AssetDependencyRelations
+        .Include(a => a.DependencyAsset)
+        .Include(a => a.DependentAsset);
     
     public GameAsset? GetAssetFromHash(string hash)
     {
@@ -42,14 +46,16 @@ public partial class GameDatabaseContext // Assets
 
     // TODO: optimize this by returning a list of GameAsset instead
     public IEnumerable<string> GetAssetDependencies(GameAsset asset) 
-        => this.AssetDependencyRelations.Where(a => a.Dependent == asset.AssetHash)
+        => this.AssetDependencyRelationsIncluded.Where(a => a.Dependent == asset.AssetHash)
             .AsEnumerable()
             .Select(a => a.Dependency);
     
-    // TODO: optimize this by returning a list of GameAsset instead
-    public IEnumerable<string> GetAssetDependents(GameAsset asset) 
+    public IEnumerable<GameAsset> GetAssetDependents(GameAsset asset) 
+        => this.AssetDependencyRelationsIncluded.Where(a => a.Dependency == asset.AssetHash)
+            .Select(a => a.DependentAsset);
+    
+    public IEnumerable<string> GetAssetDependentHashes(GameAsset asset) 
         => this.AssetDependencyRelations.Where(a => a.Dependency == asset.AssetHash)
-            .AsEnumerable()
             .Select(a => a.Dependent);
 
     public void AddOrOverwriteAssetDependencyRelations(string dependent, IEnumerable<string> dependencies)

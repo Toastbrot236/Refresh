@@ -26,7 +26,7 @@ public class ApiGameAssetResponse : IApiResponse, IDataConvertableFrom<ApiGameAs
             UploadDate = old.UploadDate,
             AssetType = old.AssetType,
             Dependencies = dataContext.Database.GetAssetDependencies(old),
-            Dependents = dataContext.Database.GetAssetDependents(old),
+            Dependents = dataContext.Database.GetAssetDependentHashes(old).ToList(),
             AssetFlags = new ApiAssetFlags(old.AssetFlags),
         };
     }
