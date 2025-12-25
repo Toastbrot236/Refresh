@@ -41,4 +41,7 @@ public partial class GameDatabaseContext // LevelRevisions
 
         return revision;
     }
+
+    public GameLevelRevision? GetLevelRevisionByRootResource(string rootResourceHash)
+        => this.GameLevelRevisionsIncluded.FirstOrDefault(r => r.RootResource == rootResourceHash);
 }

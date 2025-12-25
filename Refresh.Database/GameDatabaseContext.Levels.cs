@@ -12,6 +12,7 @@ using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Relations;
 using Refresh.Database.Models.Statistics;
+using Refresh.Database.Models.Assets;
 
 namespace Refresh.Database;
 
@@ -116,6 +117,39 @@ public partial class GameDatabaseContext // Levels
         });
         
         return level;
+    }
+
+    public GameLevel? GetAdventureContainingInnerLevel(string innerLevelRootHash, int? innerLevelId)
+    {
+        GameAsset? levelRootAsset = this.GetAssetFromHash(innerLevelRootHash);
+        if (levelRootAsset == null) return null;
+
+        // Find all ADC assets which depend on the inner level asset, as we currently don't ensure
+        // that inner levels must be unique across all uploaded adventures, since that'd require asset deserialization,
+        // as for some reason, LBP3 doesn't include the root hashes of inner levels alongside their other data when
+        // publishing an adventure.
+        // Only check one recursion layer and don't traverse all dependents, as there shouldn't be any other assets 
+        // inbetween the LVL and the ADC.
+        // Also, incase the found ADC asset is not referenced as root asset by any adventure anywhere in the DB, 
+        // we can just continue traversing the assets and try to find another ADC which is actually referenced.
+        List<string> dependentAdventureRootHashes = this
+            .GetAssetDependents(levelRootAsset)
+            .Where(a => a.AssetType == GameAssetType.AdventureCreateProfile)
+            .Select(a => a.AssetHash)
+            .ToList();
+        
+        foreach (string adventureRootHash in dependentAdventureRootHashes)
+        {
+            // The publish endpoint already ensures that all levels which have an ADC asset as root are adventures,
+            // so no need to verify this here.
+            GameLevel? adventure = this.GetLevelByRootResource(adventureRootHash);
+            if (adventure != null) return adventure;
+
+            GameLevelRevision? adventureRevision = this.GetLevelRevisionByRootResource(adventureRootHash);
+            if (adventureRevision != null) return adventureRevision.Level;
+        }
+
+        return null;
     }
 
     public GameLevel UpdateLevelPublisher(GameLevel level, GameUser newAuthor)
