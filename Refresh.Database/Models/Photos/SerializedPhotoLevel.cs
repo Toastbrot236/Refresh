@@ -11,4 +11,7 @@ public class SerializedPhotoLevel
     [XmlElement("id")] public int LevelId { get; set; }
     [XmlElement("name")] public string Title { get; set; }
     [XmlAttribute("type")] public string Type { get; set; }
+
+    #nullable enable
+    [XmlAttribute("rootLevel")] public string? RootHash { get; set; }
 }

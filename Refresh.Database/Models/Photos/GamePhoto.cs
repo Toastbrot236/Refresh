@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using Refresh.Database.Models.Assets;
+using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Users;
 
@@ -18,15 +19,20 @@ public partial class GamePhoto : ISequentialId
     public GameUser Publisher { get; set; }
     public ObjectId PublisherId { get; set; }
 
+    // Useful incase there is a game-specific issue with photos (such as wrongful photo -> level attribution) again.
+    public TokenGame Game { get; set; }
+
     #nullable restore
     [ForeignKey(nameof(LevelId))]
     public GameLevel? Level { get; set; }
     public int? LevelId { get; set; }
+    public int? InnerLevelId { get; set; } // For photos taken in adventures
     #nullable disable
 
     public string LevelType { get; set; }
     public int OriginalLevelId { get; set; }
     public string OriginalLevelName { get; set; }
+    public string LevelRootHash { get; set; } // Sent by LBP3
     
     [Required, ForeignKey(nameof(SmallAssetHash))]
     public GameAsset SmallAsset { get; set; }
@@ -41,6 +47,7 @@ public partial class GamePhoto : ISequentialId
     public string LargeAssetHash { get; set; }
 
     public string PlanHash { get; set; }
+    public PhotoUploadSource Source { get; set; }
 
     #region Subjects
     
