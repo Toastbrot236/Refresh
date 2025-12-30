@@ -98,6 +98,45 @@ namespace Refresh.Database.Migrations
                     b.ToTable("GameAssets");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Assets.GameItem", b =>
+                {
+                    b.Property<string>("PlanHash")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<string[]>("ContributorNames")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("CreatorName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("IconHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCameraPhoto")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsGamePhoto")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsUserCreation")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PlanHash");
+
+                    b.ToTable("GameItems");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Authentication.Token", b =>
                 {
                     b.Property<string>("TokenId")
