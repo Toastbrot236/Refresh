@@ -44,4 +44,5 @@ public class GameLevelRequest : ISerializedPublishLevel
     [XmlElement("backgroundGUID")] public string? BackgroundGuid { get; set; }
     
     [XmlArray("slots")] public GameLevelRequest[]? Slots { get; set; }
+    public IEnumerable<ISerializedPublishLevel> InnerLevels { get; set; } = [];
 }

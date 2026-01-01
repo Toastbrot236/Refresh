@@ -5,6 +5,7 @@ namespace Refresh.Database.Query;
 
 public interface ISerializedPublishLevel
 {
+    int LevelId { get; set; }
     string Title { get; set; }
     string Description { get; set; }
     string IconHash { get; set; }

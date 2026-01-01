@@ -16,6 +16,7 @@ using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Users;
+using Refresh.Database.Query;
 using Refresh.Interfaces.Game.Endpoints.DataTypes.Request;
 using Refresh.Interfaces.Game.Endpoints.DataTypes.Response;
 using Refresh.Interfaces.Game.Types.Levels;
@@ -77,6 +78,36 @@ public class PublishEndpoints : EndpointGroup
         return true;
     }
 
+    private static IEnumerable<ISerializedPublishLevel>? VerifyInnerAdventureLevels(IEnumerable<GameLevelRequest> innerLevels, string adventureTitle, GameUser publisher, DataContext dataContext)
+    {
+        List<ISerializedPublishLevel> innerLevelsFinal = [];
+
+        // If there are inner levels with identical IDs, something has gone very wrong
+        int totalLevelCount = innerLevels.Count();
+        int distinctLevelCount = innerLevels.DistinctBy(l => l.LevelId).Count();
+        if (distinctLevelCount != totalLevelCount)
+        {
+            dataContext.Logger.LogInfo(RefreshContext.Publishing, "Adventure has multiple identical levels: {0} out of {1} uniquely identified levels", distinctLevelCount, totalLevelCount);
+            dataContext.Database.AddPublishFailNotification($"The adventure had {totalLevelCount - distinctLevelCount} out of {totalLevelCount} unidentifyable levels", adventureTitle, publisher);
+            return null;
+        }
+
+        foreach (GameLevelRequest innerLevel in innerLevels)
+        {
+            if (VerifyLevel(innerLevel, dataContext) && innerLevel.LevelId != default) 
+            {
+                innerLevelsFinal.Add(innerLevel);
+                continue;
+            }
+
+            dataContext.Logger.LogInfo(RefreshContext.Publishing, "Failed to verify inner level {0}", innerLevel.LevelId);
+            dataContext.Database.AddPublishFailNotification($"The adventure's inner level '{innerLevel.Title}' was invalid", adventureTitle, publisher);
+            return null;
+        }
+
+        return innerLevelsFinal;
+    }
+
     private static bool IsTimedLevelLimitReached(DataContext dataContext, GameUser user, string levelTitle, TimedLevelUploadLimitProperties config, DateTimeOffset now)
     {
         if (!config.Enabled || user.TimedLevelUploads <= 0 || user.TimedLevelUploadExpiryDate == null)
@@ -132,15 +163,9 @@ public class PublishEndpoints : EndpointGroup
             return BadRequest;
         }
 
-        if (body.Slots != null)
+        if (body.Slots != null && VerifyInnerAdventureLevels(body.Slots, body.Title, dataContext.User!, dataContext) == null)
         {
-            foreach (GameLevelRequest innerLevel in body.Slots)
-            {
-                if (VerifyLevel(innerLevel, dataContext)) continue;
-
-                context.Logger.LogInfo(RefreshContext.Publishing, "Failed to verify inner level {0}", innerLevel.LevelId);
-                return BadRequest;
-            }
+            return BadRequest;
         }
 
         List<string> hashes =
@@ -205,6 +230,11 @@ public class PublishEndpoints : EndpointGroup
                 dataContext.Database.AddPublishFailNotification("The uploaded level data was corrupted.", body.Title, dataContext.User!);
                 return BadRequest;
             }
+        }
+
+        if (body.Slots != null && VerifyInnerAdventureLevels(body.Slots, body.Title, user, dataContext) == null)
+        {
+            return BadRequest;
         }
 
         if (body.LevelId != 0) // Republish requests contain the id of the old level
