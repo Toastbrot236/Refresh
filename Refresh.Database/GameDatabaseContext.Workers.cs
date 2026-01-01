@@ -1,4 +1,6 @@
-﻿using Refresh.Database.Models.Workers;
+﻿using Refresh.Database.Models.Levels;
+using Refresh.Database.Models.Workers;
+using Refresh.Database.Models.Workers.Jobs;
 
 namespace Refresh.Database;
 
@@ -65,5 +67,21 @@ public partial class GameDatabaseContext // Workers
         
         jobState.State = JsonConvert.SerializeObject(state, Formatting.None);
         this.SaveChanges();
+    }
+
+    public void AddAdventureToCompleteAdventureDataJob(GameLevel adventure, Dictionary<string, bool> levelModdedRelations)
+    {
+        // Get state or create a new one if it doesn't exist
+        const string jobStateId = "CompleteAdventureDataJob";
+        CompleteAdventureDataJobState existingState = (CompleteAdventureDataJobState?)
+            this.GetJobState(jobStateId, typeof(CompleteAdventureDataJobState), WorkerClass.Craftworld)
+            ?? new();
+        
+        // Append new adventure's information
+        existingState.AdventureRootHashes.Add(adventure.RootResource);
+        existingState.LevelModdedRelations = existingState.LevelModdedRelations.Concat(levelModdedRelations).ToDictionary();
+
+        // Now update the job state
+        this.UpdateOrCreateJobState(jobStateId, existingState, WorkerClass.Craftworld);
     }
 }

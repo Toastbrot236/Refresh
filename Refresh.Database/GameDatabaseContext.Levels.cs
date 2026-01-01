@@ -12,6 +12,7 @@ using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Relations;
 using Refresh.Database.Models.Statistics;
+using Refresh.Database.Models.Assets;
 
 namespace Refresh.Database;
 
@@ -81,6 +82,92 @@ public partial class GameDatabaseContext // Levels
 
         return level;
     }
+
+    public void UpdateInnerLevels(GameLevel adventure, IEnumerable<ISerializedPublishLevel> innerLevels)
+    {
+        DateTimeOffset now = this._time.Now;
+
+        // Part 1: Add the incomplete inner levels to DB for now
+        foreach (ISerializedPublishLevel innerLevel in innerLevels)
+        {
+            GameInnerAdventureLevel? existingLevel = this.GetInnerLevelById(innerLevel.LevelId, adventure.LevelId);
+
+            if (existingLevel == null)
+            {
+                GameInnerAdventureLevel newLevel = new()
+                {
+                    InnerId = innerLevel.LevelId,
+                    AdventureId = adventure.LevelId,
+                    Adventure = adventure,
+                    PublishedAt = now,
+                    MetadataUpdatedAt = now,
+                    RootResourceUpdatedAt = now,
+                    DiscoveredFromPublish = true,
+                    Title = innerLevel.Title,
+                    IconHash = innerLevel.IconHash,
+                    Description = innerLevel.Description,
+                    LevelType = GameLevelTypeExtensions.FromGameString(innerLevel.LevelType),
+                    MinPlayers = innerLevel.MinPlayers,
+                    MaxPlayers = innerLevel.MaxPlayers,
+                    EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers,
+                    RequiresMoveController = innerLevel.RequiresMoveController
+                };
+
+                this.GameInnerAdventureLevels.Add(newLevel);
+            }
+            else 
+            {
+                existingLevel.MetadataUpdatedAt = now;
+                existingLevel.Title = innerLevel.Title;
+                existingLevel.IconHash = innerLevel.IconHash;
+                existingLevel.Description = innerLevel.Description;
+                existingLevel.LevelType = GameLevelTypeExtensions.FromGameString(innerLevel.LevelType);
+                existingLevel.MinPlayers = innerLevel.MinPlayers;
+                existingLevel.MaxPlayers = innerLevel.MaxPlayers;
+                existingLevel.EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers;
+                existingLevel.RequiresMoveController = innerLevel.RequiresMoveController;
+
+                this.GameInnerAdventureLevels.Update(existingLevel);
+            }
+        }
+
+        this.SaveChanges();
+
+        // Part 2: Determine which level dependencies of the adventure's root resource are "modded".
+        GameAsset? adventureRoot = this.GetAssetFromHash(adventure.RootResource);
+        if (adventureRoot == null) return; // Don't think it's necessary to verify this asset's type here
+
+        // dependency level hash -> whether it or its dependencies are modded
+        Dictionary<string, bool> levelModdedRelations = [];
+
+        // Iterate the immediate dependencies of the adventure's root asset. Don't traverse, as the asset itself 
+        // depends on all inner levels' root assets.
+        foreach (string hash in this.GetAssetDependencies(adventureRoot))
+        {
+            GameAsset? dependency = this.GetAssetFromHash(hash);
+            if (dependency == null || dependency.AssetType != GameAssetType.Level)
+            {
+                continue;
+            }
+
+            // TODO: Could probably cache the modded status in GameAsset so we don't have
+            // to traverse its dependency tree and use many database calls every time here
+            bool isModded = false;
+            dependency.TraverseDependenciesRecursively(this, (_, asset) =>
+            {
+                if (asset != null && (asset.AssetFlags & AssetFlags.Modded) != 0)
+                    isModded = true;
+            });
+
+            levelModdedRelations.Add(hash, isModded);
+        }
+
+        // Now, finally, update the job state
+        this.AddAdventureToCompleteAdventureDataJob(adventure, levelModdedRelations);
+    }
+
+    public GameInnerAdventureLevel? GetInnerLevelById(int innerId, int adventureId)
+        => this.GameInnerAdventureLevels.FirstOrDefault(l => l.InnerId == innerId && l.AdventureId == adventureId);
 
     public GameLevel GetStoryLevelById(int id)
     {
