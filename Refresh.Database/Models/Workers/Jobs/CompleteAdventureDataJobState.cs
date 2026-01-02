@@ -8,8 +8,8 @@ namespace Refresh.Database.Models.Workers.Jobs;
 /// </summary>
 public class CompleteAdventureDataJobState
 {
-	[JsonProperty("adventureRootHashes")] public List<string> AdventureRootHashes { get; set; } = [];
+	[JsonProperty("AdventureRootHashes")] public List<string> AdventureRootHashes { get; set; } = [];
 
     // inner level root resource hash -> whether that resource or its dependencies are modded
-	[JsonProperty("levelModdedRelations")] public Dictionary<string, bool> LevelModdedRelations { get; set; } = [];
+	[JsonProperty("LevelModdedRelations")] public Dictionary<string, bool> LevelModdedRelations { get; set; } = [];
 }

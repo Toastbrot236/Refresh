@@ -52,6 +52,7 @@ public class GameInnerLevel
     public int MaxPlayers { get; set; }
     public bool EnforceMinMaxPlayers { get; set; }
     public bool RequiresMoveController { get; set; }
+    public List<Label> Labels { get; set; } = [];
     
     // The attributes below are, for some reason, never included in the adventure publish body,
     // and instead have to be obtained by deserializing the adventure's dependencies using the cwlib-worker.
@@ -61,16 +62,15 @@ public class GameInnerLevel
     // 
     // If any attribute in this region is null, the worker hasn't processed and set it yet.
     #region Cwlib-Exclusive
-    public string? RootResource { get; set; }
-    public int? LocationX { get; set; }
-    public int? LocationY { get; set; }
-    public int? LocationZ { get; set; }
-    public int? BadgeSize { get; set; }
-    public List<Label>? Labels { get; set; }
-    public List<string>? ContributorNames { get; set; }
+    public string RootResource { get; set; } = "";
+    public float LocationX { get; set; }
+    public float LocationY { get; set; }
+    public float LocationZ { get; set; }
+    public byte BadgeSize { get; set; }
+    public List<string> ContributorNames { get; set; } = [];
 
     // Can be determined without the worker, but we don't know which ID, and therefore which dataset to
     // attribute a particular level asset's modded status to, so we do still partially rely on the worker for this.
-    public bool? IsModded { get; set; }
+    public bool IsModded { get; set; } = false;
     #endregion
 }
