@@ -189,7 +189,6 @@ public partial class GameDatabaseContext // Levels
                     {
                         isLevelModded = true;
                         isAdventureModded = true;
-                        
                     }
                 });
 
@@ -201,10 +200,17 @@ public partial class GameDatabaseContext // Levels
                 dependency.TraverseDependenciesRecursively(this, (_, asset) =>
                 {
                     if (asset != null && (asset.AssetFlags & AssetFlags.Modded) != 0)
+                    {
                         isAdventureModded = true;
+                    }
                 });
             }
         }
+
+        // Update adventure modded state
+        adventure.IsModded = isAdventureModded;
+        this.GameLevels.Update(adventure);
+        this.SaveChanges();
 
         // Now, finally, update the job state
         this.AddAdventureToCompleteAdventureDataJob(adventure, levelModdedRelations);
