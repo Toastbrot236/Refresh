@@ -373,6 +373,87 @@ namespace Refresh.Database.Migrations
                     b.ToTable("GameChallengeScores");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Levels.GameInnerLevel", b =>
+                {
+                    b.Property<int>("InnerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AdventureId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte>("BadgeSize")
+                        .HasColumnType("smallint");
+
+                    b.PrimitiveCollection<List<string>>("ContributorNames")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("DiscoveredFromPublish")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("EnforceMinMaxPlayers")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("IconHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsModded")
+                        .HasColumnType("boolean");
+
+                    b.PrimitiveCollection<byte[]>("Labels")
+                        .IsRequired()
+                        .HasColumnType("smallint[]");
+
+                    b.Property<byte>("LevelType")
+                        .HasColumnType("smallint");
+
+                    b.Property<float>("LocationX")
+                        .HasColumnType("real");
+
+                    b.Property<float>("LocationY")
+                        .HasColumnType("real");
+
+                    b.Property<float>("LocationZ")
+                        .HasColumnType("real");
+
+                    b.Property<int>("MaxPlayers")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("MetadataUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MinPlayers")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("RequiresMoveController")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RootResource")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("RootResourceUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InnerId", "AdventureId");
+
+                    b.HasIndex("AdventureId");
+
+                    b.ToTable("GameInnerLevels");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Levels.GameLevel", b =>
                 {
                     b.Property<int>("LevelId")
@@ -1885,6 +1966,17 @@ namespace Refresh.Database.Migrations
                     b.Navigation("Challenge");
 
                     b.Navigation("Publisher");
+                });
+
+            modelBuilder.Entity("Refresh.Database.Models.Levels.GameInnerLevel", b =>
+                {
+                    b.HasOne("Refresh.Database.Models.Levels.GameLevel", "Adventure")
+                        .WithMany()
+                        .HasForeignKey("AdventureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Adventure");
                 });
 
             modelBuilder.Entity("Refresh.Database.Models.Levels.GameLevel", b =>
