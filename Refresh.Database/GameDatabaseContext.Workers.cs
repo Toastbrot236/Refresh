@@ -73,15 +73,23 @@ public partial class GameDatabaseContext // Workers
     {
         // Get state or create a new one if it doesn't exist
         const string jobStateId = "CompleteAdventureDataJob";
-        CompleteAdventureDataJobState existingState = (CompleteAdventureDataJobState?)
+        CompleteAdventureDataJobState state = (CompleteAdventureDataJobState?)
             this.GetJobState(jobStateId, typeof(CompleteAdventureDataJobState), WorkerClass.Craftworld)
             ?? new();
         
         // Append new adventure's information
-        existingState.AdventureRootHashes.Add(adventure.RootResource);
-        existingState.LevelModdedRelations = existingState.LevelModdedRelations.Concat(levelModdedRelations).ToDictionary();
+        state.AdventureRootHashes.Add(adventure.RootResource);
+        foreach (KeyValuePair<string, bool> newPair in levelModdedRelations)
+        {
+            if (state.LevelModdedRelations.Any(p => p.Key == newPair.Key))
+            {
+                continue;
+            } 
+
+            state.LevelModdedRelations.Add(newPair.Key, newPair.Value);
+        }
 
         // Now update the job state
-        this.UpdateOrCreateJobState(jobStateId, existingState, WorkerClass.Craftworld);
+        this.UpdateOrCreateJobState(jobStateId, state, WorkerClass.Craftworld);
     }
 }
