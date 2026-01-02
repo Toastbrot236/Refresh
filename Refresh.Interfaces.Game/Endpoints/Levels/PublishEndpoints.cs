@@ -1,5 +1,6 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
@@ -94,7 +95,7 @@ public class PublishEndpoints : EndpointGroup
 
         foreach (GameLevelRequest innerLevel in innerLevels)
         {
-            if (VerifyLevel(innerLevel, dataContext) && innerLevel.LevelId != default) 
+            if (VerifyLevel(innerLevel, dataContext)) 
             {
                 innerLevelsFinal.Add(innerLevel);
                 continue;
@@ -144,6 +145,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
+    [DebugRequestBody]
     public Response StartPublish(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -191,6 +193,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("publish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
+    [DebugRequestBody]
     [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, BucketName)]
     public Response PublishLevel(RequestContext context,
         GameLevelRequest body,
@@ -232,9 +235,15 @@ public class PublishEndpoints : EndpointGroup
             }
         }
 
-        if (body.Slots != null && VerifyInnerAdventureLevels(body.Slots, body.Title, user, dataContext) == null)
+        IEnumerable<ISerializedPublishLevel>? innerLevels = null;
+        if (body.Slots != null)
         {
-            return BadRequest;
+            innerLevels = VerifyInnerAdventureLevels(body.Slots, body.Title, user, dataContext);
+
+            if (innerLevels == null)
+            {
+                return BadRequest;
+            }
         }
 
         if (body.LevelId != 0) // Republish requests contain the id of the old level
@@ -265,7 +274,10 @@ public class PublishEndpoints : EndpointGroup
             {
                 // If the level's root resource was edited, update the modded status aswell.
                 // The NOTE from below applies here aswell.
-                dataContext.Database.UpdateLevelModdedStatus(levelToUpdate);
+                // We can safely only update inner levels if the root hash has changed, as updating inner level metadata
+                // updates the adventure root asset. Also, for some reason, sometimes LBP3 also updates the adventure's root asset
+                // even if the user only updates the adventure's own metadata.
+                UpdateModdedStatusAndInnerLevels(levelToUpdate, innerLevels ?? [], user, dataContext);
             }
 
             dataContext.Database.UpdateSkillRewardsForLevel(levelToUpdate, body.SkillRewards);
@@ -273,8 +285,6 @@ public class PublishEndpoints : EndpointGroup
         }
 
         GameLevel newLevel = dataContext.Database.AddLevel(body, dataContext.Game, user);
-        dataContext.Database.UpdateSkillRewardsForLevel(newLevel, body.SkillRewards);
-
         context.Logger.LogInfo(BunkumCategory.UserContent, "User {0} (id: {1}) uploaded level id {2}", user.Username, user.UserId, newLevel.LevelId);
 
         // Only increment if the level can be uploaded (right after the previous checks + adding the level),
@@ -284,13 +294,29 @@ public class PublishEndpoints : EndpointGroup
             dataContext.Database.IncrementTimedLevelLimit(user, config.TimedLevelUploadLimits.TimeSpanHours);
         }
 
-        // Update the modded status of the level
-        // NOTE: this wont do anything if the slot is uploaded before the level resource,
-        //       so we also do this same operation inside of ResourceEndpoints.UploadAsset to catch that case aswell
-        dataContext.Database.UpdateLevelModdedStatus(newLevel);
+        UpdateModdedStatusAndInnerLevels(newLevel, innerLevels ?? [], user, dataContext);
+        dataContext.Database.UpdateSkillRewardsForLevel(newLevel, body.SkillRewards);
         dataContext.Database.CreateLevelUploadEvent(user, newLevel);
 
         return new Response(GameLevelResponse.FromOld(newLevel, dataContext)!, ContentType.Xml);
+    }
+
+    private static void UpdateModdedStatusAndInnerLevels(GameLevel newLevel, IEnumerable<ISerializedPublishLevel> innerLevels, GameUser publisher, DataContext dataContext)
+    {
+        if (newLevel.IsAdventure)
+        {
+            IEnumerable<GameInnerLevel> innerLevelsFinal = dataContext.Database.UpdateInnerLevels(newLevel, innerLevels);
+            dataContext.Logger.LogInfo(BunkumCategory.UserContent, "User {0} (id: {1}) uploaded {2} inner levels for level id {3}", 
+                                                                        publisher, publisher.UserId, innerLevelsFinal.Count(), newLevel.LevelId);
+        }
+        else
+        {
+            // Update the modded status of the level
+            // NOTE: This wont do anything if the slot is uploaded before the level resource,
+            //       so we also do this same operation inside of ResourceEndpoints.UploadAsset to catch that case aswell.
+            //       This doesn't seem to apply to adventures, but doesn't hurt doing so for them aswell anyway incase this ever happens.
+            dataContext.Database.UpdateLevelModdedStatus(newLevel);
+        }
     }
 
     [GameEndpoint("unpublish/{id}", ContentType.Xml, HttpMethods.Post)]

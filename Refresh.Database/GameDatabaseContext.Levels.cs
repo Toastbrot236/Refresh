@@ -29,6 +29,11 @@ public partial class GameDatabaseContext // Levels
         .Include(s => s.Level.Publisher)
         .Include(s => s.Level.Publisher!.Statistics);
     
+    private IQueryable<GameInnerLevel> GameInnerLevelsIncluded => this.GameInnerLevels
+        .Include(l => l.Adventure)
+        .Include(l => l.Adventure.Statistics)
+        .Include(l => l.Adventure.Publisher);
+    
     public GameLevel AddLevel(ISerializedPublishLevel createInfo, TokenGame game, GameUser publisher)
     {
         DateTimeOffset timestamp = this._time.Now;
@@ -83,9 +88,10 @@ public partial class GameDatabaseContext // Levels
         return level;
     }
 
-    public void UpdateInnerLevels(GameLevel adventure, IEnumerable<ISerializedPublishLevel> innerLevels)
+    public IEnumerable<GameInnerLevel> UpdateInnerLevels(GameLevel adventure, IEnumerable<ISerializedPublishLevel> innerLevels)
     {
         DateTimeOffset now = this._time.Now;
+        List<GameInnerLevel> finalInnerLevels = [];
 
         // Part 1: Add the incomplete inner levels to DB for now
         foreach (ISerializedPublishLevel innerLevel in innerLevels)
@@ -110,10 +116,12 @@ public partial class GameDatabaseContext // Levels
                     MinPlayers = innerLevel.MinPlayers,
                     MaxPlayers = innerLevel.MaxPlayers,
                     EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers,
-                    RequiresMoveController = innerLevel.RequiresMoveController
+                    RequiresMoveController = innerLevel.RequiresMoveController,
+                    Labels = innerLevel.FinalPublisherLabels.ToList(),
                 };
 
                 this.GameInnerLevels.Add(newLevel);
+                finalInnerLevels.Add(newLevel);
             }
             else 
             {
@@ -126,40 +134,76 @@ public partial class GameDatabaseContext // Levels
                 existingLevel.MaxPlayers = innerLevel.MaxPlayers;
                 existingLevel.EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers;
                 existingLevel.RequiresMoveController = innerLevel.RequiresMoveController;
+                existingLevel.Labels = innerLevel.FinalPublisherLabels.ToList();
 
                 this.GameInnerLevels.Update(existingLevel);
+                finalInnerLevels.Add(existingLevel);
             }
         }
 
         this.SaveChanges();
 
-        // Part 2: Determine which level dependencies of the adventure's root resource are "modded".
+        // Part 2: Prepare the inner level deserialization job
+        this.PrepareAdventureForCompletion(adventure);
+        return finalInnerLevels;
+    }
+
+    /// <summary>
+    /// Prepares an adventure's inner levels to be deserialized by the cwlib-worker by updating its state,
+    /// while also informing it on which level dependencies are "modded", so the worker could
+    /// then assign these modded statuses to GameInnerLevels. 
+    /// This way we don't have to maintain another implementation of our is-modded algorithm for the worker, 
+    /// which could otherwise cause problems if the algorithm ever needs to be adjusted for some reason.
+    /// </summary>
+    private void PrepareAdventureForCompletion(GameLevel adventure)
+    {
         GameAsset? adventureRoot = this.GetAssetFromHash(adventure.RootResource);
-        if (adventureRoot == null) return; // Don't think it's necessary to verify this asset's type here
+        if (adventureRoot == null) return;
 
-        // dependency level hash -> whether it or its dependencies are modded
         Dictionary<string, bool> levelModdedRelations = [];
+        bool isAdventureModded = false;
 
-        // Iterate the immediate dependencies of the adventure's root asset. Don't traverse, as the asset itself 
-        // depends on all inner levels' root assets.
-        foreach (string hash in this.GetAssetDependencies(adventureRoot))
+        // Since the loop below won't catch and check the root asset itself
+        if ((adventureRoot.AssetFlags & AssetFlags.Modded) != 0)
+        {
+            isAdventureModded = true;
+        }
+
+        // Iterate immediate dependencies instead of starting with recursion right away because we only want
+        // immediate levels to count as inner levels
+        foreach (string hash in this.GetAssetDependencies(adventureRoot).ToArray())
         {
             GameAsset? dependency = this.GetAssetFromHash(hash);
-            if (dependency == null || dependency.AssetType != GameAssetType.Level)
-            {
+            if (dependency == null) {
                 continue;
             }
 
-            // TODO: Could probably cache the modded status in GameAsset so we don't have
-            // to traverse its dependency tree and use many database calls every time here
-            bool isModded = false;
-            dependency.TraverseDependenciesRecursively(this, (_, asset) =>
+            if (dependency.AssetType == GameAssetType.Level)
             {
-                if (asset != null && (asset.AssetFlags & AssetFlags.Modded) != 0)
-                    isModded = true;
-            });
+                // TODO: Could probably cache the modded status in GameAsset so we don't have
+                // to traverse its dependency tree and use many database calls every time here
+                bool isLevelModded = false;
+                dependency.TraverseDependenciesRecursively(this, (_, asset) =>
+                {
+                    if (asset != null && (asset.AssetFlags & AssetFlags.Modded) != 0)
+                    {
+                        isLevelModded = true;
+                        isAdventureModded = true;
+                        
+                    }
+                });
 
-            levelModdedRelations.Add(hash, isModded);
+                levelModdedRelations.Add(hash, isLevelModded);
+            }
+            // Non-level dependencies, avoid traversal if not needed anymore to save on pointless DB calls
+            else if (!isAdventureModded) 
+            {
+                dependency.TraverseDependenciesRecursively(this, (_, asset) =>
+                {
+                    if (asset != null && (asset.AssetFlags & AssetFlags.Modded) != 0)
+                        isAdventureModded = true;
+                });
+            }
         }
 
         // Now, finally, update the job state
@@ -167,7 +211,10 @@ public partial class GameDatabaseContext // Levels
     }
 
     public GameInnerLevel? GetInnerLevelById(int innerId, int adventureId)
-        => this.GameInnerLevels.FirstOrDefault(l => l.InnerId == innerId && l.AdventureId == adventureId);
+        => this.GameInnerLevelsIncluded.FirstOrDefault(l => l.InnerId == innerId && l.AdventureId == adventureId);
+
+    public DatabaseList<GameInnerLevel> GetInnerLevelsInAdventure(GameLevel adventure, int skip, int count)
+        => new(this.GameInnerLevelsIncluded.Where(l => l.AdventureId == adventure.LevelId), skip, count);
 
     public GameLevel GetStoryLevelById(int id)
     {
