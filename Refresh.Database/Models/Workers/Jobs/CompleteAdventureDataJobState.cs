@@ -4,7 +4,7 @@ namespace Refresh.Database.Models.Workers.Jobs;
 /// Used by the GameServer to give the cwlib-worker a list of adventure root resources to analyze and
 /// get the remaining inner level data from,
 /// while also informing the worker on which of the inner levels is considered "modded". 
-/// The worker can then simply just set the corresponding GameInnerAdventureLevel's modded status using this.
+/// The worker can then simply just set the corresponding GameInnerLevel's modded status using this.
 /// </summary>
 public class CompleteAdventureDataJobState
 {

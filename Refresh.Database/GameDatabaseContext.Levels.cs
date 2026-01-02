@@ -90,11 +90,11 @@ public partial class GameDatabaseContext // Levels
         // Part 1: Add the incomplete inner levels to DB for now
         foreach (ISerializedPublishLevel innerLevel in innerLevels)
         {
-            GameInnerAdventureLevel? existingLevel = this.GetInnerLevelById(innerLevel.LevelId, adventure.LevelId);
+            GameInnerLevel? existingLevel = this.GetInnerLevelById(innerLevel.LevelId, adventure.LevelId);
 
             if (existingLevel == null)
             {
-                GameInnerAdventureLevel newLevel = new()
+                GameInnerLevel newLevel = new()
                 {
                     InnerId = innerLevel.LevelId,
                     AdventureId = adventure.LevelId,
@@ -113,7 +113,7 @@ public partial class GameDatabaseContext // Levels
                     RequiresMoveController = innerLevel.RequiresMoveController
                 };
 
-                this.GameInnerAdventureLevels.Add(newLevel);
+                this.GameInnerLevels.Add(newLevel);
             }
             else 
             {
@@ -127,7 +127,7 @@ public partial class GameDatabaseContext // Levels
                 existingLevel.EnforceMinMaxPlayers = innerLevel.EnforceMinMaxPlayers;
                 existingLevel.RequiresMoveController = innerLevel.RequiresMoveController;
 
-                this.GameInnerAdventureLevels.Update(existingLevel);
+                this.GameInnerLevels.Update(existingLevel);
             }
         }
 
@@ -166,8 +166,8 @@ public partial class GameDatabaseContext // Levels
         this.AddAdventureToCompleteAdventureDataJob(adventure, levelModdedRelations);
     }
 
-    public GameInnerAdventureLevel? GetInnerLevelById(int innerId, int adventureId)
-        => this.GameInnerAdventureLevels.FirstOrDefault(l => l.InnerId == innerId && l.AdventureId == adventureId);
+    public GameInnerLevel? GetInnerLevelById(int innerId, int adventureId)
+        => this.GameInnerLevels.FirstOrDefault(l => l.InnerId == innerId && l.AdventureId == adventureId);
 
     public GameLevel GetStoryLevelById(int id)
     {

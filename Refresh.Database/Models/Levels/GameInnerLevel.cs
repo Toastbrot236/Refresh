@@ -1,7 +1,10 @@
 namespace Refresh.Database.Models.Levels;
 
+/// <summary>
+/// Models a level inside an adventure
+/// </summary>
 [PrimaryKey(nameof(InnerId), nameof(AdventureId))]
-public class GameInnerAdventureLevel
+public class GameInnerLevel
 {
     /// <summary>
     /// The ID of this inner level, unique inside the adventure

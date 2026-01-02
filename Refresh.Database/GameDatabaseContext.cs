@@ -37,7 +37,7 @@ public partial class GameDatabaseContext : DbContext, IDatabaseContext
     internal DbSet<GameUserStatistics> GameUserStatistics { get; set; }
     internal DbSet<Token> Tokens { get; set; }
     internal DbSet<GameLevel> GameLevels { get; set; }
-    internal DbSet<GameInnerAdventureLevel> GameInnerAdventureLevels { get; set; }
+    internal DbSet<GameInnerLevel> GameInnerLevels { get; set; }
     internal DbSet<GameLevelStatistics> GameLevelStatistics { get; set; }
     internal DbSet<GameProfileComment> GameProfileComments { get; set; }
     internal DbSet<GameLevelComment> GameLevelComments { get; set; }
