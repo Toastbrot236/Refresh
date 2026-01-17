@@ -104,7 +104,8 @@ public class PlaylistApiEndpoints : EndpointGroup
                 ?? dataContext.Database.CreateRootPlaylist(user);
         }
 
-        this.ValidatePlaylist(body, dataContext.GuidChecker, dataContext.Database);
+        ApiError? error = this.ValidatePlaylist(body, dataContext.GuidChecker, dataContext.Database);
+        if (error != null) return error;
 
         GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body, false);
         dataContext.Database.AddPlaylistToPlaylist(playlist, parent);
@@ -129,7 +130,8 @@ public class PlaylistApiEndpoints : EndpointGroup
         if (user.UserId != playlist.PublisherId) 
             return ApiValidationError.NoPlaylistEditPermissionError;
 
-        this.ValidatePlaylist(body, dataContext.GuidChecker, dataContext.Database);
+        ApiError? error = this.ValidatePlaylist(body, dataContext.GuidChecker, dataContext.Database);
+        if (error != null) return error;
 
         playlist = dataContext.Database.UpdatePlaylist(playlist, body);
         return ApiGamePlaylistResponse.FromOld(playlist, dataContext);
