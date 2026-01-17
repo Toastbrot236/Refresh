@@ -73,7 +73,7 @@ public partial class GameDatabaseContext // Playlists
             Publisher = user,
             Name = createInfo.Name ?? "",
             Description = createInfo.Description ?? "",
-            IconHash = createInfo.Icon ?? DefaultPlaylistIcon,
+            IconHash = createInfo.IconHash ?? DefaultPlaylistIcon,
             LocationX = location.X,
             LocationY = location.Y,
             IsRoot = rootPlaylist,
@@ -116,7 +116,7 @@ public partial class GameDatabaseContext // Playlists
         {
             playlist.Name = updateInfo.Name ?? playlist.Name;
             playlist.Description = updateInfo.Description ?? playlist.Description;
-            playlist.IconHash = updateInfo.Icon ?? playlist.IconHash;
+            playlist.IconHash = updateInfo.IconHash ?? playlist.IconHash;
             playlist.LocationX = location.X;
             playlist.LocationY = location.Y;
             playlist.LastUpdateDate = this._time.Now;

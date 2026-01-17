@@ -19,7 +19,7 @@ public class SerializedLbp1Playlist : IDataConvertableFrom<SerializedLbp1Playlis
     [XmlElement("description")]
     public string Description { get; set; } = null!;
     [XmlElement("icon")]
-    public string Icon { get; set; }
+    public string IconHash { get; set; }
     
     [XmlElement("location")]
     public GameLocation Location { get; set; }
@@ -36,7 +36,7 @@ public class SerializedLbp1Playlist : IDataConvertableFrom<SerializedLbp1Playlis
             Id = old.PlaylistId,
             Name = old.Name,
             Description = old.Description,
-            Icon = old.IconHash,
+            IconHash = old.IconHash,
             Location = new GameLocation(old.LocationX, old.LocationY),
         };
     }

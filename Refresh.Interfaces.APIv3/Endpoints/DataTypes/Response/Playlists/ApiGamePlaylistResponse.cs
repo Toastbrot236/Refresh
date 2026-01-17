@@ -21,7 +21,7 @@ public class ApiGamePlaylistResponse : IApiResponse, IDataConvertableFrom<ApiGam
     public required DateTimeOffset UpdateDate { get; set; }
 
     public ApiPlaylistStatisticsResponse? Statistics { get; set; }
-    public ApiPersonalPlaylistStatisticsResponse? PersonalStatistics { get; set; }
+    public ApiOwnPlaylistStatisticsResponse? OwnStatistics { get; set; }
 
     public static ApiGamePlaylistResponse? FromOld(GamePlaylist? playlist, DataContext dataContext)
     {
@@ -43,7 +43,7 @@ public class ApiGamePlaylistResponse : IApiResponse, IDataConvertableFrom<ApiGam
             CreationDate = playlist.CreationDate,
             UpdateDate = playlist.LastUpdateDate,
             Statistics = ApiPlaylistStatisticsResponse.FromOld(playlist.Statistics, dataContext),
-            PersonalStatistics = ApiPersonalPlaylistStatisticsResponse.FromOld(playlist, dataContext),
+            OwnStatistics = ApiOwnPlaylistStatisticsResponse.FromOld(playlist, dataContext),
         };
     }
 

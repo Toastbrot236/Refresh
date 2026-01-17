@@ -6,6 +6,6 @@ public interface ISerializedCreatePlaylistInfo
 {
     string? Name { get; }
     string? Description { get; }
-    string? Icon { get; }
+    string? IconHash { get; }
     GameLocation? Location { get; }
 }

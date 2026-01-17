@@ -31,7 +31,7 @@ public class SerializedLbp3Playlist : IDataConvertableFrom<SerializedLbp3Playlis
     /// </summary>
     [XmlElement("levels_quota")] public int PlaylistQuota { get; set; }
 
-    public string? Icon => null;
+    public string? IconHash => null;
     public GameLocation? Location => null;
 
     public static SerializedLbp3Playlist? FromOld(Database.Models.Playlists.GamePlaylist? old, DataContext dataContext)

@@ -8,7 +8,6 @@ public class ApiPlaylistCreationRequest : ISerializedCreatePlaylistInfo
 {
     public string? Name { get; set; }
     public string? IconHash { get; set; }
-    [JsonIgnore] public string? Icon => this.IconHash;
     public string? Description { get; set; }
     public GameLocation? Location { get; set; }
 }
