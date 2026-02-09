@@ -14,6 +14,7 @@ using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.Game.Types.Lists;
+using Refresh.Interfaces.Game.Types.Photos;
 
 namespace Refresh.Interfaces.Game.Endpoints;
 
@@ -87,10 +88,9 @@ public class PhotoEndpoints : EndpointGroup
         (int skip, int count) = context.GetPageData();
 
         // count not used ingame
-        IEnumerable<SerializedPhoto> photos = photoGetter.Invoke(user, count, skip)
+        IEnumerable<SerializedPhoto> photos = SerializedPhoto.FromOldList(photoGetter.Invoke(user, count, skip)
             .Items
-            .ToArray()
-            .Select(photo => PhotoExtensions.FromGamePhoto(photo, dataContext));
+            .ToArray(), dataContext);
 
         return new Response(new SerializedPhotoList(photos), ContentType.Xml);
     }

@@ -1,5 +1,5 @@
 using System.Xml.Serialization;
-using Refresh.Database.Models.Photos;
+using Refresh.Interfaces.Game.Types.Photos;
 
 namespace Refresh.Interfaces.Game.Types.Lists;
 

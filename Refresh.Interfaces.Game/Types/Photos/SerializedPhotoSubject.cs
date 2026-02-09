@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Xml.Serialization;
 
-namespace Refresh.Database.Models.Photos;
+namespace Refresh.Interfaces.Game.Types.Photos;
 
 #nullable disable
 
