@@ -3,6 +3,7 @@ using Refresh.Database.Models.Activity;
 using Refresh.Database.Models.Users;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
+using Refresh.Database.Query;
 
 namespace Refresh.Database;
 
@@ -26,45 +27,34 @@ public partial class GameDatabaseContext // Photos
         .Include(p => p.Subject4User)
         .Include(p => p.Subject4User!.Statistics);
     
-    public void UploadPhoto(SerializedPhoto photo, GameUser publisher)
+    public void UploadPhoto(IPhotoUploadRequest photo, IPhotoUploadSubject[] subjects, GameUser publisher, GameLevel? level)
     {
         GamePhoto newPhoto = new()
         {
-            SmallAsset = this.GetAssetFromHash(photo.SmallHash) ?? throw new Exception($"Small asset {photo.SmallHash} is missing!"),
-            MediumAsset = this.GetAssetFromHash(photo.MediumHash) ?? throw new Exception($"Medium asset {photo.MediumHash} is missing!"),
-            LargeAsset = this.GetAssetFromHash(photo.LargeHash) ?? throw new Exception($"Large asset {photo.LargeHash} is missing!"),
+            SmallAssetHash = photo.SmallHash,
+            MediumAssetHash = photo.MediumHash,
+            LargeAssetHash = photo.LargeHash,
             PlanHash = photo.PlanHash,
             
             Publisher = publisher,
-            LevelType = photo.Level?.Type ?? "",
-            OriginalLevelId = photo.Level?.LevelId ?? 0,
-            OriginalLevelName = photo.Level?.Title ?? "",
+            LevelType = photo.LevelType,
+            OriginalLevelId = photo.LevelId,
+            OriginalLevelName = photo.LevelTitle,
+            Level = level,
 
             TakenAt = DateTimeOffset.FromUnixTimeSeconds(Math.Clamp(photo.Timestamp, this._time.EarliestDate, this._time.TimestampSeconds)),
             PublishedAt = this._time.Now,
         };
 
-        GameLevel? level = null;
-
-        if (photo.Level?.Type is "user" or "developer") 
-        {
-            level = this.GetLevelByIdAndType(photo.Level.Type, photo.Level.LevelId);
-            newPhoto.Level = level;
-        }
-
-        float[] bounds = new float[SerializedPhotoSubject.FloatCount];
-
-        List<GamePhotoSubject> gameSubjects = new(photo.PhotoSubjects.Count);
-        foreach (SerializedPhotoSubject subject in photo.PhotoSubjects)
+        List<GamePhotoSubject> gameSubjects = [];
+        foreach (IPhotoUploadSubject subject in subjects)
         {
             GameUser? subjectUser = null;
             
             if (!string.IsNullOrEmpty(subject.Username)) 
                 subjectUser = this.GetUserByUsername(subject.Username);
-            
-            SerializedPhotoSubject.ParseBoundsList(subject.BoundsList, bounds);
 
-            gameSubjects.Add(new GamePhotoSubject(subjectUser, subject.DisplayName, bounds));
+            gameSubjects.Add(new GamePhotoSubject(subjectUser, subject.DisplayName, subject.BoundsParsed));
 
             if (subjectUser != null)
             {

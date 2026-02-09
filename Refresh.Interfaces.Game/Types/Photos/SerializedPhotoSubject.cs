@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Xml.Serialization;
+using Refresh.Database.Query;
 
 namespace Refresh.Interfaces.Game.Types.Photos;
 
@@ -7,7 +8,7 @@ namespace Refresh.Interfaces.Game.Types.Photos;
 
 [XmlRoot("subject")]
 [XmlType("subject")]
-public class SerializedPhotoSubject
+public class SerializedPhotoSubject : IPhotoUploadSubject
 {
     [XmlElement("npHandle")]
     public string Username { get; set; }
@@ -17,10 +18,13 @@ public class SerializedPhotoSubject
     
     [XmlElement("bounds")]
     public string BoundsList { get; set; }
+
+    [XmlIgnore]
+    public float[] BoundsParsed { get; set; }
     
     public const byte FloatCount = 4;
     
-    public static void ParseBoundsList(ReadOnlySpan<char> input, float[] floats)
+    public static float[] ParseBoundsList(ReadOnlySpan<char> input, float[] floats)
     {
         byte start = 0;
         byte floatIndex = 0;
@@ -43,5 +47,6 @@ public class SerializedPhotoSubject
             throw new FormatException("Invalid format");
 
         floats[FloatCount - 1] = lastFloat;
+        return floats;
     }
 }

@@ -1,4 +1,4 @@
-using Refresh.Database.Models.Photos;
+using Refresh.Interfaces.Game.Types.Photos;
 
 namespace RefreshTests.GameServer.Tests.Parsing;
 

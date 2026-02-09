@@ -4,8 +4,8 @@ using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Users;
 using RefreshTests.GameServer.Extensions;
 using Refresh.Database.Models.Levels;
-using Refresh.Database.Models.Photos;
 using Refresh.Interfaces.Game.Types.Lists;
+using Refresh.Interfaces.Game.Types.Photos;
 
 namespace RefreshTests.GameServer.Tests.Photos;
 

@@ -59,7 +59,25 @@ public class PhotoEndpoints : EndpointGroup
                 return Unauthorized;
         }
 
-        database.UploadPhoto(body, user);
+        try
+        {
+            foreach (SerializedPhotoSubject subject in body.PhotoSubjects)
+            {
+                SerializedPhotoSubject.ParseBoundsList(subject.BoundsList, subject.BoundsParsed);
+            }
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogWarning(BunkumCategory.UserContent, $"Failed to parse bounds: {ex}");
+        }
+
+        GameLevel? level = null;
+        if (body.Level.Type is "user" or "developer") 
+        {
+            level = database.GetLevelByIdAndType(body.Level.Type, body.Level.LevelId);
+        }
+
+        database.UploadPhoto(body, body.PhotoSubjects.ToArray(), user, level);
 
         return OK;
     }
@@ -128,7 +146,7 @@ public class PhotoEndpoints : EndpointGroup
             photos = dataContext.Database.GetPhotosInLevel(level, count, skip);
 
         // count not used ingame
-        return new SerializedPhotoList(photos.Items.ToArrayIfPostgres().Select(photo => PhotoExtensions.FromGamePhoto(photo, dataContext)));
+        return new SerializedPhotoList(SerializedPhoto.FromOldList(photos.Items.ToArrayIfPostgres(), dataContext));
     }
 
     [GameEndpoint("photo/{id}", ContentType.Xml)]
@@ -140,6 +158,6 @@ public class PhotoEndpoints : EndpointGroup
         if (photo == null) 
             return null;
         
-        return PhotoExtensions.FromGamePhoto(photo, dataContext);
+        return SerializedPhoto.FromOld(photo, dataContext);
     }
 }

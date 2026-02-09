@@ -1,7 +1,7 @@
 using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Levels;
-using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Users;
+using Refresh.Interfaces.Game.Types.Photos;
 
 namespace RefreshTests.GameServer.Tests.Levels;
 
@@ -67,13 +67,13 @@ public class LevelDeletionTests : GameServerTest
                 {
                     Username = author.Username,
                     DisplayName = author.Username,
-                    BoundsList = "1,1,1,1",
+                    BoundsParsed = [1,1,1,1],
                 },
 
             ],
         };
 
-        context.Database.UploadPhoto(photo, author);
+        context.Database.UploadPhoto(photo, photo.PhotoSubjects.ToArray(), author, level);
         context.Database.Refresh();
         
         level = context.Database.GetLevelById(level.LevelId);

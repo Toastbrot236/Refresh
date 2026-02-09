@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 using Refresh.Core.Types.Data;
 using Refresh.Database.Models.Photos;
+using Refresh.Database.Query;
 
 namespace Refresh.Interfaces.Game.Types.Photos;
 
@@ -8,7 +9,7 @@ namespace Refresh.Interfaces.Game.Types.Photos;
 
 [XmlRoot("photo")]
 [XmlType("photo")]
-public class SerializedPhoto : IDataConvertableFrom<SerializedPhoto, GamePhoto>
+public class SerializedPhoto : IDataConvertableFrom<SerializedPhoto, GamePhoto>, IPhotoUploadRequest
 {
     [XmlAttribute("timestamp")]
     public long Timestamp { get; set; }
@@ -25,6 +26,21 @@ public class SerializedPhoto : IDataConvertableFrom<SerializedPhoto, GamePhoto>
     [XmlElement("plan")] public string PlanHash { get; set; }
     
     [XmlElement("slot")] public SerializedPhotoLevel Level { get; set; }
+    [XmlIgnore] public int LevelId 
+    {
+        get => this.Level.LevelId; 
+        set => this.Level.LevelId = value;
+    } 
+    [XmlIgnore] public string LevelTitle
+    {
+        get => this.Level.Title; 
+        set => this.Level.Title = value;
+    }
+    [XmlIgnore] public string LevelType
+    {
+        get => this.Level.Type; 
+        set => this.Level.Type = value;
+    }
     
     [XmlArray("subjects")] public List<SerializedPhotoSubject> PhotoSubjects { get; set; }
 

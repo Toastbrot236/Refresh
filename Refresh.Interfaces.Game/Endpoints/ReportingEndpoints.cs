@@ -15,6 +15,7 @@ using Refresh.Database.Models.Photos;
 using Refresh.Database.Models.Relations;
 using Refresh.Database.Models.Reports;
 using Refresh.Database.Models.Users;
+using Refresh.Interfaces.Game.Types.Photos;
 using Refresh.Interfaces.Game.Types.Report;
 
 namespace Refresh.Interfaces.Game.Endpoints; 
@@ -69,12 +70,15 @@ public class ReportingEndpoints : EndpointGroup
         {
             List<SerializedPhotoSubject> subjects = new();
             if (body.Players != null)
+            {
                 subjects.AddRange(body.Players.Select(player => new SerializedPhotoSubject
                 {
                     Username = player.Username,
                     DisplayName = player.Username,
-                    BoundsList = player.Rectangle == null ? null : NormalizeRectangle(player.Rectangle, imageSize),
+                    BoundsParsed = player.Rectangle == null ? null 
+                        : SerializedPhotoSubject.ParseBoundsList(NormalizeRectangle(player.Rectangle, imageSize), new float[4]),
                 }));
+            }
 
             database.UploadPhoto(new SerializedPhoto
             {
@@ -84,18 +88,14 @@ public class ReportingEndpoints : EndpointGroup
                 MediumHash = jpegHash,
                 LargeHash = jpegHash,
                 PlanHash = "0",
-                Level = body.LevelId == 0 || level == null ? null : new SerializedPhotoLevel
+                Level = new SerializedPhotoLevel
                 {
-                    LevelId = level.LevelId,
-                    Title = level.Title,
-                    Type = level.SlotType switch {
-                        GameSlotType.User => "user",
-                        GameSlotType.Story => "developer",
-                        _ => throw new ArgumentOutOfRangeException(),
-                    },
+                    LevelId = body.LevelId,
+                    Title = level?.Title ?? "",
+                    Type = body.LevelType,
                 },
                 PhotoSubjects = subjects,
-            }, user);
+            }, subjects.ToArray(), user, level);
         
             return OK; // just upload photo
         }
