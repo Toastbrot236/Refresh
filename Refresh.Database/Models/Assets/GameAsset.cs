@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using Refresh.Common.Helpers;
 using Refresh.Database.Models.Users;
 
@@ -7,6 +8,7 @@ public partial class GameAsset
 {
     [Key] public string AssetHash { get; set; } = string.Empty;
     public GameUser? OriginalUploader { get; set; }
+    public ObjectId? OriginalUploaderUserId { get; set; }
 
     /// <summary>
     /// Not part of the uploader's foreign key. 
