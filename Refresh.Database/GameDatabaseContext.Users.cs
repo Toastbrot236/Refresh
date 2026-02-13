@@ -316,7 +316,9 @@ public partial class GameDatabaseContext // Users
     {
         string oldUsername = user.Username;
 
+        this.CreateRevisionForUser(user, false);
         user.Username = newUsername;
+        
         this.GameUsers.Update(user);
         this.SaveChanges();
         
