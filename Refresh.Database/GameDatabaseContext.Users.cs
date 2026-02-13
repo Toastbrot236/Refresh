@@ -389,11 +389,31 @@ public partial class GameDatabaseContext // Users
     {
         // do an initial cleanup of everything before deleting the row  
         this.DeleteUser(user);
-        
-        this.Write(() =>
+
+        IEnumerable<GameAsset> assets = this.GameAssets
+            .Where(a => a.OriginalUploaderUserId == user.UserId)
+            .ToArray();
+
+        foreach(GameAsset asset in assets)
         {
-            this.GameUsers.Remove(user);
-        });
+            // If any assets for some reason haven't been migrated to store the user's username yet, 
+            // update them to not lose this information with the user delete, since this is critical for moderation.
+            if (asset.OriginalUploaderUsername == null)
+            {
+                asset.OriginalUploaderUsername = user.Username;
+            }
+            
+            // We don't want assets to be cascade-deleted to avoid game issues (and this might also make moderation easier).
+            // Not setting the foreign keys to null ourselves will make EF throw however; this issue seems to be
+            // unreproducible by unit tests.
+            asset.OriginalUploaderUserId = null;
+            asset.OriginalUploader = null;
+        }
+        this.UpdateAssetsInDatabase(assets);
+        
+        // Another unreproducible issue where we can't just use Remove() on the user object.
+        this.GameUsers.RemoveRange(u => u.UserId == user.UserId);
+        this.SaveChanges();
     }
 
     public void ResetUserPlanets(GameUser user)
