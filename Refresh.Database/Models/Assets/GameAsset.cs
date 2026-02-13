@@ -7,6 +7,12 @@ public partial class GameAsset
 {
     [Key] public string AssetHash { get; set; } = string.Empty;
     public GameUser? OriginalUploader { get; set; }
+
+    /// <summary>
+    /// Not part of the uploader's foreign key. 
+    /// Allows us to still know who has uploaded this asset, even if the uploader's account gets fully deleted
+    /// </summary>
+    public string? OriginalUploaderUsername { get; set; }
     public DateTimeOffset UploadDate { get; set; }
     public bool IsPSP { get; set; }
     public int SizeInBytes { get; set; }

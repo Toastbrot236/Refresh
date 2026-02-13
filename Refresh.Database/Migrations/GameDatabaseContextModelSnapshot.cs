@@ -85,6 +85,9 @@ namespace Refresh.Database.Migrations
                     b.Property<string>("OriginalUploaderUserId")
                         .HasColumnType("text");
 
+                    b.Property<string>("OriginalUploaderUsername")
+                        .HasColumnType("text");
+
                     b.Property<int>("SizeInBytes")
                         .HasColumnType("integer");
 

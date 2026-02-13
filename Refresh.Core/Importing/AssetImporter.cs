@@ -63,6 +63,7 @@ public class AssetImporter : Importer
                     if (oldAsset != null)
                     {
                         newAsset.OriginalUploader = oldAsset.OriginalUploader;
+                        newAsset.OriginalUploaderUsername = oldAsset.OriginalUploaderUsername;
                         newAsset.UploadDate = oldAsset.UploadDate;
                         assetsToUpdate.Add(newAsset);
                         Interlocked.Increment(ref updatedAssets);

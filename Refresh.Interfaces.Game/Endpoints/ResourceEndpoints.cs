@@ -87,6 +87,7 @@ public class ResourceEndpoints : EndpointGroup
             return InternalServerError;
 
         gameAsset.OriginalUploader = user;
+        gameAsset.OriginalUploaderUsername = user.Username;
         database.AddAssetToDatabase(gameAsset);
         
         database.IncrementUserFilesizeQuota(user, body.Length);

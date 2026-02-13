@@ -196,6 +196,7 @@ public class ResourceApiEndpoints : EndpointGroup
             return ApiInternalError.CouldNotWriteAssetError;
         
         gameAsset.OriginalUploader = user;
+        gameAsset.OriginalUploaderUsername = user.Username;
         
         if (aipi != null && aipi.ScanAndHandleAsset(dataContext, gameAsset))
         {
