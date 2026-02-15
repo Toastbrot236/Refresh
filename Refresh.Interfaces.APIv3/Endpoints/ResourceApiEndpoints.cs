@@ -170,6 +170,7 @@ public class ResourceApiEndpoints : EndpointGroup
             return ApiAuthenticationError.NoPermissionsForCreation;
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return ApiValidationError.HashInvalidError;
+        if (database.GetDisallowedAssetByHash(hash) != null) return ApiModerationError.Instance; // TODO message
 
         if (dataStore.ExistsInStore(hash))
         {

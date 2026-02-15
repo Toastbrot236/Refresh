@@ -36,6 +36,7 @@ public class ResourceEndpoints : EndpointGroup
             return Unauthorized;
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return BadRequest;
+        if (database.GetDisallowedAssetByHash(hash) != null) return Unauthorized;
         
         bool isPSP = context.IsPSP();
         string assetPath = hash;

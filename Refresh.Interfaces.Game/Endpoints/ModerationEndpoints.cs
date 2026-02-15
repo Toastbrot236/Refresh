@@ -5,6 +5,7 @@ using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Commands;
+using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Users;
@@ -25,11 +26,19 @@ public class ModerationEndpoints : EndpointGroup
     }
 
     [GameEndpoint("showModerated", HttpMethods.Post, ContentType.Xml)]
-    public SerializedModeratedResourceList ModerateResources(RequestContext context, SerializedModeratedResourceList body)
+    [NullStatusCode(RequestEntityTooLarge)]
+    public SerializedModeratedResourceList? ModerateResources(RequestContext context, DataContext dataContext, SerializedModeratedResourceList body, GameUser user)
     {
+        // Block way too long lists
+        if (body.Resources.Count > 100)
+        {
+            context.Logger.LogWarning(BunkumCategory.UserContent, "User {0} has sent a way too long /showModerated list ({1} hashes), rejecting", user, body.Resources.Count);
+            return null;
+        }
+
         return new SerializedModeratedResourceList
         {
-            Resources = new List<string>(),
+            Resources = dataContext.Database.FilterBlockedAssetHashes(body.Resources).ToList(),
         };
     }
 

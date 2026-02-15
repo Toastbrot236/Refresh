@@ -140,4 +140,11 @@ public partial class GameDatabaseContext // Assets
     {
         return new(this.DisallowedAssets, skip, count);
     }
+
+    public IQueryable<string> FilterBlockedAssetHashes(IEnumerable<string> hashesToFilter)
+    {
+        return this.DisallowedAssets
+            .Where(a => hashesToFilter.Contains(a.AssetHash))
+            .Select(a => a.AssetHash);
+    }
 }
