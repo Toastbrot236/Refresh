@@ -81,6 +81,7 @@ public partial class GameDatabaseContext : DbContext, IDatabaseContext
     internal DbSet<PersistentJobState> JobStates { get; set; }
     internal DbSet<GameLevelRevision> GameLevelRevisions { get; set; }
     internal DbSet<ModerationAction> ModerationActions { get; set; }
+    internal DbSet<DisallowedAsset> DisallowedAssets { get; set; }
     
 #pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
     internal GameDatabaseContext(Logger logger, IDateTimeProvider time, IDatabaseConfig dbConfig)

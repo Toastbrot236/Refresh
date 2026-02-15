@@ -110,4 +110,34 @@ public partial class GameDatabaseContext // Assets
         {
             asset.AsMainlinePhotoHash = hash;
         });
+    
+    public DisallowedAsset DisallowAsset(string hash, string reason)
+    {
+        DisallowedAsset asset = new()
+        {
+            AssetHash = hash,
+            Reason = reason,
+            BlockedAt = this._time.Now
+        };
+
+        this.DisallowedAssets.Add(asset);
+        this.SaveChanges();
+        return asset;
+    }
+
+    public void ReallowAsset(string hash)
+    {
+        this.DisallowedAssets.RemoveRange(a => a.AssetHash == hash);
+        this.SaveChanges();
+    }
+
+    public DisallowedAsset? GetDisallowedAssetByHash(string hash)
+    {
+        return this.DisallowedAssets.FirstOrDefault(a => a.AssetHash == hash);
+    }
+
+    public DatabaseList<DisallowedAsset> GetDisallowedAssets(int skip, int count)
+    {
+        return new(this.DisallowedAssets, skip, count);
+    }
 }
