@@ -74,6 +74,9 @@ public partial class GameDatabaseContext // Moderation
 
     public ModerationAction CreateModerationAction(GameAsset asset, ModerationActionType actionType, GameUser actor, string description)
         => this.CreateModerationActionInternal(asset.AssetHash, ModerationObjectType.Asset, actionType, actor, asset.OriginalUploader, description);
+    
+    public ModerationAction CreateModerationAction(string assetHash, ModerationActionType actionType, GameUser actor, string description)
+        => this.CreateModerationActionInternal(assetHash, ModerationObjectType.Asset, actionType, actor, null, description);
 
     public ModerationAction CreateModerationAction(GameChallenge challenge, ModerationActionType actionType, GameUser actor, string description)
         => this.CreateModerationActionInternal(challenge.ChallengeId.ToString(), ModerationObjectType.Challenge, actionType, actor, challenge.Publisher, description);
