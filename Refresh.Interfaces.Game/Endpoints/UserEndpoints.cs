@@ -9,6 +9,7 @@ using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
+using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Pins;
 using Refresh.Database.Models.Users;
@@ -122,6 +123,13 @@ public class UserEndpoints : EndpointGroup
                 // to not allow uncontrolled values which would still count as blank/empty hash (e.g. unlimited whitespaces)
                 data.IconHash = "0";
             }
+
+            DisallowedAsset? disallowedIcon = dataContext.Database.GetDisallowedAssetByHash(data.IconHash);
+            if (disallowedIcon != null)
+            {
+                context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried setting their own icon to a disallowed asset ({disallowedIcon.AssetHash})");
+                return null;
+            }
             else if (!dataContext.DataStore.ExistsInStore(data.IconHash))
             {
                 //If the asset does not exist on the server, block the request
@@ -135,10 +143,19 @@ public class UserEndpoints : EndpointGroup
             dataContext.Database.UpdateLevelLocations(data.LevelLocations, user);
         }
         
-        if (!string.IsNullOrEmpty(data.PlanetsHash) && data.PlanetsHash != "0" /* Empty planets */ && !dataContext.DataStore.ExistsInStore(data.PlanetsHash))
+        if (!data.PlanetsHash.IsBlankHash()) // not null = empty planets
         {
-            dataContext.Database.AddErrorNotification("Profile update failed", "Your planets failed to update because the asset was missing on the server.", user);
-            return null;
+            DisallowedAsset? disallowedPlanets = dataContext.Database.GetDisallowedAssetByHash(data.PlanetsHash!);
+            if (disallowedPlanets != null)
+            {
+                context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried setting their planets to a disallowed asset ({disallowedPlanets.AssetHash})");
+                return null;
+            }
+            else if (!dataContext.DataStore.ExistsInStore(data.PlanetsHash!))
+            {
+                dataContext.Database.AddErrorNotification("Profile update failed", "Your planets failed to update because the asset was missing on the server.", user);
+                return null;
+            }
         }
 
         // Trim description

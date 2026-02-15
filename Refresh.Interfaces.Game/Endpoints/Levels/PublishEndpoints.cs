@@ -52,6 +52,22 @@ public class PublishEndpoints : EndpointGroup
 
         if (body.IsAdventure && dataContext.Game != TokenGame.LittleBigPlanet3)
             return false;
+        
+        if (body.XmlResources != null)
+        {
+            foreach (string hash in body.XmlResources)
+            {
+                DisallowedAsset? disallowed = dataContext.Database.GetDisallowedAssetByHash(hash);
+                if (disallowed != null)
+                {
+                    dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{dataContext.User} tried uploading a level with a disallowed asset ({disallowed.AssetHash})");
+                    // Unlike with most other entities, informing the user is not a bad idea here because they might not know that a random asset somewhere in their
+                    // level might have been moderated in the meantime
+                    dataContext.Database.AddPublishFailNotification("The level you tried to publish contained blocked assets.", body.Title, dataContext.User!);
+                    return false;
+                }
+            }
+        }
 
         GameLevel? existingLevel = dataContext.Database.GetLevelByRootResource(body.RootResource);
         // If all are true:

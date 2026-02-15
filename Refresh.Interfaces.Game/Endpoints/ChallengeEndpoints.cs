@@ -190,6 +190,14 @@ public class ChallengeEndpoints : EndpointGroup
 
         ghostService.RemoveUserFromRateLimit(user.UserId);
 
+        // Should never happen, but whatever
+        DisallowedAsset? disallowed = dataContext.Database.GetDisallowedAssetByHash(body.GhostHash);
+        if (disallowed != null)
+        {
+            context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried uploading a challenge score with a disallowed ghost asset ({disallowed.AssetHash})");
+            return Unauthorized;
+        }
+
         GameChallenge? challenge = dataContext.Database.GetChallengeById(challengeId);
         if (challenge == null) return NotFound;
 

@@ -49,9 +49,23 @@ public class PhotoEndpoints : EndpointGroup
             return Unauthorized;
         }
 
+        DisallowedAsset? disallowedPlan = dataContext.Database.GetDisallowedAssetByHash(body.PlanHash);
+        if (disallowedPlan != null)
+        {
+            context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried uploading a photo with a disallowed plan ({disallowedPlan.AssetHash})");
+            return Unauthorized;
+        }
+
         List<string> hashes = [body.LargeHash, body.MediumHash, body.SmallHash];
         foreach (string hash in hashes.Distinct())
         {
+            DisallowedAsset? disallowedImage = dataContext.Database.GetDisallowedAssetByHash(hash);
+            if (disallowedImage != null)
+            {
+                context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried uploading a photo with a disallowed image ({disallowedImage.AssetHash})");
+                return Unauthorized;
+            }
+
             GameAsset? gameAsset = database.GetAssetFromHash(hash);
             if(gameAsset == null) continue;
             if (aipi != null && aipi.ScanAndHandleAsset(dataContext, gameAsset))

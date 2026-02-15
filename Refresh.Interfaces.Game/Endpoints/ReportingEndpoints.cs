@@ -9,6 +9,7 @@ using Refresh.Common.Time;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Database;
+using Refresh.Database.Models.Assets;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Photos;
@@ -75,6 +76,13 @@ public class ReportingEndpoints : EndpointGroup
                     DisplayName = player.Username,
                     BoundsList = player.Rectangle == null ? null : NormalizeRectangle(player.Rectangle, imageSize),
                 }));
+            
+            DisallowedAsset? disallowedImage = database.GetDisallowedAssetByHash(body.JpegHash);
+            if (disallowedImage != null)
+            {
+                context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried to convert a grief report with a blocked image to a photo ({disallowedImage.AssetHash})");
+                return Unauthorized;
+            }
 
             database.UploadPhoto(new SerializedPhoto
             {
