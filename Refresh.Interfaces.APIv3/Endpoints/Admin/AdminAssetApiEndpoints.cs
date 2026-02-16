@@ -82,28 +82,24 @@ public class AdminAssetApiEndpoints : EndpointGroup
     [DocSummary("Blocks an asset by hash, ignoring whether it is uploaded to the server or not.")]
     public ApiResponse<ApiDisallowedAssetResponse> DisallowAsset(RequestContext context, GameDatabaseContext database, DataContext dataContext, 
         [DocSummary("The asset hash to be blocked.")] string assetHash, GameUser user,
-        [DocSummary("Contains the reason, and might potentially also contain other data in the future.")] ApiDisallowAssetRequest body)
+        [DocSummary("Contains the reason, and other additional information about the asset. Won't affect asset blocking.")] ApiDisallowAssetRequest body)
     {
         // Should there be an extra parameter to bypass hash validation?
         if (!CommonPatterns.Sha1Regex().IsMatch(assetHash)) 
             return ApiValidationError.HashInvalidError;
         
         DisallowedAsset? disallowedAsset = database.GetDisallowedAssetByHash(assetHash);
-        if (disallowedAsset != null) 
-            return ApiDisallowedAssetResponse.FromOld(disallowedAsset, dataContext);
-        
-        disallowedAsset = database.DisallowAsset(assetHash, body.Reason);
+        if (disallowedAsset != null)
+        {
+            return ApiDisallowedAssetResponse.FromOld(database.UpdateDisallowedAssetInfo(disallowedAsset, body.Reason, body.AssetType), dataContext);
+        }
 
-        // Is the blocked asset already on the server?
         GameAsset? asset = database.GetAssetFromHash(assetHash);
-        if (asset != null)
-        {
-            database.CreateModerationAction(asset, ModerationActionType.BlockAsset, user, body.Reason);
-        }
-        else
-        {
-            database.CreateModerationAction(assetHash, ModerationActionType.BlockAsset, user, body.Reason);
-        }
+        disallowedAsset = database.DisallowAsset(assetHash, body.Reason, body.AssetType ?? asset?.AssetType);
+
+        // Reuse GameAsset to determine what kind of moderation action to create
+        if (asset != null) database.CreateModerationAction(asset, ModerationActionType.BlockAsset, user, body.Reason ?? "");
+        else database.CreateModerationAction(assetHash, ModerationActionType.BlockAsset, user, body.Reason ?? "");
 
         // TODO: Reset icons of whatever was using this asset as icon, and delete anything else that was referencing this asset in any other way
         // (excluding reports)?
@@ -114,7 +110,8 @@ public class AdminAssetApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/assets/blocked/{assetHash}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Unblocks the asset specified by hash, ignoring whether it is uploaded to the server or not.")]
     public ApiOkResponse ReallowAsset(RequestContext context, GameDatabaseContext database, DataContext dataContext, 
-        [DocSummary("The asset hash to be unblocked.")] string assetHash, GameUser user)
+        [DocSummary("The asset hash to be unblocked.")] string assetHash, GameUser user,
+        [DocSummary("Contains an optional reason why the asset should be unblocked. All other attributes are ignored.")] ApiDisallowAssetRequest? body)
     {
         // Should there be an extra parameter to bypass hash validation?
         if (!CommonPatterns.Sha1Regex().IsMatch(assetHash)) 
@@ -128,14 +125,8 @@ public class AdminAssetApiEndpoints : EndpointGroup
 
         // Is the unblocked asset already on the server?
         GameAsset? asset = database.GetAssetFromHash(assetHash);
-        if (asset != null)
-        {
-            database.CreateModerationAction(asset, ModerationActionType.UnblockAsset, user, "");
-        }
-        else
-        {
-            database.CreateModerationAction(assetHash, ModerationActionType.UnblockAsset, user, "");
-        }
+        if (asset != null) database.CreateModerationAction(asset, ModerationActionType.UnblockAsset, user, body?.Reason ?? "");
+        else database.CreateModerationAction(assetHash, ModerationActionType.UnblockAsset, user, body?.Reason ?? "");
 
         return new ApiOkResponse();
     }

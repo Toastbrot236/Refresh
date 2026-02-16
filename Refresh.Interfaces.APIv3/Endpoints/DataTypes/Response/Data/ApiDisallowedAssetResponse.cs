@@ -9,6 +9,7 @@ public class ApiDisallowedAssetResponse : IApiResponse, IDataConvertableFrom<Api
     public required string AssetHash { get; set; }
     public required string Reason { get; set; }
     public required DateTimeOffset BlockedAt { get; set; }
+    public required GameAssetType AssetType { get; set; }
     
     public static ApiDisallowedAssetResponse? FromOld(DisallowedAsset? old, DataContext dataContext)
     {
@@ -19,6 +20,7 @@ public class ApiDisallowedAssetResponse : IApiResponse, IDataConvertableFrom<Api
             AssetHash = old.AssetHash,
             Reason = old.Reason,
             BlockedAt = old.BlockedAt,
+            AssetType = old.AssetType
         };
     }
 

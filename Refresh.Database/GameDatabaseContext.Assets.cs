@@ -111,16 +111,27 @@ public partial class GameDatabaseContext // Assets
             asset.AsMainlinePhotoHash = hash;
         });
     
-    public DisallowedAsset DisallowAsset(string hash, string reason)
+    public DisallowedAsset DisallowAsset(string hash, string? reason, GameAssetType? assetType)
     {
         DisallowedAsset asset = new()
         {
             AssetHash = hash,
-            Reason = reason,
-            BlockedAt = this._time.Now
+            Reason = reason ?? "",
+            BlockedAt = this._time.Now,
+            AssetType = assetType ?? GameAssetType.Unknown
         };
 
         this.DisallowedAssets.Add(asset);
+        this.SaveChanges();
+        return asset;
+    }
+
+    public DisallowedAsset UpdateDisallowedAssetInfo(DisallowedAsset asset, string? reason, GameAssetType? assetType)
+    {
+        if (reason != null) asset.Reason = reason;
+        if (assetType != null) asset.AssetType = assetType.Value;
+
+        this.DisallowedAssets.Update(asset);
         this.SaveChanges();
         return asset;
     }
