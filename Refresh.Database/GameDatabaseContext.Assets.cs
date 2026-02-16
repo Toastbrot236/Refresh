@@ -133,6 +133,9 @@ public partial class GameDatabaseContext // Assets
 
     public DisallowedAsset? GetDisallowedAssetByHash(string hash)
     {
+        if (hash.IsBlankHash() || hash.StartsWith('g'))
+            return null;
+        
         return this.DisallowedAssets.FirstOrDefault(a => a.AssetHash == hash);
     }
 
