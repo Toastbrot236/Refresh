@@ -16,6 +16,7 @@ using static Refresh.Core.RateLimits.PlaylistEndpointLimits;
 using Refresh.Interfaces.Game.Types.Levels;
 using Refresh.Interfaces.Game.Types.Lists;
 using Refresh.Interfaces.Game.Types.Playlists;
+using Refresh.Database.Models.Assets;
 
 namespace Refresh.Interfaces.Game.Endpoints.Playlists;
 
@@ -24,6 +25,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     /// <summary>
     /// Validate the playlist icon. If it's blank, an invalid GUID or a remote asset which doesn't exist on the server, reset to blank hash
     /// and do not return an error to not upset the game in certain cases (also because the user cannot choose the icon when creating a playlist).
+    /// "-" => return an error immediately
     /// </summary>
     private string ValidateIconHash(string iconHash, DataContext dataContext)
     {
@@ -41,9 +43,18 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
                 return "0";
             }
         }
-        else if (!dataContext.DataStore.ExistsInStore(iconHash))
+        else
         {
-            return "0";
+            DisallowedAsset? disallowedIcon = dataContext.Database.GetDisallowedAssetByHash(iconHash);
+            if (disallowedIcon != null)
+            {
+                dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{dataContext.User} tried uploading a playlist using a disallowed icon ({iconHash})");
+                return "-";
+            }
+            else if (!dataContext.DataStore.ExistsInStore(iconHash))
+            {
+                return "0";
+            }
         }
 
         return iconHash;
@@ -90,6 +101,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
         // Validate icon
         body.Icon = this.ValidateIconHash(body.Icon, dataContext);
+        if (body.Icon == "-") return Unauthorized;
 
         // Create the playlist, marking it as the root playlist if the user does not have one set already
         GamePlaylist playlist = dataContext.Database.CreatePlaylist(user, body, rootPlaylist == null);
@@ -207,6 +219,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
         
         // Validate icon
         body.Icon = this.ValidateIconHash(body.Icon, dataContext);
+        if (body.Icon == "-") return Unauthorized;
         
         dataContext.Database.UpdatePlaylist(playlist, body);
         return OK;
