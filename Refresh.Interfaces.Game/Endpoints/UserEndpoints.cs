@@ -123,18 +123,20 @@ public class UserEndpoints : EndpointGroup
                 // to not allow uncontrolled values which would still count as blank/empty hash (e.g. unlimited whitespaces)
                 data.IconHash = "0";
             }
-
-            DisallowedAsset? disallowedIcon = dataContext.Database.GetDisallowedAssetByHash(data.IconHash);
-            if (disallowedIcon != null)
+            else
             {
-                context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried setting their own icon to a disallowed asset ({disallowedIcon.AssetHash})");
-                return null;
-            }
-            else if (!dataContext.DataStore.ExistsInStore(data.IconHash))
-            {
-                //If the asset does not exist on the server, block the request
-                dataContext.Database.AddErrorNotification("Profile update failed", "Your avatar failed to update because the asset was missing on the server.", user);
-                return null;
+                DisallowedAsset? disallowedIcon = dataContext.Database.GetDisallowedAssetByHash(data.IconHash);
+                if (disallowedIcon != null)
+                {
+                    context.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried setting their own icon to a disallowed asset ({disallowedIcon.AssetHash})");
+                    return null;
+                }
+                else if (!dataContext.DataStore.ExistsInStore(data.IconHash))
+                {
+                    //If the asset does not exist on the server, block the request
+                    dataContext.Database.AddErrorNotification("Profile update failed", "Your avatar failed to update because the asset was missing on the server.", user);
+                    return null;
+                }
             }
         }
         
