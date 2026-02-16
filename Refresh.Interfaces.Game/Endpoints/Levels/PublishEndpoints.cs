@@ -50,22 +50,26 @@ public class PublishEndpoints : EndpointGroup
         if (body.IconHash.StartsWith('g') && !dataContext.GuidChecker.IsTextureGuid(dataContext.Game, long.Parse(body.IconHash.AsSpan()[1..]))) 
             return false;
 
+        DisallowedAsset? disallowedIcon = dataContext.Database.GetDisallowedAssetByHash(body.IconHash);
+        if (disallowedIcon != null)
+        {
+            dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{dataContext.User} tried uploading a level using a disallowed icon ({disallowedIcon.AssetHash})");
+            return false;
+        }
+
         if (body.IsAdventure && dataContext.Game != TokenGame.LittleBigPlanet3)
             return false;
         
         if (body.XmlResources != null)
         {
-            foreach (string hash in body.XmlResources)
+            List<string> disallowedDependencyHashes = dataContext.Database.FilterBlockedAssetHashes(body.XmlResources).ToList();
+            if (disallowedDependencyHashes.Count > 0)
             {
-                DisallowedAsset? disallowed = dataContext.Database.GetDisallowedAssetByHash(hash);
-                if (disallowed != null)
-                {
-                    dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{dataContext.User} tried uploading a level with a disallowed asset ({disallowed.AssetHash})");
-                    // Unlike with most other entities, informing the user is not a bad idea here because they might not know that a random asset somewhere in their
-                    // level might have been moderated in the meantime
-                    dataContext.Database.AddPublishFailNotification("The level you tried to publish contained blocked assets.", body.Title, dataContext.User!);
-                    return false;
-                }
+                dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{dataContext.User} tried uploading a level using disallowed dependencies ({string.Join(',', disallowedDependencyHashes)})");
+                // Unlike with most other entities, informing the user is not a bad idea here because they might not know that a random asset somewhere in their
+                // level might have been moderated in the meantime
+                dataContext.Database.AddPublishFailNotification("The level you tried to publish contained blocked assets.", body.Title, dataContext.User!);
+                return false;
             }
         }
 
@@ -205,6 +209,13 @@ public class PublishEndpoints : EndpointGroup
         if (!CommonPatterns.Sha1Regex().IsMatch(body.RootResource)) return BadRequest;
         //Make sure the root resource exists in the data store
         if (!dataContext.DataStore.ExistsInStore(rootResourcePath)) return NotFound;
+
+        DisallowedAsset? disallowedRoot = dataContext.Database.GetDisallowedAssetByHash(body.RootResource);
+        if (disallowedRoot != null)
+        {
+            dataContext.Logger.LogWarning(BunkumCategory.UserContent, $"{user} tried uploading a level using a disallowed root asset ({disallowedRoot.AssetHash})");
+            return BadRequest;
+        }
 
         GameAsset? asset = dataContext.Database.GetAssetFromHash(body.RootResource);
         if (asset != null && dataContext.Game != TokenGame.LittleBigPlanetPSP)
