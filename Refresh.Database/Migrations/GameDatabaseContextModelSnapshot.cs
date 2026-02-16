@@ -59,6 +59,26 @@ namespace Refresh.Database.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Assets.DisallowedAsset", b =>
+                {
+                    b.Property<string>("AssetHash")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("AssetType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("BlockedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("AssetHash");
+
+                    b.ToTable("DisallowedAssets");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Assets.GameAsset", b =>
                 {
                     b.Property<string>("AssetHash")
