@@ -20,6 +20,11 @@ public class LevelFilterSettings
     public bool DisplayBeta { get; set; } = true;
 
     /// <summary>
+    /// Additional parameters for searching
+    /// </summary>
+    public SearchSettings? SearchSettings { get; set; }
+
+    /// <summary>
     /// The game of the request, eg. to prevent LBP3 levels from appearing on LBP2 or LBP1
     /// </summary>
     public TokenGame GameVersion { get; set; }
