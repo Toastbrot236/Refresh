@@ -17,6 +17,8 @@ public class DatabaseResultList
     public int TotalItems => (Levels?.TotalItems ?? 0)
         + (Users?.TotalItems ?? 0)
         + (Playlists?.TotalItems ?? 0);
+
+    public DatabaseResultList() {}
     
     public DatabaseResultList(DatabaseList<GameLevel> levels)
     {
