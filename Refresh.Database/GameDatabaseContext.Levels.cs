@@ -493,10 +493,15 @@ public partial class GameDatabaseContext // Levels
                 .FilterByLevelFilterSettings(user, levelFilterSettings);
 
         string dbQuery = $"%{query}%";
-        List<GameLevel> levels = validLevels.Where(l =>
-            EF.Functions.ILike(l.Title, dbQuery) ||
-            EF.Functions.ILike(l.Description, dbQuery)
-        ).ToList();
+        IQueryable<GameLevel> matchingLevels = validLevels;
+
+        if (levelFilterSettings.SearchSettings?.CompareNames ?? true)
+            matchingLevels = matchingLevels.Where(l => EF.Functions.ILike(l.Title, dbQuery));
+        
+        if (levelFilterSettings.SearchSettings?.CompareDescriptions ?? true)
+            matchingLevels = matchingLevels.Where(l => EF.Functions.ILike(l.Description, dbQuery));
+        
+        List<GameLevel> levels = matchingLevels.ToList();
         
         // If the search is just an int, then we should also look for levels which match that ID
         if (int.TryParse(query, out int id))
@@ -505,17 +510,10 @@ public partial class GameDatabaseContext // Levels
             GameLevel? idLevel = validLevels.FirstOrDefault(l => l.LevelId == id);
 
             // If we found it, and it does not duplicate, add it
-            if (idLevel != null && !levels.Contains(idLevel))
+            if (idLevel != null && !matchingLevels.Contains(idLevel))
             {
                 levels.Add(idLevel);
             }
-        }
-        
-        // Try to look up a username to search by publisher.
-        GameUser? publisher = this.GetUserByUsername(query, false); 
-        if (publisher != null)
-        {
-            levels.AddRange(validLevels.Where(l => l.Publisher == publisher));
         }
 
         return new DatabaseList<GameLevel>(levels.OrderByDescending(l => l.CoolRating), skip, count);

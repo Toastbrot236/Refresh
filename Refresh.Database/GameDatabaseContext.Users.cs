@@ -106,6 +106,38 @@ public partial class GameDatabaseContext // Users
         => new(this.GameUsersIncluded
             .Where(u => u.Statistics!.FavouriteCount > 0)
             .OrderByDescending(u => u.Statistics!.FavouriteCount), skip, count);
+    
+    [Pure]
+    public DatabaseList<GameUser> SearchForUsers(int count, int skip, LevelFilterSettings levelFilterSettings, string query)
+    {
+        IQueryable<GameUser> validUsers = this.GameUsersIncluded;
+
+        string dbQuery = $"%{query}%";
+        IQueryable<GameUser> matchingUsers = validUsers;
+
+        if (levelFilterSettings.SearchSettings?.CompareNames ?? true)
+            matchingUsers = matchingUsers.Where(u => EF.Functions.ILike(u.Username, dbQuery));
+        
+        if (levelFilterSettings.SearchSettings?.CompareDescriptions ?? true)
+            matchingUsers = matchingUsers.Where(u => EF.Functions.ILike(u.Description, dbQuery));
+        
+        List<GameUser> users = matchingUsers.ToList();
+        
+        // If the search is an object ID, then we should also look for users which match it
+        if (ObjectId.TryParse(query, out ObjectId objectId))
+        {
+            // Try to find a level with the ID
+            GameUser? uuidUser = validUsers.FirstOrDefault(l => l.UserId == objectId);
+
+            // If we found it, and it does not duplicate, add it
+            if (uuidUser != null && !users.Contains(uuidUser))
+            {
+                users.Add(uuidUser);
+            }
+        }
+
+        return new DatabaseList<GameUser>(users.OrderByDescending(l => l.Statistics!.FavouriteCount), skip, count);
+    }
 
     public void UpdateUserData(GameUser user, ISerializedEditUser data, TokenGame game)
     {
