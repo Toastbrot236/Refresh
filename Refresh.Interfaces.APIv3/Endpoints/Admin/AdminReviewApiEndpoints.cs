@@ -5,6 +5,7 @@ using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Database;
 using Refresh.Database.Models.Comments;
+using Refresh.Database.Models.Moderation;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.APIv3.Documentation.Descriptions;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
@@ -17,7 +18,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/reviews/id/{reviewId}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a specific review by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
-    public ApiOkResponse DeleteReviewById(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteReviewById(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the review to delete")] int reviewId)
     {
         GameReview? review = database.GetReviewById(reviewId);
@@ -25,13 +26,14 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (review == null) return ApiNotFoundError.ReviewMissingError;
         
         database.DeleteReview(review);
+        database.CreateModerationAction(review, ModerationActionType.ReviewDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
-        [ApiV3Endpoint("admin/comments/profile/id/{commentId}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
+    [ApiV3Endpoint("admin/comments/profile/id/{commentId}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a specific profile comment by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.CommentMissingErrorWhen)]
-    public ApiOkResponse DeleteProfileCommentById(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteProfileCommentById(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the profile comment to delete")] int commentId)
     {
         GameProfileComment? comment = database.GetProfileCommentById(commentId);
@@ -39,13 +41,14 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (comment == null) return ApiNotFoundError.CommentMissingError;
         
         database.DeleteProfileComment(comment);
+        database.CreateModerationAction(comment, ModerationActionType.ProfileCommentDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/comments/level/id/{commentId}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a specific level comment by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.CommentMissingErrorWhen)]
-    public ApiOkResponse DeleteLevelCommentById(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteLevelCommentById(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the level comment to delete")] int commentId)
     {
         GameLevelComment? comment = database.GetLevelCommentById(commentId);
@@ -53,48 +56,52 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (comment == null) return ApiNotFoundError.CommentMissingError;
         
         database.DeleteLevelComment(comment);
+        database.CreateModerationAction(comment, ModerationActionType.LevelCommentDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/{idType}/{id}/comments/profile", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes all profile comments posted by a user. Gets user by their UUID or username.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse DeleteProfileCommentsByUser(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteProfileCommentsByUser(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
     {
-        GameUser? user = database.GetUserByIdAndType(idType, id);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? targetUser = database.GetUserByIdAndType(idType, id);
+        if (targetUser == null) return ApiNotFoundError.UserMissingError;
         
-        database.DeleteProfileCommentsPostedByUser(user);
+        database.DeleteProfileCommentsPostedByUser(targetUser);
+        database.CreateModerationAction(targetUser, ModerationActionType.ProfileCommentsByUserDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/{idType}/{id}/comments/level", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes all level comments posted by a user. Gets user by their UUID or username.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse DeleteLevelCommentsByUser(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteLevelCommentsByUser(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
     {
-        GameUser? user = database.GetUserByIdAndType(idType, id);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? targetUser = database.GetUserByIdAndType(idType, id);
+        if (targetUser == null) return ApiNotFoundError.UserMissingError;
 
-        database.DeleteLevelCommentsPostedByUser(user);
+        database.DeleteLevelCommentsPostedByUser(targetUser);
+        database.CreateModerationAction(targetUser, ModerationActionType.LevelCommentsByUserDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
     [ApiV3Endpoint("admin/users/{idType}/{id}/reviews", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes all reviews posted by a user. Gets user by their UUID or username.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    public ApiOkResponse DeleteReviewsPostedByUser(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteReviewsPostedByUser(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
     {
-        GameUser? user = database.GetUserByIdAndType(idType, id);
-        if (user == null) return ApiNotFoundError.UserMissingError;
+        GameUser? targetUser = database.GetUserByIdAndType(idType, id);
+        if (targetUser == null) return ApiNotFoundError.UserMissingError;
         
-        database.DeleteReviewsPostedByUser(user);
+        database.DeleteReviewsPostedByUser(targetUser);
+        database.CreateModerationAction(targetUser, ModerationActionType.ReviewsByUserDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
 }

@@ -7,6 +7,7 @@ using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Levels;
+using Refresh.Database.Models.Moderation;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes.Errors;
@@ -58,6 +59,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
             return ApiValidationError.InvalidTextureGuidError;
         
         level = database.UpdateLevel(body, level, user);
+        database.CreateModerationAction(level!, ModerationActionType.LevelModification, user, ""); // TODO: Ability to include reason
 
         return ApiGameLevelResponse.FromOld(level, dataContext);
     }
@@ -65,12 +67,13 @@ public class AdminLevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/levels/id/{id}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Deletes a level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    public ApiOkResponse DeleteLevel(RequestContext context, GameDatabaseContext database, int id)
+    public ApiOkResponse DeleteLevel(RequestContext context, GameDatabaseContext database, int id, GameUser user)
     {
         GameLevel? level = database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;
         
         database.DeleteLevel(level);
+        database.CreateModerationAction(level!, ModerationActionType.LevelDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     

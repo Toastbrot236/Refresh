@@ -114,6 +114,7 @@ public class AdminUserApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.ResetUserPlanets(targetUser);
+        database.CreateModerationAction(targetUser, ModerationActionType.UserModification, user, "Reset planets"); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
 
@@ -199,7 +200,6 @@ public class AdminUserApiEndpoints : EndpointGroup
             body.Description = body.Description[..UgcLimits.DescriptionLimit];
 
         database.UpdateUserData(targetUser, body);
-        // TODO: In ApiV4, moderation actions should also provide reasons
         database.CreateModerationAction(targetUser, ModerationActionType.UserModification, user, "");
 
         return ApiExtendedGameUserResponse.FromOld(targetUser, dataContext);
@@ -220,6 +220,7 @@ public class AdminUserApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.DeleteUser(targetUser);
+        database.CreateModerationAction(targetUser, ModerationActionType.UserDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
 }

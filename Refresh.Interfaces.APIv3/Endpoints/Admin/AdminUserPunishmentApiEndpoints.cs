@@ -4,6 +4,7 @@ using Bunkum.Core.Endpoints;
 using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Database;
+using Refresh.Database.Models.Moderation;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.APIv3.Documentation.Descriptions;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
@@ -30,6 +31,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.BanUser(targetUser, body.Reason, body.ExpiryDate);
+        database.CreateModerationAction(targetUser, ModerationActionType.UserPunishment, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
@@ -49,6 +51,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.RestrictUser(targetUser, body.Reason, body.ExpiryDate);
+        database.CreateModerationAction(targetUser, ModerationActionType.UserPunishment, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
     
@@ -67,6 +70,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.UserIsAlreadyPardonedError;
         
         database.SetUserRole(targetUser, GameUserRole.User);
+        database.CreateModerationAction(targetUser, ModerationActionType.UserPardon, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
 }

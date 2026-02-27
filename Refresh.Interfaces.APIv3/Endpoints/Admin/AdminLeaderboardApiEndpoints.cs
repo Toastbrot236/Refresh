@@ -5,6 +5,7 @@ using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Database;
 using Refresh.Database.Models.Levels.Scores;
+using Refresh.Database.Models.Moderation;
 using Refresh.Database.Models.Users;
 using Refresh.Interfaces.APIv3.Documentation.Descriptions;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
@@ -17,13 +18,14 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
     [ApiV3Endpoint("admin/scores/{uuid}", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Removes a score by the score's UUID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ScoreMissingErrorWhen)]
-    public ApiOkResponse DeleteScore(RequestContext context, GameDatabaseContext database,
+    public ApiOkResponse DeleteScore(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The UUID of the score")] string uuid)
     {
         GameScore? score = database.GetScoreByUuid(uuid);
         if (score == null) return ApiNotFoundError.Instance;
         
         database.DeleteScore(score);
+        database.CreateModerationAction(score, ModerationActionType.ScoreDeletion, user, ""); // TODO: Ability to include reason
         
         return new ApiOkResponse();
     }
@@ -39,6 +41,7 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
         if (user == null) return ApiNotFoundError.UserMissingError;
         
         database.DeleteScoresSetByUser(user);
+        database.CreateModerationAction(user, ModerationActionType.ScoresByUserDeletion, user, ""); // TODO: Ability to include reason
         return new ApiOkResponse();
     }
 }
