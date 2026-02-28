@@ -25,7 +25,7 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
         if (score == null) return ApiNotFoundError.Instance;
         
         database.DeleteScore(score);
-        database.CreateModerationAction(score, ModerationActionType.ScoreDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(score, ModerationActionType.ScoreDeletion, user, null); // TODO: Reason
         
         return new ApiOkResponse();
     }
@@ -41,7 +41,7 @@ public class AdminLeaderboardApiEndpoints : EndpointGroup
         if (user == null) return ApiNotFoundError.UserMissingError;
         
         database.DeleteScoresSetByUser(user);
-        database.CreateModerationAction(user, ModerationActionType.ScoresByUserDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(user, ModerationActionType.ScoresByUserDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
 }

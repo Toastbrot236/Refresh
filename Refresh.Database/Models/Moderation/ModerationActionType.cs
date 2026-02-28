@@ -6,45 +6,49 @@ namespace Refresh.Database.Models.Moderation;
 public enum ModerationActionType : byte
 {
     // Users
-    UserModification,
+    UserModification = 0,
+    UserPlanetsReset,
     UserDeletion,
-    UserPunishment,
+    UserRestriction,
+    UserBan,
     UserPardon,
     PinProgressDeletion,
 
     // Levels
-    LevelModification,
+    LevelModification = 20,
     LevelDeletion,
+    ReattributeLevelFromUser,
+    ReattributeLevelToUser,
 
     // Playlists
-    PlaylistModification,
+    PlaylistModification = 40,
     PlaylistDeletion,
 
     // Photos
-    PhotoDeletion,
+    PhotoDeletion = 60,
     PhotosByUserDeletion,
 
     // Scores
-    ScoreDeletion,
+    ScoreDeletion = 80,
     ScoresByUserForLevelDeletion,
     ScoresByUserDeletion,
 
     // Reviews
-    ReviewDeletion,
+    ReviewDeletion = 100,
     ReviewsByUserDeletion,
     
     // Comments
-    LevelCommentDeletion,
+    LevelCommentDeletion = 120,
     LevelCommentsByUserDeletion,
     ProfileCommentDeletion,
     ProfileCommentsByUserDeletion,
 
     // Assets
-    BlockAsset,
+    BlockAsset = 140,
     UnblockAsset,
 
     // Challenges
-    ChallengeDeletion,
+    ChallengeDeletion = 160,
     ChallengesByUserDeletion,
     ChallengeScoreDeletion,
     ChallengeScoresByUserDeletion,

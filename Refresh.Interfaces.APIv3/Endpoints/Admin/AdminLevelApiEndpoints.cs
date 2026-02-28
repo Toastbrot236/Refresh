@@ -59,7 +59,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
             return ApiValidationError.InvalidTextureGuidError;
         
         level = database.UpdateLevel(body, level, user);
-        database.CreateModerationAction(level!, ModerationActionType.LevelModification, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(level!, ModerationActionType.LevelModification, user, body.Reason);
 
         return ApiGameLevelResponse.FromOld(level, dataContext);
     }
@@ -73,7 +73,7 @@ public class AdminLevelApiEndpoints : EndpointGroup
         if (level == null) return ApiNotFoundError.LevelMissingError;
         
         database.DeleteLevel(level);
-        database.CreateModerationAction(level!, ModerationActionType.LevelDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(level!, ModerationActionType.LevelDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -96,6 +96,8 @@ public class AdminLevelApiEndpoints : EndpointGroup
             return ApiNotFoundError.UserMissingError;
 
         database.UpdateLevelPublisher(level, newAuthor);
+        database.CreateModerationAction(level!, ModerationActionType.ReattributeLevelFromUser, user, body.Reason);
+        database.CreateModerationAction(level!, ModerationActionType.ReattributeLevelToUser, user, body.Reason);
         return new ApiOkResponse();
     }
 }

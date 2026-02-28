@@ -26,7 +26,7 @@ public class AdminPhotoApiEndpoints : EndpointGroup
         if (targetUser == null) return ApiNotFoundError.UserMissingError;
         
         database.DeletePhotosPostedByUser(targetUser);
-        database.CreateModerationAction(targetUser, ModerationActionType.PhotosByUserDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.PhotosByUserDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -39,7 +39,7 @@ public class AdminPhotoApiEndpoints : EndpointGroup
         if (photo == null) return ApiNotFoundError.PhotoMissingError;
         
         database.RemovePhoto(photo);
-        database.CreateModerationAction(photo, ModerationActionType.PhotoDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(photo, ModerationActionType.PhotoDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
 }

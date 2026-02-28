@@ -26,7 +26,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (review == null) return ApiNotFoundError.ReviewMissingError;
         
         database.DeleteReview(review);
-        database.CreateModerationAction(review, ModerationActionType.ReviewDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(review, ModerationActionType.ReviewDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -41,7 +41,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (comment == null) return ApiNotFoundError.CommentMissingError;
         
         database.DeleteProfileComment(comment);
-        database.CreateModerationAction(comment, ModerationActionType.ProfileCommentDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(comment, ModerationActionType.ProfileCommentDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -56,7 +56,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (comment == null) return ApiNotFoundError.CommentMissingError;
         
         database.DeleteLevelComment(comment);
-        database.CreateModerationAction(comment, ModerationActionType.LevelCommentDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(comment, ModerationActionType.LevelCommentDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -71,7 +71,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (targetUser == null) return ApiNotFoundError.UserMissingError;
         
         database.DeleteProfileCommentsPostedByUser(targetUser);
-        database.CreateModerationAction(targetUser, ModerationActionType.ProfileCommentsByUserDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.ProfileCommentsByUserDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -86,7 +86,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (targetUser == null) return ApiNotFoundError.UserMissingError;
 
         database.DeleteLevelCommentsPostedByUser(targetUser);
-        database.CreateModerationAction(targetUser, ModerationActionType.LevelCommentsByUserDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.LevelCommentsByUserDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
     
@@ -101,7 +101,7 @@ public class AdminReviewApiEndpoints : EndpointGroup
         if (targetUser == null) return ApiNotFoundError.UserMissingError;
         
         database.DeleteReviewsPostedByUser(targetUser);
-        database.CreateModerationAction(targetUser, ModerationActionType.ReviewsByUserDeletion, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.ReviewsByUserDeletion, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
 }

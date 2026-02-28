@@ -4,4 +4,5 @@ namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request;
 public sealed class ApiSetLevelAuthorRequest
 {
     public string AuthorId { get; set; } = string.Empty;
+    public string? Reason { get; set; }
 }

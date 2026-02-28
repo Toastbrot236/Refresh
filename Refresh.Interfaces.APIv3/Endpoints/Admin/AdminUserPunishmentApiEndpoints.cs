@@ -31,7 +31,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.BanUser(targetUser, body.Reason, body.ExpiryDate);
-        database.CreateModerationAction(targetUser, ModerationActionType.UserPunishment, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.UserBan, user, body.Reason);
         return new ApiOkResponse();
     }
     
@@ -51,7 +51,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
         database.RestrictUser(targetUser, body.Reason, body.ExpiryDate);
-        database.CreateModerationAction(targetUser, ModerationActionType.UserPunishment, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.UserRestriction, user, body.Reason);
         return new ApiOkResponse();
     }
     
@@ -70,7 +70,7 @@ public class AdminUserPunishmentApiEndpoints : EndpointGroup
             return ApiValidationError.UserIsAlreadyPardonedError;
         
         database.SetUserRole(targetUser, GameUserRole.User);
-        database.CreateModerationAction(targetUser, ModerationActionType.UserPardon, user, ""); // TODO: Ability to include reason
+        database.CreateModerationAction(targetUser, ModerationActionType.UserPardon, user, null); // TODO: Reason
         return new ApiOkResponse();
     }
 }

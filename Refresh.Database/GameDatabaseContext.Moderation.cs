@@ -48,40 +48,40 @@ public partial class GameDatabaseContext // Moderation
 
     #region Creation
 
-    public ModerationAction CreateModerationAction(GameUser user, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameUser user, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(user.UserId.ToString(), ModerationObjectType.User, actionType, actor, user, description);
     
-    public ModerationAction CreateModerationAction(GameLevel level, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameLevel level, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(level.LevelId.ToString(), ModerationObjectType.Level, actionType, actor, level.Publisher, description);
     
-    public ModerationAction CreateModerationAction(GameScore score, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameScore score, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(score.ScoreId.ToString(), ModerationObjectType.Score, actionType, actor, score.Publisher, description);
     
-    public ModerationAction CreateModerationAction(GamePhoto photo, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GamePhoto photo, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(photo.PhotoId.ToString(), ModerationObjectType.Photo, actionType, actor, photo.Publisher, description);
 
-    public ModerationAction CreateModerationAction(GameReview review, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameReview review, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(review.ReviewId.ToString(), ModerationObjectType.Review, actionType, actor, review.Publisher, description);
 
-    public ModerationAction CreateModerationAction(GameLevelComment comment, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameLevelComment comment, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(comment.SequentialId.ToString(), ModerationObjectType.LevelComment, actionType, actor, comment.Author, description);
 
-    public ModerationAction CreateModerationAction(GameProfileComment comment, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameProfileComment comment, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(comment.SequentialId.ToString(), ModerationObjectType.UserComment, actionType, actor, comment.Author, description);
 
-    public ModerationAction CreateModerationAction(GamePlaylist playlist, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GamePlaylist playlist, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(playlist.PlaylistId.ToString(), ModerationObjectType.Playlist, actionType, actor, playlist.Publisher, description);
 
-    public ModerationAction CreateModerationAction(GameAsset asset, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameAsset asset, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(asset.AssetHash, ModerationObjectType.Asset, actionType, actor, asset.OriginalUploader, description);
 
-    public ModerationAction CreateModerationAction(GameChallenge challenge, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameChallenge challenge, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(challenge.ChallengeId.ToString(), ModerationObjectType.Challenge, actionType, actor, challenge.Publisher, description);
     
-    public ModerationAction CreateModerationAction(GameChallengeScore score, ModerationActionType actionType, GameUser actor, string description)
+    public ModerationAction CreateModerationAction(GameChallengeScore score, ModerationActionType actionType, GameUser actor, string? description)
         => this.CreateModerationActionInternal(score.ScoreId.ToString(), ModerationObjectType.Score, actionType, actor, score.Publisher, description);
 
-    private ModerationAction CreateModerationActionInternal(string id, ModerationObjectType objectType, ModerationActionType actionType, GameUser actor, GameUser? involvedUser, string description)
+    private ModerationAction CreateModerationActionInternal(string id, ModerationObjectType objectType, ModerationActionType actionType, GameUser actor, GameUser? involvedUser, string? description)
     {
         ModerationAction moderationAction = new()
         {
@@ -90,7 +90,7 @@ public partial class GameDatabaseContext // Moderation
             ActionType = actionType,
             Actor = actor,
             InvolvedUser = involvedUser,
-            Description = description,
+            Description = description ?? "",
             Timestamp = this._time.Now,
         };
 
