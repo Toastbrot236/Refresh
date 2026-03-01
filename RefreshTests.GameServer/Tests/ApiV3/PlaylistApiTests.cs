@@ -7,11 +7,15 @@ using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request;
 using Refresh.Database.Models.Playlists;
 using Refresh.Database.Models.Levels;
 using Refresh.Common.Constants;
+using Refresh.Common.Extensions;
+using Refresh.Database.Models.Assets;
 
 namespace RefreshTests.GameServer.Tests.ApiV3;
 
 public class PlaylistApiTests : GameServerTest
 {
+    private const string TEST_IMAGE_HASH = "0ec63b140374ba704a58fa0c743cb357683313dd";
+
     [Test]
     public void CreateAndUpdatePlaylist()
     {
@@ -170,6 +174,51 @@ public class PlaylistApiTests : GameServerTest
         Assert.That(response!.Error!.StatusCode, Is.EqualTo(BadRequest));
         Assert.That(context.Database.GetTotalPlaylistsByAuthor(moron), Is.Zero);
         Assert.That(context.Database.GetTotalPlaylistsInPlaylist(parent), Is.Zero);
+    }
+
+    [Test]
+    [TestCase("", true, false)]
+    [TestCase("0", true, false)]
+    [TestCase("lul", false, false)]
+    [TestCase(TEST_IMAGE_HASH, true, true)]
+    [TestCase("gg", false, false)]
+    [TestCase("g67", false, false)]
+    [TestCase("g1000035", true, false)]
+    public void TestPlaylistIcons(string icon, bool success, bool isRemoteAsset)
+    {
+        using TestContext context = this.GetServer();
+        GameUser user = context.CreateUser();
+        using HttpClient client = context.GetAuthenticatedClient(TokenType.Api, user);
+
+        if (isRemoteAsset)
+        {
+            context.Database.AddAssetToDatabase(new()
+            {
+                AssetHash = icon,
+                AssetType = GameAssetType.Png,
+            });
+        }
+        
+        // Create
+        ApiPlaylistCreationRequest request = new()
+        {
+            Icon = icon
+        };
+        ApiResponse<ApiGamePlaylistResponse>? response = client.PostData<ApiGamePlaylistResponse>($"/api/v3/playlists", request, success, !success);
+        Assert.That(response, Is.Not.Null);
+        if (success)
+        {
+            Assert.That(response!.Data, Is.Not.Null);
+            Assert.That(response.Data!.IconHash, Is.EqualTo(icon.IsBlankHash() ? "0" : icon));
+        }
+        
+        GamePlaylist playlist = context.CreatePlaylist(user);
+        response = client.PatchData<ApiGamePlaylistResponse>($"/api/v3/playlists/id/{playlist.PlaylistId}", request, success, !success);
+        if (success)
+        {
+            Assert.That(response!.Data, Is.Not.Null);
+            Assert.That(response.Data!.IconHash, Is.EqualTo(icon.IsBlankHash() ? "0" : icon));
+        }
     }
 
     [Test]
