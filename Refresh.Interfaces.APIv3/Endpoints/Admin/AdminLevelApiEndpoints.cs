@@ -13,6 +13,7 @@ using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes.Errors;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Levels;
+using Refresh.Interfaces.APIv3.Extensions;
 
 namespace Refresh.Interfaces.APIv3.Endpoints.Admin;
 
@@ -54,9 +55,8 @@ public class AdminLevelApiEndpoints : EndpointGroup
         GameLevel? level = database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;
 
-        if (body.IconHash != null && body.IconHash.StartsWith('g') &&
-            !dataContext.GuidChecker.IsTextureGuid(level.GameVersion, long.Parse(body.IconHash)))
-            return ApiValidationError.InvalidTextureGuidError;
+        (body.IconHash, ApiError? iconError) = body.IconHash.ValidateIcon(dataContext);
+        if (iconError != null) return iconError;
         
         // Trim title and description
         if (body.Title != null && body.Title.Length > UgcLimits.TitleLimit) 
