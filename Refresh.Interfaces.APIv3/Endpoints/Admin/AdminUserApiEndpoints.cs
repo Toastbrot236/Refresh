@@ -184,7 +184,6 @@ public class AdminUserApiEndpoints : EndpointGroup
             body.Description = body.Description[..UgcLimits.DescriptionLimit];
 
         database.UpdateUserData(targetUser, body);
-        // TODO: In ApiV4, moderation actions should also provide reasons
         database.CreateModerationAction(targetUser, ModerationActionType.UserModification, user, "");
 
         return ApiExtendedGameUserResponse.FromOld(targetUser, dataContext);
@@ -207,4 +206,103 @@ public class AdminUserApiEndpoints : EndpointGroup
         database.DeleteUser(targetUser);
         return new ApiOkResponse();
     }
+
+    #region Disallowed Email Addresses
+
+    [ApiV3Endpoint("admin/disallowed/emailAddresses", HttpMethods.Post), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Disallows a specific email address.")]
+    public ApiResponse<ApiDisallowedEmailAddressResponse> DisallowEmailAddress(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowEmailAddressRequest body)
+    {
+        (DisallowedEmailAddress info, bool success) = dataContext.Database.DisallowEmailAddress(body.Address, body.Reason ?? "");
+        // TODO: mod log
+        return new ApiResponse<ApiDisallowedEmailAddressResponse>(ApiDisallowedEmailAddressResponse.FromOld(info, dataContext)!, success ? Created : OK);
+    }
+
+    [ApiV3Endpoint("admin/disallowed/emailAddresses", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Reallows a specific email address.")]
+    public ApiOkResponse ReallowEmailAddress(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowEmailAddressRequest body)
+    {
+        bool success = dataContext.Database.ReallowEmailAddress(body.Address);
+        // TODO: mod log
+        if (!success) return ApiNotFoundError.Instance;
+        return new ApiOkResponse();
+    }
+
+    [ApiV3Endpoint("admin/disallowed/emailAddresses", HttpMethods.Get), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Gets all disallowed email addresses.")]
+    [DocUsesPageData]
+    public ApiListResponse<ApiDisallowedEmailAddressResponse> GetDisallowedEmailAddresses(RequestContext context, DataContext dataContext, GameUser user)
+    {
+        (int skip, int count) = context.GetPageData();
+        DatabaseList<DisallowedEmailAddress> disallowedList = dataContext.Database.GetDisallowedEmailAddresses(skip, count);
+        return DatabaseListExtensions.FromOldList<ApiDisallowedEmailAddressResponse, DisallowedEmailAddress>(disallowedList, dataContext);
+    }
+
+    #endregion
+    
+    #region Disallowed Email Domains
+
+    [ApiV3Endpoint("admin/disallowed/emailDomains", HttpMethods.Post), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Disallows a specific email domain. If the given domain is a whole email address, only the part after the @ will be used as the domain.")]
+    public ApiResponse<ApiDisallowedEmailDomainResponse> DisallowEmailDomain(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowEmailDomainRequest body)
+    {
+        (DisallowedEmailDomain info, bool success) = dataContext.Database.DisallowEmailDomain(body.Domain, body.Reason ?? "");
+        // TODO: mod log
+        return new ApiResponse<ApiDisallowedEmailDomainResponse>(ApiDisallowedEmailDomainResponse.FromOld(info, dataContext)!, success ? Created : OK);
+    }
+
+    [ApiV3Endpoint("admin/disallowed/emailDomains", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Reallows a specific email domain. If the given domain is a whole email address, only the part after the @ will be used as the domain.")]
+    public ApiOkResponse ReallowEmailDomain(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowEmailDomainRequest body)
+    {
+        bool success = dataContext.Database.ReallowEmailDomain(body.Domain);
+        // TODO: mod log
+        if (!success) return ApiNotFoundError.Instance;
+        return new ApiOkResponse();
+    }
+
+    [ApiV3Endpoint("admin/disallowed/emailDomains", HttpMethods.Get), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Gets a list of disallowed email domains.")]
+    [DocUsesPageData]
+    public ApiListResponse<ApiDisallowedEmailDomainResponse> GetDisallowedEmailDomains(RequestContext context, DataContext dataContext, GameUser user)
+    {
+        (int skip, int count) = context.GetPageData();
+        DatabaseList<DisallowedEmailDomain> disallowedList = dataContext.Database.GetDisallowedEmailDomains(skip, count);
+        return DatabaseListExtensions.FromOldList<ApiDisallowedEmailDomainResponse, DisallowedEmailDomain>(disallowedList, dataContext);
+    }
+
+    #endregion
+
+    #region Disallowed Usernames
+
+    [ApiV3Endpoint("admin/disallowed/usernames", HttpMethods.Post), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Disallows a specific username.")]
+    public ApiResponse<ApiDisallowedUsernameResponse> DisallowUsername(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowUsernameRequest body)
+    {
+        (DisallowedUser info, bool success) = dataContext.Database.DisallowUser(body.Username, body.Reason ?? "");
+        // TODO: mod log
+        return new ApiResponse<ApiDisallowedUsernameResponse>(ApiDisallowedUsernameResponse.FromOld(info, dataContext)!, success ? Created : OK);
+    }
+
+    [ApiV3Endpoint("admin/disallowed/usernames", HttpMethods.Delete), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Reallows a specific username.")]
+    public ApiOkResponse ReallowUsername(RequestContext context, DataContext dataContext, GameUser user, ApiDisallowUsernameRequest body)
+    {
+        bool success = dataContext.Database.ReallowUser(body.Username);
+        // TODO: mod log
+        if (!success) return ApiNotFoundError.Instance;
+        return new ApiOkResponse();
+    }
+
+    [ApiV3Endpoint("admin/disallowed/usernames", HttpMethods.Get), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Gets a list of disallowed usernames.")]
+    [DocUsesPageData]
+    public ApiListResponse<ApiDisallowedUsernameResponse> GetDisallowedUsernames(RequestContext context, DataContext dataContext, GameUser user)
+    {
+        (int skip, int count) = context.GetPageData();
+        DatabaseList<DisallowedUser> disallowedList = dataContext.Database.GetDisallowedUsers(skip, count);
+        return DatabaseListExtensions.FromOldList<ApiDisallowedUsernameResponse, DisallowedUser>(disallowedList, dataContext);
+    }
+
+    #endregion
 }
