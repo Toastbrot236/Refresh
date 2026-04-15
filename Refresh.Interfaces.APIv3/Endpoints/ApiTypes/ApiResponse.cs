@@ -47,7 +47,7 @@ public class ApiResponse<TData> : IHasResponseCode where TData : class
         return new ApiResponse<TData>(error);
     }
     
-    public HttpStatusCode StatusCode { get; private set; }
+    [JsonProperty("statusCode")] public HttpStatusCode StatusCode { get; set; }
     
     [JsonProperty("success")] public bool Success { get; private init; }
     [JsonProperty("data")] public TData? Data { get; private init; }
