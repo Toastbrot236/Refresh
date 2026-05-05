@@ -80,6 +80,7 @@ public partial class GameUser : IRateLimitUser
     
     public bool RpcnAuthenticationAllowed { get; set; }
     public bool PsnAuthenticationAllowed { get; set; }
+    public bool BlueSphereAuthenticationAllowed { get; set; }
     
     /// <summary>
     /// The auth token the presence server knows this user by, null if not connected to the presence server

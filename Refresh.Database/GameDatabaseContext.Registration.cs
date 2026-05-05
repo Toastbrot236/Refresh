@@ -74,6 +74,9 @@ public partial class GameDatabaseContext // Registration
                     case TokenPlatform.RPCS3:
                         user.RpcnAuthenticationAllowed = true;
                         break;
+                    case TokenPlatform.PS4:
+                        user.BlueSphereAuthenticationAllowed = true;
+                        break;
                 }
             });
         }

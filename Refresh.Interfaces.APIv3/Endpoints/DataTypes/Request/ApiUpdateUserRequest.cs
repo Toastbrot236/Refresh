@@ -14,6 +14,7 @@ public class ApiUpdateUserRequest : IApiEditUserRequest
     
     public bool? PsnAuthenticationAllowed { get; set; }
     public bool? RpcnAuthenticationAllowed { get; set; }
+    public bool? BlueSphereAuthenticationAllowed { get; set; }
 
     public bool? RedirectGriefReportsToPhotos { get; set; }
     

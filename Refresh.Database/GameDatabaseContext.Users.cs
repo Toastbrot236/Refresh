@@ -234,6 +234,9 @@ public partial class GameDatabaseContext // Users
             if (data.RpcnAuthenticationAllowed != null)
                 user.RpcnAuthenticationAllowed = data.RpcnAuthenticationAllowed.Value;
             
+            if (data.BlueSphereAuthenticationAllowed != null)
+                user.BlueSphereAuthenticationAllowed = data.BlueSphereAuthenticationAllowed.Value;
+            
             if (data.UnescapeXmlSequences != null)
                 user.UnescapeXmlSequences = data.UnescapeXmlSequences.Value;
 

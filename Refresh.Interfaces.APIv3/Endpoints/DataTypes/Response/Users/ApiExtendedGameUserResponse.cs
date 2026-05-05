@@ -18,6 +18,7 @@ public class ApiExtendedGameUserResponse : ApiGameUserResponse, IApiResponse, ID
     
     public required bool RpcnAuthenticationAllowed { get; set; }
     public required bool PsnAuthenticationAllowed { get; set; }
+    public required bool BlueSphereAuthenticationAllowed { get; set; }
 
     public required bool RedirectGriefReportsToPhotos { get; set; }
     public required bool UnescapeXmlSequences { get; set; } 
@@ -62,6 +63,7 @@ public class ApiExtendedGameUserResponse : ApiGameUserResponse, IApiResponse, ID
             BanExpiryDate = user.BanExpiryDate,
             RpcnAuthenticationAllowed = user.RpcnAuthenticationAllowed,
             PsnAuthenticationAllowed = user.PsnAuthenticationAllowed,
+            BlueSphereAuthenticationAllowed = user.BlueSphereAuthenticationAllowed,
             EmailAddress = user.EmailAddress,
             EmailAddressVerified = user.EmailAddressVerified,
             ShouldResetPassword = user.ShouldResetPassword,
