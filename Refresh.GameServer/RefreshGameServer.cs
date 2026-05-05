@@ -174,6 +174,9 @@ public class RefreshGameServer : RefreshServer
         if(this._configStore.Integration!.AipiEnabled)
             this.Server.AddService<AipiService>();
         
+        if(this._configStore.Integration!.BlueSphereEnabled)
+            this.Server.AddService<BlueSphereClientService>();
+        
         #if DEBUG
         this.Server.AddService<DebugService>();
         #endif

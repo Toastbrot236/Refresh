@@ -67,7 +67,14 @@ public class IntegrationConfig : Config
     public string PresenceSharedSecret { get; set; } = "SHARED_SECRET";
 
     #endregion
-    
+
+    #region BlueSphere
+
+    public bool BlueSphereEnabled { get; set; } = false;
+    public string BlueSphereBaseUrl { get; set; } = "https://example.com";
+
+    #endregion
+
     public string? GrafanaDashboardUrl { get; set; }
     public string? ServerStatusUrl { get; set; }
     
