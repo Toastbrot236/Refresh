@@ -1,5 +1,6 @@
 using System.Text;
 using Bunkum.Core.Services;
+using Bunkum.Listener.Protocol;
 using NotEnoughLogs;
 using Refresh.Core.Configuration;
 using Refresh.Core.Helpers;
@@ -17,7 +18,6 @@ public class BlueSphereClientService : EndpointService
     private readonly IntegrationConfig _integration;
     private readonly ContactInfoConfig _contact;
     private readonly TimeProviderService _timeProviderService;
-    public readonly string _refreshUserAgent;
 
     public BlueSphereClientService(Logger logger, GameServerConfig config, IntegrationConfig integration, ContactInfoConfig contact, TimeProviderService timeProviderService) : base(logger)
     {
@@ -35,9 +35,8 @@ public class BlueSphereClientService : EndpointService
         {
             BaseAddress = new Uri(integration.BlueSphereBaseUrl),
         };
-
-        // cache it
-        this._refreshUserAgent = StringHelper.GetRefreshUserAgent(config.InstanceName, config.WebExternalUrl, contact.EmailAddress, VersionInformation.Version);
+        this._client.DefaultRequestHeaders.Add("User-Agent", StringHelper.GetRefreshUserAgent(config.InstanceName, config.WebExternalUrl, contact.EmailAddress, VersionInformation.Version));
+        this._client.DefaultRequestHeaders.Add("Content-Type", ContentType.Json);
     }
 
     /// <summary>
