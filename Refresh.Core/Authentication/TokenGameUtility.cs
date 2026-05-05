@@ -55,9 +55,9 @@ public static class TokenGameUtility
         // missing japan digital?
     };
 
-    // PS4 title ids are not here on purpose.
     private static readonly string[] LittleBigPlanet3Titles =
     {
+        // PS3
         "BCUS98362", // US Disc
         "BCUS81138", // US Disc (another? v01.01)
         
@@ -70,6 +70,9 @@ public static class TokenGameUtility
         
         "BCJS30095", // JP Disc
         "NPJA00123", // JP Digital
+
+        // PS4
+        "CUSA00063" // EU Digital
     };
 
     private static readonly string[] LittleBigPlanetPSPTitles =
