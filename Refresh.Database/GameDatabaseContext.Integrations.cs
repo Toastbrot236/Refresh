@@ -1,6 +1,6 @@
-using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Users;
 using Refresh.Database.Models.Relations;
+using Refresh.Database.Models.Integrations;
 
 namespace Refresh.Database;
 

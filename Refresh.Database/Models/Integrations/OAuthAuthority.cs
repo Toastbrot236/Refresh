@@ -1,4 +1,4 @@
-namespace Refresh.Database.Models.Authentication;
+namespace Refresh.Database.Models.Integrations;
 
 public enum OAuthAuthority
 {

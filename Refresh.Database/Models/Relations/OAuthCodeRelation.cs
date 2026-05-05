@@ -1,5 +1,5 @@
 using MongoDB.Bson;
-using Refresh.Database.Models.Authentication;
+using Refresh.Database.Models.Integrations;
 using Refresh.Database.Models.Users;
 
 namespace Refresh.Database.Models.Relations;
