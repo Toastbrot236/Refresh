@@ -1602,11 +1602,12 @@ namespace Refresh.Database.Migrations
                     b.Property<byte>("Entity")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("UploadCount")
-                        .HasColumnType("integer");
-
                     b.Property<DateTimeOffset>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
+
+                    // EF desperately wanted to move this below ExpiryDate for some unknown reason
+                    b.Property<int>("UploadCount")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId", "Entity");
 
@@ -1662,6 +1663,9 @@ namespace Refresh.Database.Migrations
                     b.Property<string>("BetaPlanetsHash")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("BlueSphereAuthenticationAllowed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("BooFaceHash")
                         .IsRequired()
