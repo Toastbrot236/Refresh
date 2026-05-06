@@ -180,8 +180,14 @@ public class AuthenticationEndpoints : EndpointGroup
                 }
                 catch (Exception ex)
                 {
-                    context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s OAuth request because code verification using BlueSphere's backend failed: {ex.GetType().Name} - {ex.Message}");
+                    context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s OAuth request because code verification using BlueSphere's backend failed: {ex.GetType().Name} - '{ex.Message}'");
                     database.AddLoginFailNotification($"Failed to verify your PS4 authentication against BlueSphere's backend.", user);
+                    return null;
+                }
+
+                if (!oauthResponse.Success)
+                {
+                    context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s OAuth request because BlueSphere's response was marked as unsuccessful.");
                     return null;
                 }
 
