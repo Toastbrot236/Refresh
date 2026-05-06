@@ -1,4 +1,5 @@
 using System.Text;
+using Bunkum.Core;
 using Bunkum.Core.Services;
 using Bunkum.Listener.Protocol;
 using NotEnoughLogs;
@@ -48,18 +49,24 @@ public class BlueSphereClientService : EndpointService
         {
             AuthCode = code,
         };
-        HttpResponseMessage message = await this._client.PostAsync("/api/verify", new StringContent(JsonConvert.SerializeObject(request)));
+
+        string serializedRequest = JsonConvert.SerializeObject(request);
+        this.Logger.LogDebug(BunkumCategory.Authentication, $"Sending verification request to BlueSphere for username '{username}', code '{code}': '{serializedRequest}'");
+        HttpResponseMessage message = await this._client.PostAsync("/api/verify", new StringContent(serializedRequest));
+
+        string serializedResponse = Encoding.UTF8.GetString(await message.Content.ReadAsByteArrayAsync());
+        this.Logger.LogDebug(BunkumCategory.Authentication, $"Received BlueSphere verification response for username '{username}', code '{code}': '{serializedResponse}'");
 
         if (!message.IsSuccessStatusCode)
         {
             // TODO: deduplicate JSON serialization and similar stuff
-            BsErrorResponse? error = JsonConvert.DeserializeObject<BsErrorResponse>(Encoding.UTF8.GetString(await message.Content.ReadAsByteArrayAsync()));
+            BsErrorResponse? error = JsonConvert.DeserializeObject<BsErrorResponse>(serializedResponse);
             if (error == null) throw new BsOAuthException($"Couldn't deserialize error response for {code}! (status: {message.StatusCode})");
 
             throw new BsOAuthException($"Authentication failed for {code} (status: {message.StatusCode}): '{error.Error}'");
         }
 
-        BsOAuthResponse? success = JsonConvert.DeserializeObject<BsOAuthResponse>(Encoding.UTF8.GetString(await message.Content.ReadAsByteArrayAsync()));
+        BsOAuthResponse? success = JsonConvert.DeserializeObject<BsOAuthResponse>(serializedResponse);
         if (success == null) throw new BsOAuthException($"Couldn't deserialize success response for {code}!");
 
         return success;
