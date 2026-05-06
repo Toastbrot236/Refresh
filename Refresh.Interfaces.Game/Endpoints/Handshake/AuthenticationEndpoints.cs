@@ -95,7 +95,7 @@ public class AuthenticationEndpoints : EndpointGroup
 #if DEBUG
             if(Debugger.IsAttached) Debugger.Break();
 #endif
-            throw new InvalidDataException($"Game login - Username {user.Username} from registration does not match username {username} in login request!");
+            throw new InvalidDataException($"Game login - Username {user.Username} from DB does not match username {username} in login request!");
         }
 
         return user;
@@ -196,6 +196,8 @@ public class AuthenticationEndpoints : EndpointGroup
                     context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting {user}'s OAuth request because the username in BlueSphere's response ({oauthResponse.OnlineId}) does not match!");
                     return null;
                 }
+
+                verifiedWithoutIpAddress = true;
             }
         }
         #endregion
