@@ -7,7 +7,7 @@ namespace Refresh.Core.Configuration;
 /// </summary>
 public class IntegrationConfig : Config
 {
-    public override int CurrentConfigVersion => 9;
+    public override int CurrentConfigVersion => 10;
     public override int Version { get; set; }
     protected override void Migrate(int oldVer, dynamic oldConfig)
     {
