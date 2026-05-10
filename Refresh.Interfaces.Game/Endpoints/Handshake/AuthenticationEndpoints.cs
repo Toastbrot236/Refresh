@@ -143,7 +143,7 @@ public class AuthenticationEndpoints : EndpointGroup
 
             string oauthUsername = oauthBody[..separatorIndex];
             string oauthCode = oauthBody[(separatorIndex + 1)..];
-            if (!CommonPatterns.UsernameRegex().IsMatch(oauthUsername) || !int.TryParse(oauthCode, out _))
+            if (!CommonPatterns.UsernameRegex().IsMatch(oauthUsername) || string.IsNullOrWhiteSpace(oauthCode))
             {
                 context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting OAuth request because its attributes are badly formatted. Username: '{oauthUsername}', Code: '{oauthCode}'");
                 return null;
