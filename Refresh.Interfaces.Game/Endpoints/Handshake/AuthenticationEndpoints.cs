@@ -132,16 +132,17 @@ public class AuthenticationEndpoints : EndpointGroup
         {
             // example: jvyden420:123456
             string oauthBody = new StreamReader(body).ReadToEnd();
-            string[] oauthRequestParts = oauthBody.Split(':');
-            if (oauthRequestParts.Length != 2)
+            int separatorIndex = oauthBody.IndexOf(':');
+
+            // if there is no separator, or it's the last char in the body, return early to not throw later
+            if (separatorIndex == -1 || (separatorIndex + 1) == oauthBody.Length)
             {
                 context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting OAuth request because it is badly formatted: '{oauthBody}'.");
                 return null;
             }
 
-            string oauthUsername = oauthRequestParts[0];
-            string oauthCode = oauthRequestParts[1];
-
+            string oauthUsername = oauthBody[..separatorIndex];
+            string oauthCode = oauthBody[(separatorIndex + 1)..];
             if (!CommonPatterns.UsernameRegex().IsMatch(oauthUsername) || !int.TryParse(oauthCode, out _))
             {
                 context.Logger.LogWarning(BunkumCategory.Authentication, $"Rejecting OAuth request because its attributes are badly formatted. Username: '{oauthUsername}', Code: '{oauthCode}'");
