@@ -72,7 +72,11 @@ public static class TokenGameUtility
         "NPJA00123", // JP Digital
 
         // PS4
-        "CUSA00063" // EU Digital
+        "CUSA00063", // EU Disc/Digital
+        "CUSA00762", // UK Disc/Digital
+        "CUSA00473", // US Disc/Digital
+        "CUSA00693", // Asia Disc/Digital
+        "CUSA00810", // LATAM Disc/Digital
     };
 
     private static readonly string[] LittleBigPlanetPSPTitles =
@@ -118,7 +122,8 @@ public static class TokenGameUtility
         "NPEA00449", // LBP HUB (sent title id)
         
         // LBP3
-        "NPUA81174", // US Private Beta
+        "NPUA81174", // PS3 US Private Beta
+        "CUSA01077", // PS4 beta
         
         // PSP
         "NPUG70064", // US Demo
