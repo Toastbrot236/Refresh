@@ -12,6 +12,7 @@ using Refresh.Core.Types.Telemetry.Json;
 using Refresh.Core.Types.Telemetry.Json.Events;
 using Refresh.Database.Models.Users;
 using Refresh.Core.Importing;
+using Refresh.Core.Types.Telemetry.Binary;
 
 namespace Refresh.Interfaces.Game.Endpoints;
 
@@ -24,60 +25,18 @@ public class TelemetryEndpoints : EndpointGroup
     {
         if (body.Length > 8128) // 4032 in earlier versions, I guess
         {
-            context.Logger.LogWarning(BunkumCategory.Game, $"User {user.Username} attempted to upload telemetry buffer above game's maximum size! This likely did not come from an official client.");
+            context.Logger.LogWarning(RefreshContext.Telemetry, $"User {user.Username} attempted to upload telemetry buffer above game's maximum size! This likely did not come from an official client.");
             return RequestEntityTooLarge;
         }
         
         // Probably wouldn't be handling all the parsing here normally,
         // but I'm only using this as a scratchpad really.
         MemoryBitStream reader = new(body);
-        
-        // Common revisions
-            // LBP1 01.21 is 0x2 (Start is 0x0 instead of 0x1 in this version?)
-            // LBP1 Deploy is 0x3 (Deploy is both before/after LBP1, branches)
-            // LBP1 01.30-Final is 0xd
-            // LBP2 Pre-Alpha is 0xe
-            // LBP2 Move Beta is 0x19
-            // LBP2 Final is 0x1f
-            // LBP2 Vita Final is 0x1e
-            // LBP2 Hub is 0x1e
-            // LBP3 Alpha is 0x1b
-            
-        // LBP1 only has telemetry messages up until E_TELEMETRY_EVENT_DLC_OWNED
-            // Deploy only has up to E_TELEMETRY_EVENT_LEAVE_LEVEL, but why is anyone using deploy
-        // LBP2 has telemetry messages up until E_TELEMETRY_DCDS_ACTION
-        // LBP3 has whatever is after, I'm honestly not bothering to go through them right now.
-        // LBP Vita has telemetry messages up until E_TELEMETRY_GAME_PROGRESSION
+        TelemetryHeader? header = TelemetrySerializer.DeserializeHeader(reader);
+        if (header == null) return BadRequest;
 
-        TelemetryHeader header = new();
-        ushort revision = reader.ReadUInt16();
+        ushort revision = header.Value.Revision;
 
-        header.Revision = revision;
-        header.HashedPlayerId = reader.ReadUInt32();
-        
-        if (revision >= 0x12)
-            reader.ReadExactly(header.LevelHash);
-        
-        if (revision >= 0x13)
-        {
-            header.SlotType = reader.ReadUInt32();
-            header.SlotNumber = reader.ReadUInt32();
-        }
-
-        // All position messages have a CHash serialized before the
-        // frame timestamp specifically between these two revisions and I don't
-        // want to handle that case, all updated and beta builds currently in use
-        // do not use these revisions, so I don't consider it a priority.
-        if (revision is >= 0x10 and < 0x12)
-            return BadRequest;
-        
-        // Between revisions 1 and 5, only the first 4 bytes of hashes were serialized
-        // after these revisions, the full SHA1 is serialized.
-        bool hasFullHash = revision >= 0x5;
-        
-        // Many messages have frame timestamps prepended after a certain revision.
-        bool hasTimestamps = revision >= 0x1d;
-        
         // Keep reading telemetry events until we reach the end of the stream
         // When the data is no longer bit aligned, we might read too much data,
         // so just check that we have at least 8 bits left.
@@ -91,12 +50,13 @@ public class TelemetryEndpoints : EndpointGroup
             // conditionals for the frame timestamps added in LBP2
             if (evt is TelemetryEvent.MoveTutorial or TelemetryEvent.MoveCalibration) continue;
             
-            uint frame = hasTimestamps ? reader.ReadUInt32() : 0;
+            uint frame = header.Value.HasTimestamps ? reader.ReadUInt32() : 0;
             
-            context.Logger.LogDebug(BunkumCategory.Game, $"{evt} from {user.Username}");
+            context.Logger.LogDebug(RefreshContext.Telemetry, $"{evt} from {user.Username}");
             
             switch (evt)
             {
+            #if DEBUG // we currently don't care about these outside of logging
                 case TelemetryEvent.Start:
                 {
                     // This doesn't send any data in early versions of LBP1
@@ -105,7 +65,7 @@ public class TelemetryEndpoints : EndpointGroup
                         InlinePhysicalAddress addr = new();
                         reader.ReadExactly(addr);
                         
-                        context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} has started sending telemetry data. MAC: {Convert.ToHexString(addr)}");
+                        context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has started sending telemetry data. MAC: {Convert.ToHexString(addr)}");
                     }
                     
                     break;
@@ -114,7 +74,7 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     uint num = reader.ReadUInt32();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} send test integer of value '{num}'");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has sent test integer of value '{num}'");
                     
                     break;
                 }
@@ -126,7 +86,7 @@ public class TelemetryEndpoints : EndpointGroup
                     float y = reader.ReadSingle();
                     float z = reader.ReadSingle();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} send test vector of value <{x}, {y}, {z}>");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has sent test vector of value <{x}, {y}, {z}>");
                     
                     break;
                 }
@@ -134,7 +94,7 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     byte c = reader.ReadByte();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} send test character of value <{c}>");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has sent test character of value <{c}>");
                     
                     break;
                 }
@@ -147,19 +107,20 @@ public class TelemetryEndpoints : EndpointGroup
 
                     break;
                 }
+            #endif
                 case TelemetryEvent.CostumesWorn:
                 {
                     uint count = reader.ReadUInt32();
                     for (int i = 0; i < count; ++i)
                     {
-                        if (hasTimestamps)
+                        if (header.Value.HasTimestamps)
                         {
                             uint frameWorn = reader.ReadUInt32();   
                         }
                         
                         string costume = reader.ReadString(); // max size is 32 bytes
                         
-                        context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} has worn {costume}");
+                        context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has worn {costume}");
                     }
                     
                     break;
@@ -192,7 +153,7 @@ public class TelemetryEndpoints : EndpointGroup
                     if (revision >= 0x19)
                         pos.Frame = reader.ReadUInt32();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} - {evt} - <{pos.X}, {pos.Y}, {pos.Layer}> @ {pos.Frame}");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} - {evt} - <{pos.X}, {pos.Y}, {pos.Layer}> @ {pos.Frame}");
                     
                     break;
                 }
@@ -201,22 +162,9 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     if (revision >= 0x14)
                     {
-                        TelemetryGameMessage msg = new()
-                        {
-                            // Probably important to note that the types get moved around depending on the version of the game,
-                            // for example EGMT_ALERT in LBP2 is 19, while in LBP3, it's 20
-                            Type = reader.ReadUInt32(),
-                        };
+                        TelemetryGameMessage msg = TelemetrySerializer.DeserializeGameMessage(reader, revision);
                         
-                        // Some removed value, no builds seem to have this revision,
-                        // so it's probably not important to consider.
-                        if (revision < 0x15) reader.ReadUInt32();
-                        else msg.Key = reader.ReadUInt32();
-
-                        // This message has a max size of 40 bytes including the null terminator.
-                        msg.Message = reader.ReadString();
-                        
-                        context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} has game message [type]={msg.Type}, [key]={msg.Key}, [text]={msg.Message}");
+                        context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has game message [type]={msg.Type}, [key]={msg.Key}, [text]={msg.Message}");
                     }
                     
                     break;
@@ -226,18 +174,9 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     if (revision >= 0x14)
                     {
-                        TelemetryPoppetState poppet = new()
-                        {
-                            Mode = reader.ReadUInt32(),
-                            SubMode = reader.ReadUInt32(),
-                        };
-
-                        // Max size is 256 characters for whatever reason,
-                        // might contain other data in certain sub modes?
-                        if (revision >= 0x1d)
-                            poppet.Player = reader.ReadString();
+                        TelemetryPoppetState poppet = TelemetrySerializer.DeserializePoppetState(reader, revision);
                         
-                        context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} has poppet state [mode]={(PoppetMode)poppet.Mode}, [submode]={(PoppetSubMode)poppet.SubMode}, [player]={poppet.Player}");
+                        context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has poppet state [mode]={(PoppetMode)poppet.Mode}, [submode]={(PoppetSubMode)poppet.SubMode}, [player]={poppet.Player}");
                     }
                     
                     break;
@@ -250,7 +189,7 @@ public class TelemetryEndpoints : EndpointGroup
                         // This is just the name of the Pod Computer state returned from PodComputerState::GetName 
                         string state = reader.ReadString(); // Max string length is 512
                     
-                        context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} visited pod computer state '{state}' at {frame}");   
+                        context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} visited pod computer state '{state}' at {frame}");   
                     }
                     
                     break;
@@ -270,7 +209,7 @@ public class TelemetryEndpoints : EndpointGroup
                     // it always seems to be 0.
                     int _ = reader.ReadInt32();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} has expression data [index]={expressionIndex}, [level]={expressionLevel}");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has expression data [index]={expressionIndex}, [level]={expressionLevel}");
                     
                     break;
                 }
@@ -279,49 +218,7 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     if (revision < 0x17) break;
                     
-                    // These values are probably not accurate in terms of names,
-                    // well they could be close, since it seems they're probably(?)
-                    // the same as the LBP3 JSON versions, but who knows, it at least
-                    // is the correct data size.
-                    TelemetryUserExperienceMetrics metrics = new()
-                    {
-                        CurrentMspf = reader.ReadSingle(),
-                        AverageMspf = reader.ReadSingle(),
-                        HighMspf = reader.ReadSingle(),
-                        PredictApplied = reader.ReadUInt32(),
-                        PredictDesired = reader.ReadUInt32(),
-                        IsHost = reader.ReadBit(),
-                        IsCreate = reader.ReadBit(),
-                        NumPlayers = reader.ReadUInt32(),
-                        NumPs3s = reader.ReadUInt32(),
-                        AverageRttHost = reader.ReadSingle(),
-                        BandwidthUsage = reader.ReadSingle(),
-                        WorstPing = reader.ReadSingle(),
-                        WorstBandwidth = reader.ReadSingle(),
-                        WorstPacketLoss = reader.ReadSingle(),
-                        WorstPlayers = reader.ReadUInt32(),
-                        HttpBandwidthUp = reader.ReadSingle(),
-                        HttpBandwidthDown = reader.ReadSingle(),
-                        Frame = reader.ReadUInt32(),
-                        LastMgjFrame = reader.ReadUInt32(),
-                    };
-                    
-                    for (int i = 0; i < metrics.NumPlayers; ++i)
-                    {
-                        TelemetryPlayerNetStats stats = new()
-                        {
-                            Frame = reader.ReadUInt32(),
-                            Player = reader.ReadUInt32(),
-                            IsLocal = reader.ReadBit(),
-                            AvailableBandwidth = reader.ReadUInt32(),
-                            AvailableRnpBandwidth = reader.ReadUInt32(),
-                            AvailableGameBandwidth = reader.ReadSingle(),
-                            RecentTotalBandwidthUsed = reader.ReadUInt32(),
-                            TimeBetweenSends = reader.ReadSingle(),
-                        };
-                        
-                        metrics.PlayerNetStats.Add(stats);
-                    }
+                    TelemetryUserExperienceMetrics metrics = TelemetrySerializer.DeserializeMetrics(reader);
                     
                     break;
                 }
@@ -330,37 +227,18 @@ public class TelemetryEndpoints : EndpointGroup
                 {
                     if (revision < 0x19) break;
 
-                    TelemetryInventoryItem item = new()
-                    {
-                        Action = reader.ReadUInt32(),
-                        Type = reader.ReadUInt32(),
-                    };
-
-                    uint numGuids = reader.ReadUInt32();
-                    for (int i = 0; i < numGuids; ++i)
-                        item.Guids.Add(reader.ReadUInt32());
-                    uint numHashes = reader.ReadUInt32();
-                    for (int i = 0; i < numHashes; ++i)
-                    {
-                        InlineHash hash = new();
-                        reader.ReadExactly(hash);
-                        item.Hashes.Add(hash);
-                    }
+                    TelemetryInventoryItem item =  TelemetrySerializer.DeserializeInventoryItem(reader);
                     
                     break;
                 }
 
                 case TelemetryEvent.OpenPsid:
                 {
-                    if (revision >= 0x19)
-                    {
-                        OpenPsid _ = new()
-                        {
-                            Low = reader.ReadUInt64(),
-                            High = reader.ReadUInt64(),
-                        };
-                    }
-                    
+                    if (revision < 0x19) break;
+
+                    OpenPsid psid = TelemetrySerializer.DeserializeOpenPsid(reader);
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"PSID: hi {psid.High} lo {psid.Low}");
+
                     break;
                 }
 
@@ -389,18 +267,18 @@ public class TelemetryEndpoints : EndpointGroup
                     // This is just the name of the modal overlay state returned from ModalOverlayState::GetName
                     string state = reader.ReadString();
                     
-                    context.Logger.LogDebug(BunkumCategory.Game, $"{user.Username} visited modal overlay state '{state}' at {frame}");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} visited modal overlay state '{state}' at {frame}");
                     
                     break;
                 }
 
                 case TelemetryEvent.GameProgression:
                 {
-                    if (revision >= 0x1a)
-                    {
-                        uint a = reader.ReadUInt32();
-                        uint b = reader.ReadUInt32();
-                    }
+                    if (revision < 0x1a) break;
+
+                    uint a = reader.ReadUInt32();
+                    uint b = reader.ReadUInt32();
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"{user.Username} has game progression a {a}, b {b}");
                     
                     break;
                 }
@@ -416,10 +294,9 @@ public class TelemetryEndpoints : EndpointGroup
                     
                 default:
                 {
-                    context.Logger.LogDebug(BunkumCategory.Game, $"Unsupported telemetry message type: {evt}");
+                    context.Logger.LogDebug(RefreshContext.Telemetry, $"Unsupported telemetry message type: {evt}");
                     
-                    // Early return a 200 because why not
-                    return OK;
+                    break;
                 }
             }
         }
