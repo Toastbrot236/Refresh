@@ -1,4 +1,4 @@
-﻿namespace Refresh.Core.Types.Telemetry;
+﻿namespace Refresh.Core.Types.Telemetry.Binary;
 
 public class TelemetryUserExperienceMetrics
 {

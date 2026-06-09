@@ -1,4 +1,4 @@
-﻿namespace Refresh.Core.Types.Telemetry;
+﻿namespace Refresh.Core.Types.Telemetry.Binary;
 
 // This represents the submodes for LBP2/3
 // Vita has different submodes after 48
