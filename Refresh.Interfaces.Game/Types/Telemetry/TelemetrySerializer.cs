@@ -30,9 +30,13 @@ public static class TelemetrySerializer
 
         header.Revision = revision;
         header.HashedPlayerId = stream.ReadUInt32();
+        InlineHash hash = new();
         
         if (revision >= 0x12)
-            stream.ReadExactly(header.LevelHash);
+        {
+            stream.ReadExactly(hash);
+            header.LevelHash = hash;
+        }
         
         if (revision >= 0x13)
         {
@@ -53,7 +57,7 @@ public static class TelemetrySerializer
         
         // Many messages have frame timestamps prepended after a certain revision.
         header.HasTimestamps = revision >= 0x1d;
-        logger?.LogDebug(RefreshContext.Telemetry, $"telheader: rev {revision} hashedplayerid {header.HashedPlayerId} slottype {header.SlotType} slotnum {header.SlotNumber} hasfullhash {header.HasFullHash} hastimestamps {header.HasTimestamps}");
+        logger?.LogDebug(RefreshContext.Telemetry, $"telheader: rev {revision} hashedplayerid {header.HashedPlayerId} lvl hash {Convert.ToHexString(hash)} slottype {header.SlotType} slotnum {header.SlotNumber} hasfullhash {header.HasFullHash} hastimestamps {header.HasTimestamps}");
         return header;
     }
 
