@@ -9,6 +9,7 @@ using Refresh.Common.Time;
 using Refresh.Core.Configuration;
 using Refresh.Core.Configuration.Structs;
 using Refresh.Core.RateLimits.Info;
+using Refresh.Database.Models.Authentication;
 
 namespace Refresh.Core.RateLimits;
 
@@ -28,15 +29,24 @@ public class BasicRateLimiter : IRateLimiter
     private readonly List<RateLimitUserInfo> _userInfos = new(25);
     private readonly List<RateLimitRemoteEndpointInfo> _remoteEndpointInfos = new(25);
 
-    private BasicRateLimitBucket GetBucket(MethodInfo? method)
+    private BasicRateLimitBucket GetBucket(MethodInfo? method, TokenGame game)
     {
         string bucketName = method?.GetCustomAttribute<BasicRateLimitAttribute>()?.Bucket ?? "global";
+        
+        // If we're on PSP, then find out if there is a PSP-specific bucket for this, and override with the PSP-specific name.
+        // This is because PSP uses the same endpoints as LBP1 (and other games in some cases), so we can just use the regular
+        // game bucket name on the endpoints and have it be corrected here.
+        if (game == TokenGame.LittleBigPlanetPSP)
+        {
+            bucketName = BucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName) ?? bucketName;
+        }
+        
         ConfigRateLimitBucket? bucketData = this._buckets.GetValueOrDefault(bucketName);
 
         if (bucketData == null)
         {
             this._logger.LogDebug(RefreshContext.RateLimit, $"Could not find bucket '{bucketName}' in config, falling back to hardcoded defaults.");
-            bucketData = BasicEndpointRateLimitConfig.DefaultBuckets.GetValueOrDefault(bucketName);
+            bucketData = BucketDefaults.Values.GetValueOrDefault(bucketName);
             
             if (bucketData == null)
             {
@@ -47,9 +57,9 @@ public class BasicRateLimiter : IRateLimiter
         return BasicRateLimitBucket.FromOld(bucketData.Value, bucketName);
     }
 
-    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo? method, IRateLimitUser user)
+    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo? method, TokenGame game, IRateLimitUser user)
     {
-        BasicRateLimitBucket bucket = this.GetBucket(method);
+        BasicRateLimitBucket bucket = this.GetBucket(method, game);
 
         lock (this._remoteEndpointInfos)
         {
@@ -73,7 +83,7 @@ public class BasicRateLimiter : IRateLimiter
         }
     }
 
-    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo? method)
+    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo? method, TokenGame game)
     {
         IPAddress ipAddress = context.RemoteEndpoint.Address;
         
