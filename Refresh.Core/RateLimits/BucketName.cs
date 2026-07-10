@@ -1,5 +1,7 @@
 namespace Refresh.Core.RateLimits;
 
+// Check out the comments in BucketDefaults on naming,
+// why some buckets are split while others are shared, etc.
 public enum BucketName
 {
     #region Misc

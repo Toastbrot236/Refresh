@@ -3,14 +3,21 @@ using Refresh.Core.Configuration.Structs;
 
 namespace Refresh.Core.RateLimits;
 
+// Names are prefixed by where the bucket is used (game/API/any as in anywhere else)
+// We usually try to have modifying endpoints (creation/update/deletion) share one bucket each, no matter if game/API,
+// while having GET endpoints (lists, singular entities etc.) have separate buckets from game/API.
 public static class BucketDefaults
 {
+    // I'd say 90 is a good max count for PSP because, while I don't know for sure, I hope that PSP's "download moon" has about as many craters,
+    // and therefore as many downloaded levels it can hold per save, as "my moon".
+    private const int PspMaxDownloadedLevelsCount = 90;
+    private const int PspStoryLevelsCount = 60;
+    
     public static readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> Values = new Dictionary<BucketName, ConfigRateLimitBucket>()
     {
         // TODO: consider whether deletion endpoints should even be rate-limited if all they do is delete an entity.
         // TODO: also consider whether moderation endpoints should be rate-limited. I don't really think so, but maybe there could be a good reason for it?
         // TODO: maybe split these into multiple config files, one per endpoint category? (mostly for https://github.com/LittleBigRefresh/Refresh/issues/1099)
-        // NOTE: Bucket names are prefixed by where the bucket is used (game/certain game/API/any)
 #region Misc
         {BucketName.Global, new(90, 380, 45)},
 #endregion
@@ -30,14 +37,15 @@ public static class BucketDefaults
         
         {BucketName.AnyDeleteLevel, new(300, 15, 180)},
         {BucketName.AnyHeartLevel, new(300, 30, 180)},
-        // This high because LBP3 has a feature where it will queue all levels in a playlist;
-        // also people will generally probably queue a lot
-        {BucketName.AnyQueueLevel, new(300, 48, 180)},
+        // Queueing is this high because LBP3 has a feature where it will queue all levels in a playlist;
+        // also people might generally probably queue a lot.
+        {BucketName.AnyQueueLevel, new(300, 56, 180)},
         {BucketName.AnyTagLevel, new(300, 10, 180)},
         {BucketName.AnyRateLevel, new(300, 18, 180)},
         
-        // PSP will sync level ratings which were done offline, and it'll refuse to login if syncing these fails
-        {BucketName.PspRateLevel, new(300, 90, 180)},
+        // PSP will sync level ratings which were done offline, and it'll refuse to login if syncing these fails (if it receives an error status),
+        // so special-case it.
+        {BucketName.PspRateLevel, new(420, PspMaxDownloadedLevelsCount, 240)},
 #endregion
         
 #region Level Scores
@@ -45,12 +53,12 @@ public static class BucketDefaults
         {BucketName.GameSubmitLevelScore, new(300, 30, 180)},
         {BucketName.GameGetLevelScores, new(300, 70, 180)},
         
-        // Same deal as with PSP level rating above, except play isn't as brutal because PSP uses a count query param
-        // to avoid too many requests on that one endpoint atleast
-        {BucketName.PspPlayLevel, new(300, 90, 180)},
-        {BucketName.PspSubmitLevelScore, new(300, 90, 180)},
-        // PSP spams these requests for story levels
-        {BucketName.PspGetLevelScores, new(300, 210, 180)},
+        // Same deal as with PSP level rating above, except /play isn't as brutal because PSP uses a count query param
+        // to avoid too many requests on that one endpoint at least.
+        {BucketName.PspPlayLevel, new(300, PspMaxDownloadedLevelsCount, 180)},
+        {BucketName.PspSubmitLevelScore, new(300, PspMaxDownloadedLevelsCount, 180)},
+        // PSP spams these requests for story levels every time the download moon is loaded, apparently.
+        {BucketName.PspGetLevelScores, new(300, PspStoryLevelsCount * 4, 180)},
         
         {BucketName.ApiGetLevelScores, new(300, 40, 180)},
 #endregion

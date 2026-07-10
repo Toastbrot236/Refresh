@@ -18,6 +18,9 @@ public class BasicRateLimiter : IRateLimiter
     private readonly Logger _logger;
     private readonly IDateTimeProvider _timeProvider;
     private readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> _validBuckets;
+
+    private readonly List<RateLimitUserInfo> _userInfos = new(25);
+    private readonly List<RateLimitRemoteEndpointInfo> _remoteEndpointInfos = new(25);
     
     public BasicRateLimiter(IDateTimeProvider timeProvider, Logger logger, Dictionary<string, ConfigRateLimitBucket> buckets)
     {
@@ -41,9 +44,6 @@ public class BasicRateLimiter : IRateLimiter
         
         this._validBuckets = validBuckets.ToFrozenDictionary();
     }
-
-    private readonly List<RateLimitUserInfo> _userInfos = new(25);
-    private readonly List<RateLimitRemoteEndpointInfo> _remoteEndpointInfos = new(25);
 
     private BasicRateLimitBucket GetBucket(ListenerContext context, MethodInfo? method)
     {
