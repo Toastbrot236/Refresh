@@ -17,31 +17,47 @@ public class BasicRateLimiter : IRateLimiter
 {
     private readonly Logger _logger;
     private readonly IDateTimeProvider _timeProvider;
-    private readonly FrozenDictionary<string, ConfigRateLimitBucket> _buckets;
+    private readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> _validBuckets;
     
     public BasicRateLimiter(IDateTimeProvider timeProvider, Logger logger, Dictionary<string, ConfigRateLimitBucket> buckets)
     {
         this._timeProvider = timeProvider;
         this._logger = logger;
-        this._buckets = buckets.ToFrozenDictionary();
+
+        // Copy the buckets over, converting the string bucket names to their corresponding enum values.
+        Dictionary<BucketName, ConfigRateLimitBucket> validBuckets = new();
+        foreach (KeyValuePair<string, ConfigRateLimitBucket> bucket in buckets)
+        {
+            bool parsed = Enum.TryParse(bucket.Key, true, out BucketName nameParsed);
+            if (!parsed)
+            {
+                // TODO: Should this be logged as just a debug message or as a warning, incase an instance owner accidentally screws their config up?
+                this._logger.LogDebug(RefreshContext.RateLimit, $"Bucket name '{bucket.Key}' found in rate-limit config is unknown (does not map to a valid {nameof(BucketName)} enum value), its bucket will be ignored.");
+                continue;
+            }
+            
+            validBuckets.Add(nameParsed, bucket.Value);
+        }
+        
+        this._validBuckets = validBuckets.ToFrozenDictionary();
     }
 
     private readonly List<RateLimitUserInfo> _userInfos = new(25);
     private readonly List<RateLimitRemoteEndpointInfo> _remoteEndpointInfos = new(25);
 
-    private BasicRateLimitBucket GetBucket(MethodInfo? method, TokenGame game)
+    private BasicRateLimitBucket GetBucket(ListenerContext context, MethodInfo? method)
     {
-        string bucketName = method?.GetCustomAttribute<BasicRateLimitAttribute>()?.Bucket ?? "global";
+        BucketName bucketName = method?.GetCustomAttribute<BasicRateLimitAttribute>()?.Bucket ?? BucketName.Global;
         
         // If we're on PSP, then find out if there is a PSP-specific bucket for this, and override with the PSP-specific name.
         // This is because PSP uses the same endpoints as LBP1 (and other games in some cases), so we can just use the regular
         // game bucket name on the endpoints and have it be corrected here.
-        if (game == TokenGame.LittleBigPlanetPSP)
+        if (context.IsPSP())
         {
-            bucketName = BucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName) ?? bucketName;
+            bucketName = BucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName, bucketName); // Look for bucketName as key, use bucketName as default if no override found
         }
         
-        ConfigRateLimitBucket? bucketData = this._buckets.GetValueOrDefault(bucketName);
+        ConfigRateLimitBucket? bucketData = this._validBuckets.GetValueOrDefault(bucketName);
 
         if (bucketData == null)
         {
@@ -54,22 +70,22 @@ public class BasicRateLimiter : IRateLimiter
             }
         }
         
-        return BasicRateLimitBucket.FromOld(bucketData.Value, bucketName);
+        return new BasicRateLimitBucket(bucketData.Value, bucketName);
     }
 
-    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo? method, TokenGame game, IRateLimitUser user)
+    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo? method, IRateLimitUser user)
     {
-        BasicRateLimitBucket bucket = this.GetBucket(method, game);
+        BasicRateLimitBucket bucket = this.GetBucket(context, method);
 
         lock (this._remoteEndpointInfos)
         {
             RateLimitUserInfo? info = this._userInfos
                 .FirstOrDefault(i =>
-                    user.RateLimitUserIdIsEqual(i.User.RateLimitUserId) && i.Bucket == bucket.BucketName);
+                    user.RateLimitUserIdIsEqual(i.User.RateLimitUserId) && i.Bucket == bucket.Name);
 
             if (info == null)
             {
-                info = new RateLimitUserInfo(user, bucket.BucketName);
+                info = new RateLimitUserInfo(user, bucket.Name);
                 lock (this._userInfos)
                 {
                     this._userInfos.Add(info);
@@ -83,20 +99,20 @@ public class BasicRateLimiter : IRateLimiter
         }
     }
 
-    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo? method, TokenGame game)
+    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo? method)
     {
         IPAddress ipAddress = context.RemoteEndpoint.Address;
         
-        BasicRateLimitBucket bucket = this.GetBucket(method);
+        BasicRateLimitBucket bucket = this.GetBucket(context, method);
 
         lock (this._remoteEndpointInfos)
         {
             RateLimitRemoteEndpointInfo? info = this._remoteEndpointInfos
-                .FirstOrDefault(i => ipAddress.Equals(i.IpAddress) && i.Bucket == bucket.BucketName);
+                .FirstOrDefault(i => ipAddress.Equals(i.IpAddress) && i.Bucket == bucket.Name);
 
             if (info == null)
             {
-                info = new RateLimitRemoteEndpointInfo(ipAddress, bucket.BucketName);
+                info = new RateLimitRemoteEndpointInfo(ipAddress, bucket.Name);
 
                 this._remoteEndpointInfos.Add(info);
             }

@@ -3,9 +3,9 @@ namespace Refresh.Core.RateLimits;
 [AttributeUsage(AttributeTargets.Method)]
 public class BasicRateLimitAttribute : Attribute
 {
-    public readonly string Bucket;
+    public readonly BucketName Bucket;
     
-    public BasicRateLimitAttribute(string bucket)
+    public BasicRateLimitAttribute(BucketName bucket)
     {
         this.Bucket = bucket;
     }
