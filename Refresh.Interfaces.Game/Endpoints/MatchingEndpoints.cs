@@ -2,13 +2,12 @@ using System.Text;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.Endpoints.Debugging;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Presence;
+using Refresh.Core.RateLimits;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
@@ -73,8 +72,8 @@ public class MatchingEndpoints : EndpointGroup
     [GameEndpoint("match", HttpMethods.Post, ContentType.Json)]
     [DebugRequestBody, DebugResponseBody]
     [RequireEmailVerified]
-    [RateLimitSettings(GamePresenceEndpointLimits.TimeoutDuration, GamePresenceEndpointLimits.RequestAmount, 
-                            GamePresenceEndpointLimits.BlockDuration, GamePresenceEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.GameRoomRequest)]
+    // TODO use service to manually rate-limit dive-in requests and room update requests
     public Response Match(
         RequestContext context, 
         string body, 
@@ -109,8 +108,7 @@ public class MatchingEndpoints : EndpointGroup
     // since the "bump" is much less often. This will at the very least make API tools be able to see LBP1 player activity and player counts.
     // LBP1 doesn't send any requests to /play if a user enters an online user level, so use this endpoint to increment plays for those.
     [GameEndpoint("enterLevel/{slotType}/{id}", HttpMethods.Post)]
-    [RateLimitSettings(GamePresenceEndpointLimits.TimeoutDuration, GamePresenceEndpointLimits.RequestAmount, 
-                            GamePresenceEndpointLimits.BlockDuration, GamePresenceEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.GameRoomRequest)]
     public Response EnterLevel(RequestContext context, Token token, MatchService matchService, string slotType, int id, DataContext dataContext)
     {
         GameRoom room = matchService.GetOrCreateRoomByPlayer(token.User, token.TokenPlatform, token.TokenGame, NatType.Strict, false);
@@ -130,6 +128,7 @@ public class MatchingEndpoints : EndpointGroup
             // User has actually entered a new online user level
             if (level != null && roomSlotType == RoomSlotType.Online && room.LevelId != id && room.LevelType != roomSlotType)
             {
+                // TODO manually rate-limit this as if it was a /play request
                 dataContext.Database.PlayLevel(level, token.User, 1);
                 dataContext.Cache.IncrementLevelTotalPlaysByUser(token.User, level, 1, dataContext.Database);
             }

@@ -70,7 +70,7 @@ public static class BucketDefaults
         {BucketName.ApiGetReviews, new(300, 60, 180)},
         
         {BucketName.AnySubmitReview, new(300, 12, 180)},
-        {BucketName.AnyRateReviews, new(300, 40, 180)},
+        {BucketName.AnyRateReview, new(300, 40, 180)},
         {BucketName.AnyDeleteReviews, new(300, 30, 180)},
 #endregion
         

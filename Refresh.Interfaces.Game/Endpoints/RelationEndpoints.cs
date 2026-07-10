@@ -1,13 +1,11 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Relations;
-using Refresh.Core.RateLimits.Users;
+using Refresh.Core.RateLimits;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Levels;
@@ -21,8 +19,7 @@ public class RelationEndpoints : EndpointGroup
 {
     [GameEndpoint("favourite/slot/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyHeartLevel)]
     public Response FavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
         int id, GameServerConfig config, DataContext dataContext)
     {
@@ -41,8 +38,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("unfavourite/slot/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyHeartLevel)]
     public Response UnfavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         string slotType, int id, GameServerConfig config, DataContext dataContext)
     {
@@ -61,8 +57,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("favourite/user/{username}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyHeartUser)]
     public Response FavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user, string username,
         GameServerConfig config, DataContext dataContext)
     {
@@ -81,8 +76,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("unfavourite/user/{username}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyHeartUser)]
     public Response UnfavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user,
         string username, GameServerConfig config, DataContext dataContext)
     {
@@ -102,8 +96,7 @@ public class RelationEndpoints : EndpointGroup
     [GameEndpoint("favouriteUsers/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(UserListEndpointLimits.TimeoutDuration, UserListEndpointLimits.RequestAmount, 
-                            UserListEndpointLimits.BlockDuration, UserListEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.GameGetUsersFromCategory)]
     public SerializedFavouriteUserList? GetFavouriteUsers(RequestContext context, GameDatabaseContext database,
         string username, DataContext dataContext)
     {
@@ -118,8 +111,7 @@ public class RelationEndpoints : EndpointGroup
 
     [GameEndpoint("lolcatftw/add/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyQueueLevel)]
     public Response QueueLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -132,8 +124,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("lolcatftw/remove/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyQueueLevel)]
     public Response DequeueLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -146,8 +137,7 @@ public class RelationEndpoints : EndpointGroup
 
     [GameEndpoint("lolcatftw/clear", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyQueueLevel)]
     public Response ClearQueue(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext)
     {
         database.ClearQueue(user);
@@ -157,8 +147,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("tag/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(LevelTaggingEndpointLimits.TimeoutDuration, LevelTaggingEndpointLimits.RequestAmount, 
-                            LevelTaggingEndpointLimits.BlockDuration, LevelTaggingEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyTagLevel)]
     public Response SubmitTagsForLevel(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         string slotType, int id, string body, GameServerConfig config)
     {

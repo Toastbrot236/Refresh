@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
@@ -12,6 +11,7 @@ using Refresh.Common.Verification;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Core.Importing;
+using Refresh.Core.RateLimits;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -29,8 +29,7 @@ public class ResourceEndpoints : EndpointGroup
     [GameEndpoint("upload/{hash}/{type}", HttpMethods.Post)]
     [GameEndpoint("upload/{hash}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
-    [RateLimitSettings(300, 200, 240, "game-asset-upload")]
+    [BasicRateLimit(BucketName.GameUploadAsset)]
     public Response UploadAsset(RequestContext context, string hash, string type, byte[] body, IDataStore dataStore,
         GameDatabaseContext database, GameUser user, AssetImporter importer, GameServerConfig config, IDateTimeProvider timeProvider, Token token,
         DataContext dataContext)
@@ -112,7 +111,7 @@ public class ResourceEndpoints : EndpointGroup
 
     [GameEndpoint("r/{hash}")]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(300, 340, 240, "game-asset-download")]
+    [BasicRateLimit(BucketName.GameDownloadAsset)]
     public Response GetResource(RequestContext context, GameUser user, Token token, string hash, DataContext dataContext, ChallengeGhostRateLimitService ghostService)
     {
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return BadRequest;
@@ -153,10 +152,9 @@ public class ResourceEndpoints : EndpointGroup
     }
 
     [GameEndpoint("showNotUploaded", HttpMethods.Post, ContentType.Xml)]
-    [GameEndpoint("filterResources", HttpMethods.Post, ContentType.Xml)]
+    [GameEndpoint("filterResources", HttpMethods.Post, ContentType.Xml)] // TODO this totally seems like a moderation endpoint, so implement a separate method which considers DisallowedAssets
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(BadRequest)]
-    [RateLimitSettings(450, 12, 300, "game-filter-resources")]
     public SerializedResourceList? GetAssetsMissingFromStore(RequestContext context, SerializedResourceList body, IDataStore dataStore)
     {
         if(body.Items.Any(hash => !CommonPatterns.Sha1Regex().IsMatch(hash)))

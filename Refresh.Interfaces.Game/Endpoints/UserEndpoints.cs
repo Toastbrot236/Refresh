@@ -1,14 +1,13 @@
 using System.Xml.Serialization;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.Common.Constants;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Users;
+using Refresh.Core.RateLimits;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -25,16 +24,14 @@ public class UserEndpoints : EndpointGroup
 {
     [GameEndpoint("user/{name}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(SingleUserEndpointLimits.TimeoutDuration, SingleUserEndpointLimits.GameRequestAmount, 
-                            SingleUserEndpointLimits.BlockDuration, SingleUserEndpointLimits.GameRequestBucket)]
+    [BasicRateLimit(BucketName.GameGetSingleUser)]
     public GameUserResponse? GetUser(RequestContext context, GameDatabaseContext database, string name, Token token,
         IDataStore dataStore, DataContext dataContext) 
         => GameUserResponse.FromOld(database.GetUserByUsername(name), dataContext);
 
     [GameEndpoint("users", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(UserListEndpointLimits.TimeoutDuration, UserListEndpointLimits.RequestAmount, 
-                            UserListEndpointLimits.BlockDuration, UserListEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.GameGetUsersByNames)]
     public SerializedUserList GetMultipleUsers(RequestContext context, GameDatabaseContext database, Token token,
         IDataStore dataStore, DataContext dataContext)
     {
@@ -60,8 +57,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("myFriends", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(UserListEndpointLimits.TimeoutDuration, UserListEndpointLimits.RequestAmount, 
-                            UserListEndpointLimits.BlockDuration, UserListEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.GameGetUsersFromCategory)] // technically this is what's happening here
     public SerializedFriendsList GetFriends(RequestContext context, GameDatabaseContext database,
         GameUser user, DataContext dataContext)
     {
@@ -71,8 +67,7 @@ public class UserEndpoints : EndpointGroup
 
     [GameEndpoint("updateUser", HttpMethods.Post, ContentType.Xml)]
     [NullStatusCode(BadRequest)]
-    [RateLimitSettings(UserModificationEndpointLimits.TimeoutDuration, UserModificationEndpointLimits.GameRequestAmount, 
-                            UserModificationEndpointLimits.BlockDuration, UserModificationEndpointLimits.GameRequestBucket)]
+    [BasicRateLimit(BucketName.GameUpdateUser)]
     public string? UpdateUser(RequestContext context, DataContext dataContext, GameUser user, string body, GuidCheckerService guidChecker)
     {
         SerializedUpdateData? data = null;
@@ -161,15 +156,10 @@ public class UserEndpoints : EndpointGroup
         return string.Empty;
     }
 
-    private const int PinTimeoutDuration = 480;
-    private const int PinRequestAmount = 8;
-    private const int PinBlockDuration = 420;
-    private const string PinBucket = "game-pins"; // Amount could aswell be 1, considering the default intervall in the NWS (5 minutes), but profile pin updating exists...
-
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
     [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
-    [RateLimitSettings(PinTimeoutDuration, PinRequestAmount, PinBlockDuration, PinBucket)]
+    [BasicRateLimit(BucketName.GameSyncPins)]
     public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
@@ -219,7 +209,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(Unauthorized)]
-    [RateLimitSettings(PinTimeoutDuration, PinRequestAmount, PinBlockDuration, PinBucket)]
+    [BasicRateLimit(BucketName.GameSyncPins)]
     public SerializedPins? GetPins(RequestContext context, DataContext dataContext, GameUser user)
     {
         return SerializedPins.FromOld

@@ -40,7 +40,7 @@ public enum BucketName
     GameGetReviews,
     ApiGetReviews,
     AnySubmitReview,
-    AnyRateReviews,
+    AnyRateReview,
     AnyDeleteReviews,
     #endregion
         
