@@ -120,12 +120,15 @@ public static class BucketDefaults
 #endregion
         
 #region Assets
+        // Regular download limits are this high on both game and API because both the game and third party API clients
+        // (e.g. archive_dl) are likely to download many of these at times depending on what level they're trying to load
+        // (additionally, adventures can have even more dependencies!)
         {BucketName.GameUploadAsset, new(300, 150, 180)},
-        {BucketName.GameDownloadAsset, new(240, 280, 120)},
+        {BucketName.GameDownloadAsset, new(240, 400, 120)},
         
         {BucketName.ApiUploadImage, new(300, 20, 180)},
-        {BucketName.ApiDownloadAsset, new(240, 200, 120)},
-        {BucketName.ApiDownloadImage, new(240, 200, 120)},
+        {BucketName.ApiDownloadAsset, new(240, 400, 120)},
+        {BucketName.ApiDownloadImage, new(240, 250, 120)},
 #endregion
         
 #region Matching
@@ -197,7 +200,9 @@ public static class BucketDefaults
     }.ToFrozenDictionary();
     
     /// <summary>
-    /// Maps bucket names of game endpoints to PSP-specific ones, as PSP uses the same game endpoints as the other mainlines (or just LBP1)
+    /// Maps bucket names of game endpoints to PSP-specific ones, as PSP uses the same game endpoints as the other mainlines (or just LBP1).
+    /// But since PSP is more quirky than the other games (considering how it handles failures and efficiency ón some endpoints),
+    /// we have to use way more lenient limits on such endpoints.
     /// </summary>
     public static readonly FrozenDictionary<BucketName, BucketName> PspNameOverrides = new Dictionary<BucketName, BucketName>()
     {
