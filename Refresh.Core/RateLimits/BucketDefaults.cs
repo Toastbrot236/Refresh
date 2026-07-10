@@ -12,6 +12,7 @@ public static class BucketDefaults
     // and therefore as many downloaded levels it can hold per save, as "my moon".
     private const int PspMaxDownloadedLevelsCount = 90;
     private const int PspStoryLevelsCount = 60;
+    private const int DefaultMaxHeartCount = 30;
     
     public static readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> Values = new Dictionary<BucketName, ConfigRateLimitBucket>()
     {
@@ -26,7 +27,7 @@ public static class BucketDefaults
         // These two below are separate so we don't run into cases where /startPublish doesn't rate-limit but /publish does
         {BucketName.GameStartPublishLevel, new(900, 15, 600)},
         {BucketName.GameFullyPublishLevel, new(900, 15, 600)},
-        {BucketName.GameGetCategoryLevelList, new(240, 60, 180)},
+        {BucketName.GameGetLevelsFromCategory, new(240, 60, 180)},
         // game likes to request many singular levels at times
         {BucketName.GameGetSingleLevel, new(240, 260, 180)},
         {BucketName.GameGetLevelsByIds, new(240, 30, 180)},
@@ -36,7 +37,7 @@ public static class BucketDefaults
         {BucketName.ApiGetSingleLevel, new(240, 60, 180)},
         
         {BucketName.AnyDeleteLevel, new(300, 15, 180)},
-        {BucketName.AnyHeartLevel, new(300, 30, 180)},
+        {BucketName.AnyHeartLevel, new(300, DefaultMaxHeartCount, 180)},
         // Queueing is this high because LBP3 has a feature where it will queue all levels in a playlist;
         // also people might generally probably queue a lot.
         {BucketName.AnyQueueLevel, new(300, 56, 180)},
@@ -79,8 +80,8 @@ public static class BucketDefaults
         {BucketName.ApiGetComments, new(300, 60, 180)},
         
         {BucketName.AnySubmitComment, new(300, 18, 180)},
-        {BucketName.AnyRateComments, new(300, 40, 180)},
-        {BucketName.AnyDeleteComments, new(300, 30, 180)},
+        {BucketName.AnyRateComment, new(300, 40, 180)},
+        {BucketName.AnyDeleteComment, new(300, 30, 180)},
 #endregion
         
 #region Photos
@@ -91,7 +92,7 @@ public static class BucketDefaults
         {BucketName.ApiGetPhotos, new(300, 60, 180)},
         {BucketName.ApiGetSinglePhoto, new(300, 30, 180)},
         
-        {BucketName.AnyDeletePhotos, new(300, 30, 180)},
+        {BucketName.AnyDeletePhoto, new(300, 30, 180)},
 #endregion
         
 #region Users
@@ -109,12 +110,12 @@ public static class BucketDefaults
         {BucketName.ApiGetUsersFromCategory, new(240, 60, 180)},
         {BucketName.ApiGetSingleUser, new(240, 60, 180)},
         
-        {BucketName.AnyHeartUser, new(300, 30, 180)},
+        {BucketName.AnyHeartUser, new(300, DefaultMaxHeartCount, 180)},
 #endregion
         
 #region Moderation
         {BucketName.GameUploadGriefReport, new(400, 10, 240)},
-        {BucketName.GameFilterModeratedAssetList, new(300, 60, 180)},
+        {BucketName.GameFilterModeratedAssets, new(300, 60, 180)},
         // all because of adventure uploading
         {BucketName.GameFilterMessage, new(20, 900, 10)},
 #endregion
@@ -144,14 +145,14 @@ public static class BucketDefaults
         {BucketName.Lbp1GetSlotsFromPlaylist, new(240, 50, 180)},
         // LBP3 doesn't cache these at all, and is inefficient with them in general
         {BucketName.Lbp3GetLevelsFromPlaylist, new(240, 90, 180)},
-        {BucketName.Lbp3GetPlaylistsByUser, new(240, 50, 180)},
+        {BucketName.Lbp3GetPlaylists, new(240, 50, 180)},
         
         {BucketName.ApiGetPlaylistsFromCategory, new(240, 60, 180)},
         {BucketName.ApiGetSinglePlaylist, new(240, 40, 180)},
         
         {BucketName.AnyCreatePlaylist, new(240, 40, 180)},
         {BucketName.AnyUpdatePlaylist, new(240, 50, 180)},
-        {BucketName.AnyHeartPlaylist, new(240, 30, 180)},
+        {BucketName.AnyHeartPlaylist, new(240, DefaultMaxHeartCount, 180)},
         {BucketName.AnyDeletePlaylist, new(240, 30, 180)},
 #endregion
         
@@ -201,7 +202,7 @@ public static class BucketDefaults
     
     /// <summary>
     /// Maps bucket names of game endpoints to PSP-specific ones, as PSP uses the same game endpoints as the other mainlines (or just LBP1).
-    /// But since PSP is more quirky than the other games (considering how it handles failures and efficiency ón some endpoints),
+    /// But since PSP is more quirky than the other games (considering how it handles failures and efficiency on some endpoints),
     /// we have to use way more lenient limits on such endpoints.
     /// </summary>
     public static readonly FrozenDictionary<BucketName, BucketName> PspNameOverrides = new Dictionary<BucketName, BucketName>()

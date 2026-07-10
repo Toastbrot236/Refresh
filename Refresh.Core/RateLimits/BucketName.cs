@@ -12,7 +12,7 @@ public enum BucketName
     #region Levels
     GameStartPublishLevel,
     GameFullyPublishLevel,
-    GameGetCategoryLevelList,
+    GameGetLevelsFromCategory,
     GameGetSingleLevel,
     GameGetLevelsByIds,
     ApiEditLevel,
@@ -48,8 +48,8 @@ public enum BucketName
     GameGetComments, 
     ApiGetComments,
     AnySubmitComment,
-    AnyRateComments,
-    AnyDeleteComments,
+    AnyRateComment,
+    AnyDeleteComment,
     #endregion
         
     #region Photos
@@ -58,7 +58,7 @@ public enum BucketName
     GameGetSinglePhoto,
     ApiGetPhotos,
     ApiGetSinglePhoto,
-    AnyDeletePhotos,
+    AnyDeletePhoto,
     #endregion
         
     #region Users
@@ -77,7 +77,7 @@ public enum BucketName
         
     #region Moderation
     GameUploadGriefReport,
-    GameFilterModeratedAssetList,
+    GameFilterModeratedAssets,
     GameFilterMessage,
     #endregion
         
@@ -99,7 +99,7 @@ public enum BucketName
     Lbp1GetPlaylists,
     Lbp1GetSlotsFromPlaylist,
     Lbp3GetLevelsFromPlaylist,
-    Lbp3GetPlaylistsByUser,
+    Lbp3GetPlaylists,
     ApiGetPlaylistsFromCategory,
     ApiGetSinglePlaylist,
     AnyCreatePlaylist,
