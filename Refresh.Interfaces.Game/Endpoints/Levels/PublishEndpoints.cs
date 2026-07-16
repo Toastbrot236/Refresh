@@ -251,6 +251,7 @@ public class PublishEndpoints : EndpointGroup
         return new Response(GameLevelResponse.FromOld(newLevel, dataContext)!, ContentType.Xml);
     }
 
+    [GameEndpoint("unpublish/{id}", ContentType.Xml, HttpMethods.Post)]
     [BasicRateLimit(BucketName.AnyDeleteLevel)]
     public Response DeleteLevel(RequestContext context, GameUser user, GameDatabaseContext database, int id, DataContext dataContext)
     {
