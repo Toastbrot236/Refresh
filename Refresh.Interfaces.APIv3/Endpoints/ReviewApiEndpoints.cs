@@ -6,6 +6,7 @@ using Bunkum.Core.Storage;
 using Bunkum.Protocols.Http;
 using Refresh.Common.Constants;
 using Refresh.Core.Configuration;
+using Refresh.Core.RateLimits;
 using Refresh.Core.RateLimits.Relations;
 using Refresh.Core.RateLimits.Reviews;
 using Refresh.Core.Types.Data;
@@ -28,8 +29,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/reviews"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets a list of the reviews posted to a level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [RateLimitSettings(ReviewListEndpointLimits.TimeoutDuration, ReviewListEndpointLimits.RequestAmount, 
-                            ReviewListEndpointLimits.BlockDuration, ReviewListEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.ApiGetReviews)]
     public ApiListResponse<ApiGameReviewResponse> GetReviewsForLevel(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore,
         [DocSummary("The ID of the level")] int id, DataContext dataContext)
@@ -48,8 +48,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("users/{idType}/{id}/reviews"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets a list of the reviews posted by a user.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    [RateLimitSettings(ReviewListEndpointLimits.TimeoutDuration, ReviewListEndpointLimits.RequestAmount, 
-                            ReviewListEndpointLimits.BlockDuration, ReviewListEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.ApiGetReviews)]
     public ApiListResponse<ApiGameReviewResponse> GetReviewsByUser(RequestContext context,
         GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
@@ -69,8 +68,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("reviews/id/{id}"), Authentication(false)]
     [DocSummary("Gets a review by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
-    [RateLimitSettings(SingleReviewEndpointLimits.TimeoutDuration, SingleReviewEndpointLimits.RequestAmount, 
-                            SingleReviewEndpointLimits.BlockDuration, SingleReviewEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.ApiGetSingleReview)]
     public ApiResponse<ApiGameReviewResponse> GetReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore,
         [DocSummary("The ID of the review")] int id, DataContext dataContext)
@@ -98,8 +96,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [DocError(typeof(ApiValidationError), ApiValidationError.DontReviewOwnLevelWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.DontReviewLevelBeforePlayingWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
-    [RateLimitSettings(ReviewUploadEndpointLimits.TimeoutDuration, ReviewUploadEndpointLimits.RequestAmount, 
-                            ReviewUploadEndpointLimits.BlockDuration, ReviewUploadEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnySubmitReview)]
     public ApiResponse<ApiGameReviewResponse> PostReviewToLevel(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the level")] int id, ApiSubmitReviewRequest body, DataContext dataContext, GameServerConfig config)
@@ -147,8 +144,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.NoReviewEditPermissionErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
-    [RateLimitSettings(ReviewUploadEndpointLimits.TimeoutDuration, ReviewUploadEndpointLimits.RequestAmount, 
-                            ReviewUploadEndpointLimits.BlockDuration, ReviewUploadEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnySubmitReview)]
     public ApiResponse<ApiGameReviewResponse> UpdateReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the review")] int id, ApiSubmitReviewRequest body, DataContext dataContext, GameServerConfig config)
@@ -191,6 +187,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [DocSummary("Deletes a review by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.NoReviewDeletionPermissionErrorWhen)]
+    [BasicRateLimit(BucketName.AnyDeleteReview)]
     public ApiOkResponse DeleteReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the review")] int id, DataContext dataContext)
@@ -211,8 +208,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.DontRateOwnContentWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [BasicRateLimit(BucketName.AnyRateReview)]
     public ApiOkResponse RateReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the review")] int id, DataContext dataContext,

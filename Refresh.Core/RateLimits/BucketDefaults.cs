@@ -6,6 +6,10 @@ namespace Refresh.Core.RateLimits;
 // Names are prefixed by where the bucket is used (game/API/any as in anywhere else)
 // We usually try to have modifying endpoints (creation/update/deletion) share one bucket each, no matter if game/API,
 // while having GET endpoints (lists, singular entities etc.) have separate buckets from game/API.
+/*
+ * TODO maybe also make the buckets themselves configurable, so an instance owner could just change which endpoint routes
+ * are bundled to one bucket.
+ */
 public static class BucketDefaults
 {
     // I'd say 90 is a good max count for PSP because, while I don't know for sure, I hope that PSP's "download moon" has about as many craters,
@@ -16,11 +20,10 @@ public static class BucketDefaults
     
     public static readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> Values = new Dictionary<BucketName, ConfigRateLimitBucket>()
     {
-        // TODO: consider whether deletion endpoints should even be rate-limited if all they do is delete an entity.
         // TODO: also consider whether moderation endpoints should be rate-limited. I don't really think so, but maybe there could be a good reason for it?
         // TODO: maybe split these into multiple config files, one per endpoint category? (mostly for https://github.com/LittleBigRefresh/Refresh/issues/1099)
 #region Misc
-        {BucketName.Global, new(90, 380, 45)},
+        {BucketName.Default, new(90, 380, 45)},
 #endregion
         
 #region Levels
@@ -68,10 +71,11 @@ public static class BucketDefaults
         {BucketName.GameGetReviews, new(300, 60, 180)},
         
         {BucketName.ApiGetReviews, new(300, 60, 180)},
+        {BucketName.ApiGetSingleReview, new(300, 30, 180)},
         
         {BucketName.AnySubmitReview, new(300, 12, 180)},
         {BucketName.AnyRateReview, new(300, 40, 180)},
-        {BucketName.AnyDeleteReviews, new(300, 30, 180)},
+        {BucketName.AnyDeleteReview, new(300, 30, 180)},
 #endregion
         
 #region Comments (both Profile and Level)
@@ -125,11 +129,13 @@ public static class BucketDefaults
         // (e.g. archive_dl) are likely to download many of these at times depending on what level they're trying to load
         // (additionally, adventures can have even more dependencies!)
         {BucketName.GameUploadAsset, new(300, 150, 180)},
-        {BucketName.GameDownloadAsset, new(240, 400, 120)},
+        {BucketName.GameDownloadAsset, new(240, 500, 120)},
         
         {BucketName.ApiUploadImage, new(300, 20, 180)},
-        {BucketName.ApiDownloadAsset, new(240, 400, 120)},
+        {BucketName.ApiDownloadAsset, new(240, 500, 120)},
         {BucketName.ApiDownloadImage, new(240, 250, 120)},
+        
+        {BucketName.ApiGetAssetInfo, new(240, 250, 120)},
 #endregion
         
 #region Matching

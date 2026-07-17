@@ -2,9 +2,9 @@ using System.Collections.Frozen;
 using Bunkum.Core.Configuration;
 using Refresh.Core.Configuration.Structs;
 
-namespace Refresh.Core.Configuration;
+namespace Refresh.Core.Configuration.RateLimitConfigs;
 
-public class BasicEndpointRateLimitConfig : Config
+public class EndpointRateLimitConfig : Config
 {
     public override int CurrentConfigVersion => 1;
     public override int Version { get; set; }

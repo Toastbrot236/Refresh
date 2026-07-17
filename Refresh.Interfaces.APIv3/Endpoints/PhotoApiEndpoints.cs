@@ -4,6 +4,7 @@ using Bunkum.Core.Endpoints;
 using Bunkum.Core.RateLimit;
 using Bunkum.Core.Storage;
 using Bunkum.Protocols.Http;
+using Refresh.Core.RateLimits;
 using Refresh.Core.RateLimits.Photos;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -25,6 +26,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [DocSummary("Deletes an uploaded photo")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.PhotoMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.NoPhotoDeletionPermissionErrorWhen)]
+    [BasicRateLimit(BucketName.AnyDeletePhoto)]
     public ApiResponse<ApiEmptyResponse> DeletePhoto(RequestContext context, GameDatabaseContext database, GameUser user, int id, DataContext dataContext)
     {
         GamePhoto? photo = database.GetPhotoById(id);
@@ -42,8 +44,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [ApiV3Endpoint("photos/by/{userIdType}/{id}"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets photos uploaded by a user specified by their username or UUID")]
     [DocError(typeof(ApiNotFoundError), "The user cannot be found")]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.ApiRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.ApiRequestBucket)]
+    [BasicRateLimit(BucketName.ApiGetPhotos)]
     public ApiListResponse<ApiGamePhotoResponse> PhotosByUser(RequestContext context, GameDatabaseContext database,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string userIdType, DataContext dataContext) 

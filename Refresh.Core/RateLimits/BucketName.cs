@@ -12,12 +12,15 @@ public enum BucketName
     #region Levels
     GameStartPublishLevel,
     GameFullyPublishLevel,
+    
     GameGetLevelsFromCategory,
     GameGetSingleLevel,
     GameGetLevelsByIds,
+    
     ApiEditLevel,
     ApiGetLevelsFromCategory,
     ApiGetSingleLevel,
+    
     AnyDeleteLevel,
     AnyHeartLevel,
     AnyQueueLevel,
@@ -30,23 +33,28 @@ public enum BucketName
     GamePlayLevel,
     GameSubmitLevelScore,
     GameGetLevelScores,
+    
     PspPlayLevel,
     PspSubmitLevelScore,
     PspGetLevelScores,
+    
     ApiGetLevelScores,
     #endregion
         
     #region Reviews
     GameGetReviews,
     ApiGetReviews,
+    ApiGetSingleReview,
+    
     AnySubmitReview,
     AnyRateReview,
-    AnyDeleteReviews,
+    AnyDeleteReview,
     #endregion
         
     #region Comments (both Profile and Level)
     GameGetComments, 
     ApiGetComments,
+    
     AnySubmitComment,
     AnyRateComment,
     AnyDeleteComment,
@@ -56,6 +64,7 @@ public enum BucketName
     GameUploadPhoto,
     GameGetPhotos,
     GameGetSinglePhoto,
+    
     ApiGetPhotos,
     ApiGetSinglePhoto,
     AnyDeletePhoto,
@@ -63,13 +72,16 @@ public enum BucketName
         
     #region Users
     GameUpdateUser,
-    GameUpdateWebsitePrivacy, 
+    GameUpdateWebsitePrivacy,
+    GameUploadNpUserData,
+    
     GameGetUsersFromCategory,
     GameGetSingleUser,
     GameGetUsersByNames,
-    GameUploadNpUserData,
+    
     ApiUpdateUser,
     ApiDeleteOwnUser,
+    
     ApiGetUsersFromCategory,
     ApiGetSingleUser,
     AnyHeartUser,
@@ -84,9 +96,12 @@ public enum BucketName
     #region Assets
     GameUploadAsset,
     GameDownloadAsset,
+    
     ApiUploadImage,
     ApiDownloadAsset,
     ApiDownloadImage,
+    
+    ApiGetAssetInfo,
     #endregion
         
     #region Matching
@@ -98,10 +113,13 @@ public enum BucketName
     #region Playlists
     Lbp1GetPlaylists,
     Lbp1GetSlotsFromPlaylist,
+    
     Lbp3GetLevelsFromPlaylist,
     Lbp3GetPlaylists,
+    
     ApiGetPlaylistsFromCategory,
     ApiGetSinglePlaylist,
+    
     AnyCreatePlaylist,
     AnyUpdatePlaylist,
     AnyHeartPlaylist,
@@ -111,6 +129,7 @@ public enum BucketName
     #region Activity + Notifications
     GameGetActivity,
     GameGetNotifications,
+    
     ApiGetActivity,
     ApiGetNotifications,
     ApiGetSingleNotification,
@@ -127,6 +146,7 @@ public enum BucketName
     GameGetInstanceStats,
     GameGetEula,
     GameGetAnnouncements,
+    
     ApiGetInstanceInfo,
     ApiGetInstanceStats,
     ApiGetAnnouncements,
@@ -139,6 +159,7 @@ public enum BucketName
     #region Challenges
     GameUploadChallenge,
     GameUploadChallengeScore,
+    
     GameGetChallenges,
     GameGetChallengeScores,
     GameGetSingleChallengeScore,
