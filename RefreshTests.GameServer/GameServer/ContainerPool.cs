@@ -14,6 +14,9 @@ public class ContainerPool : IDisposable
         // PostgreSqlContainer? container = null;
         if (this._containers.TryDequeue(out PostgreSqlContainer? container))
         {
+            if (container == null)
+                throw new InvalidDataException("Dequeued container is null!");
+            
             return container;
         }
         
