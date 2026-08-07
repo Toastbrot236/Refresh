@@ -166,12 +166,6 @@ public class MetadataEndpoints : EndpointGroup
         return promotions;
     }
     
-    [GameEndpoint("farc_hashes")]
-    [MinimumRole(GameUserRole.Restricted)]
-    //Stubbed to return a 410 Gone, so LBP3 doesn't spam us.
-    //The game doesn't actually use this information for anything, so we don't allow server owners to replace this.
-    public Response FarcHashes(RequestContext context) => Gone;
-    
     //TODO: In the future this should allow you to have separate files per language since the game sends the language through the `language` query parameter.
     private static readonly Lazy<string?> DeveloperVideosFile
         = new(() =>

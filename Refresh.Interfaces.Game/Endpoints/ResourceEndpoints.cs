@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
@@ -163,5 +164,42 @@ public class ResourceEndpoints : EndpointGroup
             return null;
 
         return new SerializedResourceList(body.Items.Where(r => !dataStore.ExistsInStore(context.IsPSP() ? $"psp/{r}" : r)));
+    }
+    
+    private const string DlcHeaderHash = "c6572e7d0f3dff0f7a0cdc954e0803ebcfe658fb";
+    private const string PackFarcHash = "da7cedfe6f89357671a4a95f134265a1073d0838";
+    private const string PinFarcHash = "da7cedfe6f89357671a4a95f134265a1073d0838";
+    
+    [GameEndpoint("farc_hashes")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [DebugRequestBody]
+    [DebugResponseBody]
+    public string GetFarcHashes(RequestContext context) 
+        => $"<farc_hashes dlc_header=\"{DlcHeaderHash}\" pck_hash=\"{PackFarcHash}\" pin_hash=\"{PinFarcHash}\"/>";
+
+    [GameEndpoint("farc/pin")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [DebugRequestBody]
+    [DebugResponseBody]
+    public Response GetPinFarc(RequestContext context, DataContext dataContext)
+    {
+        if (!dataContext.DataStore.TryGetDataFromStore(PinFarcHash, out byte[]? data))
+            return InternalServerError;
+
+        Debug.Assert(data != null);
+        return new Response(data, ContentType.BinaryData);
+    }
+    
+    [GameEndpoint("farc/pck")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [DebugRequestBody]
+    [DebugResponseBody]
+    public Response GetPackFarc(RequestContext context, DataContext dataContext)
+    {
+        if (!dataContext.DataStore.TryGetDataFromStore(PackFarcHash, out byte[]? data))
+            return InternalServerError;
+
+        Debug.Assert(data != null);
+        return new Response(data, ContentType.BinaryData);
     }
 }
