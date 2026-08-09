@@ -11,6 +11,7 @@ using Bunkum.Protocols.Http;
 using Refresh.Common;
 using Refresh.Common.Time;
 using Refresh.Common.Verification;
+using Refresh.Core;
 using Refresh.Core.Configuration;
 using Refresh.Core.Extensions;
 using Refresh.Core.Importing;
@@ -52,6 +53,8 @@ public class RefreshGameServer : RefreshServer
         IDataStore? dataStore = null
     ) : base(listener)
     {
+        this.Logger.LogInfo(BunkumCategory.Startup, $"Refresh version string: '{VersionInformation.Version}'");
+        
         dataStore ??= new FileSystemDataStore();
         List<IDataStore> dataStores = [];
 
