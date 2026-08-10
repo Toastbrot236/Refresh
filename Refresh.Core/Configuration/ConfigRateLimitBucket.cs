@@ -2,14 +2,14 @@ namespace Refresh.Core.Configuration;
 
 public class ConfigRateLimitBucket
 {
-    public int WindowDurationSeconds { get; set; }
+    public int TimeWindowSeconds { get; set; }
     public int MaxRequestCount { get; set; }
-    public int InitialBlockDurationSeconds { get; set; }
+    public int BlockDurationSeconds { get; set; }
 
-    public ConfigRateLimitBucket(int windowDurationSeconds, int maxRequestCount, int initialBlockDurationSeconds)
+    public ConfigRateLimitBucket(int timeWindowSeconds, int maxRequestCount, int blockDurationSeconds)
     {
-        this.WindowDurationSeconds = windowDurationSeconds;
+        this.TimeWindowSeconds = timeWindowSeconds;
         this.MaxRequestCount = maxRequestCount;
-        this.InitialBlockDurationSeconds = initialBlockDurationSeconds;
+        this.BlockDurationSeconds = blockDurationSeconds;
     }
 }
