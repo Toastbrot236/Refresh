@@ -5,46 +5,32 @@ namespace Refresh.Core.RateLimits;
  * Considering that it might not be great UX if you e.g. request too many lists on API and then can no longer
  * get any in-game either, and because we usually do more DB calls when returning certain entities over API vs in-game.
  */
-public enum BucketName
+public enum ApiEndpointBucketName
 {
     #region Misc
     Default,
     #endregion
         
     #region Levels
-    GetLevels,
-    GetLevelsByListOfIds,
-    ApiGetSingleLevel,
-    GameGetSingleLevel,
+    GetListOfLevels,
+    GetSingleLevel,
     
-    // startPublish and publish have separate buckets because we don't want cases where we accept /startPublish
-    // but then rate-limit /publish...
-    PrepareLevelPublish,
-    RealLevelPublish,
-    ApiEditLevel,
-    
+    EditLevel,
     DeleteLevel,
+    
     HeartLevel,
     QueueLevel,
     TagLevel,
     RateLevel,
-    
-    PspRateLevel,
     #endregion
         
     #region Level Scores
-    GetLevelScores,
-    
-    PlayLevel,
-    UploadLevelScore,
-    
-    PspPlayLevel,
-    PspUploadLevelScore,
-    PspGetLevelScores,
+    GetListOfLevelScores,
+    GetSingleLevelScore,
     #endregion
         
     #region Reviews
-    GetReviews,
+    GetListOfReviews,
     GetSingleReview,
     
     UploadReview,
@@ -53,7 +39,8 @@ public enum BucketName
     #endregion
         
     #region Comments (both Profile and Level)
-    GetComments, 
+    GetListOfComments,
+    GetSingleComment,
     
     UploadComment,
     RateComment,
@@ -61,7 +48,7 @@ public enum BucketName
     #endregion
         
     #region Photos
-    GetPhotos,
+    GetListOfPhotos,
     GetSinglePhoto,
     
     UploadPhoto,
@@ -69,49 +56,31 @@ public enum BucketName
     #endregion
         
     #region Users
-    GetUsers,
-    GetUsersByListOfNames,
+    GetListOfUsers,
     GetSingleUser,
-    ApiGetOwnUser,
+    GetOwnUser,
     
-    UpdateUser,
-    UploadFriendData,
+    UpdateOwnUser,
     HeartUser,
-    
     DeleteOwnUser,
     #endregion
         
-    #region Moderation
-    UploadGriefReport,
-    FilterModeratedAssets,
-    FilterChatMessage,
-    #endregion
-        
     #region Assets
-    GameUploadAsset,
-    GameDownloadAsset,
+    UploadImage,
+    DownloadRawAsset,
+    DownloadImage,
     
-    ApiUploadImage,
-    ApiDownloadAsset,
-    ApiDownloadImage,
-    
-    ApiGetAssetInfo,
+    GetAssetInfo,
     #endregion
         
     #region Matching
-    GameUpdateRoomOrGetRooms,
-    
-    ApiGetRooms,
-    ApiGetSingleRoom,
+    GetListOfRooms,
+    GetSingleRoom,
     #endregion
         
     #region Playlists
-    GetPlaylists,
-    GetLevelsFromPlaylist,
+    GetListOfPlaylists,
     GetSinglePlaylist,
-    
-    Lbp3GetPlaylists,
-    Lbp3GetLevelsFromPlaylist,
     
     CreatePlaylist,
     UpdatePlaylist,
@@ -130,39 +99,28 @@ public enum BucketName
     #endregion
         
     #region Categories
-    GetCategories,
+    GetLevelCategories,
+    GetUserCategories,
     #endregion
         
     #region Instance
-    GetGameConfig,
     GetInstanceInfo,
     GetInstanceStats,
     GetEula,
     GetAnnouncements,
     #endregion
-        
-    #region Pins
-    SyncPinProgress,
-    #endregion
-        
-    #region Challenges
-    GetPlayerChallenges,
-    GetPlayerChallengeScores,
-    GetSinglePlayerChallengeScore,
-    
-    UploadPlayerChallenge,
-    UploadPlayerChallengeScore,
-    #endregion
 
     #region Authentication
-    GameLogin,
-    ApiLogin,
+    Login,
     Register,
     RefreshToken,
     
     SendEmail,
     VerifyEmailAddress,
     ResetPassword,
+    
+    GetListOfIpAddresses,
+    ApproveOrDenyIpAddress,
     
     #endregion
 }

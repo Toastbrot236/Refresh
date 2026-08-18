@@ -3,7 +3,7 @@ using Refresh.Core.Configuration;
 
 namespace Refresh.Core.RateLimits;
 
-public static class BucketDefaults
+public static class GameEndpointBucketDefaults
 {
     // TODO split into multiple dictionaries to not overwhelm other instance owners as much, but what should they be grouped by?
     // game/API/any? category?

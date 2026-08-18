@@ -55,7 +55,7 @@ public class BasicRateLimiter : IRateLimiter
         // game bucket name on the endpoints and have it be corrected here.
         if (context.IsPSP())
         {
-            bucketName = BucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName, bucketName); // Look for bucketName as key, use bucketName as default if no override found
+            bucketName = ApiEndpointBucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName, bucketName); // Look for bucketName as key, use bucketName as default if no override found
         }
         
         ConfigRateLimitBucket? bucketData = this._validBuckets.GetValueOrDefault(bucketName);
@@ -63,7 +63,7 @@ public class BasicRateLimiter : IRateLimiter
         if (bucketData == null)
         {
             this._logger.LogDebug(RefreshContext.RateLimit, $"Could not find bucket '{bucketName}' in config, falling back to hardcoded defaults.");
-            bucketData = BucketDefaults.Values.GetValueOrDefault(bucketName);
+            bucketData = ApiEndpointBucketDefaults.Values.GetValueOrDefault(bucketName);
             
             if (bucketData == null)
             {

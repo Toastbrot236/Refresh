@@ -3,10 +3,16 @@ namespace Refresh.Core.RateLimits.EndpointRateLimiting;
 [AttributeUsage(AttributeTargets.Method)]
 public class EndpointRateLimitAttribute : Attribute
 {
-    public readonly BucketName Bucket;
+    public readonly GameEndpointBucketName? GameBucket;
+    public readonly ApiEndpointBucketName? ApiBucket;
     
-    public EndpointRateLimitAttribute(BucketName bucket)
+    public EndpointRateLimitAttribute(GameEndpointBucketName bucket)
     {
-        this.Bucket = bucket;
+        this.GameBucket = bucket;
+    }
+    
+    public EndpointRateLimitAttribute(ApiEndpointBucketName bucket)
+    {
+        this.ApiBucket = bucket;
     }
 }
