@@ -29,7 +29,7 @@ public class WelcomeEndpoints : EndpointGroup
     
     [GameEndpoint("eula")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetEula)]
+    [EndpointRateLimit(EndpointBucketName.GetEula)]
     public string License(RequestContext context, GameServerConfig config, ContactInfoConfig contact)
     {
         StringBuilder builder = new();

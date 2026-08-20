@@ -25,14 +25,14 @@ public class UserEndpoints : EndpointGroup
 {
     [GameEndpoint("user/{name}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetSingleUser)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleUser)]
     public GameUserResponse? GetUser(RequestContext context, GameDatabaseContext database, string name, Token token,
         IDataStore dataStore, DataContext dataContext) 
         => GameUserResponse.FromOld(database.GetUserByUsername(name), dataContext);
 
     [GameEndpoint("users", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
     public SerializedUserList GetMultipleUsers(RequestContext context, GameDatabaseContext database, Token token,
         IDataStore dataStore, DataContext dataContext)
     {
@@ -58,7 +58,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("myFriends", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
     public SerializedFriendsList GetFriends(RequestContext context, GameDatabaseContext database,
         GameUser user, DataContext dataContext)
     {
@@ -68,7 +68,7 @@ public class UserEndpoints : EndpointGroup
 
     [GameEndpoint("updateUser", HttpMethods.Post, ContentType.Xml)]
     [NullStatusCode(BadRequest)]
-    [EndpointRateLimit(GameEndpointBucketName.UpdateUser)]
+    [EndpointRateLimit(EndpointBucketName.UpdateUser)]
     public string? UpdateUser(RequestContext context, DataContext dataContext, GameUser user, string body, GuidCheckerService guidChecker)
     {
         SerializedUpdateData? data = null;
@@ -160,7 +160,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
     [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
-    [EndpointRateLimit(GameEndpointBucketName.SyncPinProgress)]
+    [EndpointRateLimit(EndpointBucketName.SyncPinProgress)]
     public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
@@ -210,7 +210,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(Unauthorized)]
-    [EndpointRateLimit(GameEndpointBucketName.SyncPinProgress)]
+    [EndpointRateLimit(EndpointBucketName.SyncPinProgress)]
     public SerializedPins? GetPins(RequestContext context, DataContext dataContext, GameUser user)
     {
         return SerializedPins.FromOld

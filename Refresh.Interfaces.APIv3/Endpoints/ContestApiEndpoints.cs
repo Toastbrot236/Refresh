@@ -22,7 +22,7 @@ public class ContestApiEndpoints : EndpointGroup
     [ApiV3Endpoint("contests"), Authentication(false)]
     [DocSummary("Gets all contests.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ContestMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfContests)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfContests)]
     public ApiListResponse<ApiContestResponse> GetAllContests(RequestContext context, GameDatabaseContext database,
         DataContext dataContext)
     {
@@ -32,7 +32,7 @@ public class ContestApiEndpoints : EndpointGroup
     [ApiV3Endpoint("contests/{id}"), Authentication(false)]
     [DocSummary("Gets a contest by the contest's unique ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ContestMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleContest)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleContest)]
     public ApiResponse<ApiContestResponse> GetContest(RequestContext context, GameDatabaseContext database, string id,
         DataContext dataContext)
     {

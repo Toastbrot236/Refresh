@@ -96,7 +96,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.PrepareLevelPublish)]
+    [EndpointRateLimit(EndpointBucketName.PrepareLevelPublish)]
     public Response StartPublish(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -153,7 +153,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("publish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.RealLevelPublish)]
+    [EndpointRateLimit(EndpointBucketName.RealLevelPublish)]
     public Response PublishLevel(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -253,7 +253,7 @@ public class PublishEndpoints : EndpointGroup
     }
 
     [GameEndpoint("unpublish/{id}", ContentType.Xml, HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.DeleteLevel)]
+    [EndpointRateLimit(EndpointBucketName.DeleteLevel)]
     public Response DeleteLevel(RequestContext context, GameUser user, GameDatabaseContext database, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelById(id);

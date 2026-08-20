@@ -26,7 +26,7 @@ public class ReportingEndpoints : EndpointGroup
     // TODO: LBP1 beta builds upload all related assets after sending the report itself to this endpoint, handle that case
     [GameEndpoint("grief", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadGriefReport)]
+    [EndpointRateLimit(EndpointBucketName.UploadGriefReport)]
     public Response UploadReport(RequestContext context, GameDatabaseContext database, GameReport body, GameUser user,
         IDateTimeProvider time, Token token, GameServerConfig config)
     {

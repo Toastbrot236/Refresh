@@ -5,27 +5,22 @@ namespace Refresh.Core.RateLimits.EndpointRateLimiting;
 [AttributeUsage(AttributeTargets.Method)]
 public class EndpointRateLimitAttribute : Attribute
 {
-    public readonly ApiEndpointBucketName? ApiBucket;
-    public readonly GameEndpointBucketName? GameBucket;
+    public readonly EndpointRateLimitBucket MainBucket;
     
     /// <summary>
-    /// If not null, use this bucket instead of GameBucket if client is LBP PSP
+    /// If not null, use this bucket instead of Bucket if client is LBP PSP.
+    /// Need this secondary bucket because PSP uses the same endpoints as LBP1.
     /// </summary>
-    public readonly GameEndpointBucketName? PspBucket;
+    public readonly EndpointRateLimitBucket? PspBucket;
     
-    public EndpointRateLimitAttribute(GameEndpointBucketName bucket, GameEndpointBucketName pspBucket)
+    public EndpointRateLimitAttribute(EndpointRateLimitBucket bucket, EndpointRateLimitBucket pspBucket)
     {
-        this.GameBucket = bucket;
+        this.MainBucket = bucket;
         this.PspBucket = pspBucket;
     }
     
-    public EndpointRateLimitAttribute(GameEndpointBucketName bucket)
+    public EndpointRateLimitAttribute(EndpointRateLimitBucket bucket)
     {
-        this.GameBucket = bucket;
-    }
-    
-    public EndpointRateLimitAttribute(ApiEndpointBucketName bucket)
-    {
-        this.ApiBucket = bucket;
+        this.MainBucket = bucket;
     }
 }

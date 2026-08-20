@@ -33,7 +33,7 @@ public class CategoryApiEndpoints : EndpointGroup
     [DocSummary("Retrieves a list of categories you can use to search levels")]
     [DocQueryParam("includePreviews", "If true, a single level will be added to each category representing a level from that category. False by default.")]
     [DocError(typeof(ApiValidationError), "The boolean 'includePreviews' could not be parsed by the server.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfCategories)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfCategories)]
     public ApiListResponse<ApiCategoryResponse> GetLevelCategories(RequestContext context, CategoryService categories,
         DataContext dataContext)
     {
@@ -58,7 +58,7 @@ public class CategoryApiEndpoints : EndpointGroup
     [DocQueryParam("players", "Filters levels to those accommodating the specified number of players.")]
     [DocQueryParam("username", "If set, certain categories like 'hearted' or 'byUser' will return the levels of " + 
                                "the user with this username instead of your own. Optional.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfLevels)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfLevels)]
     public ApiListResponse<ApiGameLevelResponse> GetLevels(RequestContext context, CategoryService categories, GameUser? user,
         [DocSummary("The name of the category you'd like to retrieve levels from. " +
                     "Make a request to /levels to see a list of available categories")]
@@ -88,7 +88,7 @@ public class CategoryApiEndpoints : EndpointGroup
     [DocSummary("Retrieves a list of categories you can use to search users. Returns an empty list if the instance doesn't allow showing online users.")]
     [DocQueryParam("includePreviews", "If true, a single user will be added to each category representing a user from that category. False by default.")]
     [DocError(typeof(ApiValidationError), "The boolean 'includePreviews' could not be parsed by the server.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfCategories)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfCategories)]
     public ApiListResponse<ApiCategoryResponse> GetUserCategories(RequestContext context, CategoryService categories,
         DataContext dataContext, GameServerConfig config)
     {
@@ -110,7 +110,7 @@ public class CategoryApiEndpoints : EndpointGroup
     [DocUsesPageData]
     [DocQueryParam("username", "If set, certain categories like 'hearted' will return the related users of " +
                                "the user with this username instead of your own. Optional.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
     public Response GetUsers(RequestContext context, CategoryService categories, GameUser? user,
         [DocSummary("The name of the category you'd like to retrieve users from. " +
                     "Make a request to /users to see a list of available categories")]

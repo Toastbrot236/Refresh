@@ -30,7 +30,7 @@ public class ChallengeEndpoints : EndpointGroup
 
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadPlayerChallenge)]
+    [EndpointRateLimit(EndpointBucketName.UploadPlayerChallenge)]
     public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config))
@@ -110,7 +110,7 @@ public class ChallengeEndpoints : EndpointGroup
 
     [GameEndpoint("user/{username}/challenges", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPlayerChallenges)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfPlayerChallenges)]
     public Response GetChallengesByUser(RequestContext context, GameUser user, DataContext dataContext)
     {
         GameRoom? room = dataContext.Match.RoomAccessor.GetRoomByUser(user, dataContext.Platform, dataContext.Game);
@@ -163,7 +163,7 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("user/{username}/challenges/joined", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPlayerChallenges)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfPlayerChallenges)]
     public Response GetJoinedChallenges(RequestContext context, GameUser user, DataContext dataContext)
     {
         // Ignore username since this is only ever called for the calling user. 
@@ -184,7 +184,7 @@ public class ChallengeEndpoints : EndpointGroup
     /// </summary>
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadPlayerChallengeScore)]
+    [EndpointRateLimit(EndpointBucketName.UploadPlayerChallengeScore)]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user,
         SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService ghostService,
         GameServerConfig config)
@@ -238,7 +238,7 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetSinglePlayerChallengeScore)]
+    [EndpointRateLimit(EndpointBucketName.GetSinglePlayerChallengeScore)]
     public SerializedChallengeScore? GetUsersHighScoreForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, string username, ChallengeGhostRateLimitService ghostService) 
     {
         ghostService.RemoveUserFromRateLimit(user.UserId);
@@ -258,7 +258,7 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPlayerChallengeScores)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfPlayerChallengeScores)]
     public SerializedChallengeScoreList? GetScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService ghostService)
     {
         ghostService.RemoveUserFromRateLimit(user.UserId);
@@ -292,7 +292,7 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge/{challengeId}/scoreboard/{username}/contextual", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPlayerChallengeScores)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfPlayerChallengeScores)]
     public SerializedChallengeScoreList? GetContextualScoresForChallenge(RequestContext context, DataContext dataContext, GameUser user, int challengeId, ChallengeGhostRateLimitService ghostService) 
     {
         ghostService.RemoveUserFromRateLimit(user.UserId);

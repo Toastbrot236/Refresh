@@ -20,7 +20,7 @@ public class RelationEndpoints : EndpointGroup
 {
     [GameEndpoint("favourite/slot/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.HeartLevel)]
+    [EndpointRateLimit(EndpointBucketName.HeartLevel)]
     public Response FavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
         int id, GameServerConfig config, DataContext dataContext)
     {
@@ -39,7 +39,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("unfavourite/slot/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.HeartLevel)]
+    [EndpointRateLimit(EndpointBucketName.HeartLevel)]
     public Response UnfavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         string slotType, int id, GameServerConfig config, DataContext dataContext)
     {
@@ -58,7 +58,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("favourite/user/{username}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.HeartUser)]
+    [EndpointRateLimit(EndpointBucketName.HeartUser)]
     public Response FavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user, string username,
         GameServerConfig config, DataContext dataContext)
     {
@@ -77,7 +77,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("unfavourite/user/{username}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.HeartUser)]
+    [EndpointRateLimit(EndpointBucketName.HeartUser)]
     public Response UnfavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user,
         string username, GameServerConfig config, DataContext dataContext)
     {
@@ -97,7 +97,7 @@ public class RelationEndpoints : EndpointGroup
     [GameEndpoint("favouriteUsers/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
     public SerializedFavouriteUserList? GetFavouriteUsers(RequestContext context, GameDatabaseContext database,
         string username, DataContext dataContext)
     {
@@ -112,7 +112,7 @@ public class RelationEndpoints : EndpointGroup
 
     [GameEndpoint("lolcatftw/add/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public Response QueueLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -125,7 +125,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("lolcatftw/remove/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public Response DequeueLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -138,7 +138,7 @@ public class RelationEndpoints : EndpointGroup
 
     [GameEndpoint("lolcatftw/clear", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public Response ClearQueue(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext)
     {
         database.ClearQueue(user);
@@ -148,7 +148,7 @@ public class RelationEndpoints : EndpointGroup
     
     [GameEndpoint("tag/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.TagLevel)]
+    [EndpointRateLimit(EndpointBucketName.TagLevel)]
     public Response SubmitTagsForLevel(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         string slotType, int id, string body, GameServerConfig config)
     {

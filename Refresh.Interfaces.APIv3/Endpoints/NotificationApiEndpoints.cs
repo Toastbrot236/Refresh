@@ -22,7 +22,7 @@ public class NotificationApiEndpoints : EndpointGroup
 {
     [ApiV3Endpoint("notifications"), MinimumRole(GameUserRole.Restricted)]
     [DocUsesPageData, DocSummary("Gets a list of notifications stored for the user")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfNotifications)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfNotifications)]
     public ApiListResponse<ApiGameNotificationResponse> GetNotifications(RequestContext context, GameUser user,
         GameDatabaseContext database, DataContext dataContext)
     {
@@ -35,7 +35,7 @@ public class NotificationApiEndpoints : EndpointGroup
     [DocSummary("Gets a specific notification for a user")]
     [DocError(typeof(ApiValidationError), ApiValidationError.ObjectIdParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The notification cannot be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleNotification)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleNotification)]
     public ApiResponse<ApiGameNotificationResponse> GetNotificationByUuid(RequestContext context, GameUser user,
         GameDatabaseContext database,
         [DocSummary("The UUID of the notification")]
@@ -55,7 +55,7 @@ public class NotificationApiEndpoints : EndpointGroup
     [DocSummary("Clears an individual notification for a user")]
     [DocError(typeof(ApiValidationError), ApiValidationError.ObjectIdParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The notification cannot be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.DeleteNotification)]
+    [EndpointRateLimit(EndpointBucketName.DeleteNotification)]
     public ApiOkResponse ClearNotificationByUuid(RequestContext context, GameUser user, GameDatabaseContext database,
         [DocSummary("The UUID of the notification")] string uuid)
     {
@@ -73,7 +73,7 @@ public class NotificationApiEndpoints : EndpointGroup
     
     [ApiV3Endpoint("notifications", HttpMethods.Delete), MinimumRole(GameUserRole.Restricted)]
     [DocSummary("Clears all notifications stored for the user")]
-    [EndpointRateLimit(ApiEndpointBucketName.DeleteNotification)]
+    [EndpointRateLimit(EndpointBucketName.DeleteNotification)]
     public ApiOkResponse ClearAllNotifications(RequestContext context, GameUser user, GameDatabaseContext database)
     {
         database.DeleteNotificationsByUser(user);

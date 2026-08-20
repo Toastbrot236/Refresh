@@ -17,23 +17,23 @@ public class PresenceEndpoints : EndpointGroup
 {
     [GameEndpoint("playersInPodCount")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetInstanceStats)]
+    [EndpointRateLimit(EndpointBucketName.GetInstanceStats)]
     public int TotalPlayersInPod(RequestContext context, MatchService match) => match.RoomAccessor.GetStatistics().PlayersInPodCount;
 
     [GameEndpoint("totalPlayerCount")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetInstanceStats)]
+    [EndpointRateLimit(EndpointBucketName.GetInstanceStats)]
     public int TotalPlayers(RequestContext context, MatchService match) => match.RoomAccessor.GetStatistics().PlayerCount;
 
     [GameEndpoint("planetStats/highestSlotId")]
     [GameEndpoint("planetStats/totalLevelCount")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetInstanceStats)]
+    [EndpointRateLimit(EndpointBucketName.GetInstanceStats)]
     public int GetTotalLevelCount(RequestContext context, GameDatabaseContext database, Token token) => database.GetTotalLevelCount(token.TokenGame);
     
     [GameEndpoint("planetStats", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetInstanceStats)]
+    [EndpointRateLimit(EndpointBucketName.GetInstanceStats)]
     public SerializedLevelStatisticsResponse GetLevelStatistics(RequestContext context, GameDatabaseContext database, Token token) => new()
     {
         TotalLevels = database.GetTotalLevelCount(token.TokenGame),

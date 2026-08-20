@@ -23,7 +23,7 @@ public class MatchingApiEndpoints : EndpointGroup
     [DocSummary("Finds a room by a player's username or UUID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The room could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleRoom)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleRoom)]
     public ApiResponse<ApiGameRoomResponse> GetRoomByUser(RequestContext context, MatchService service,
         GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
@@ -42,7 +42,7 @@ public class MatchingApiEndpoints : EndpointGroup
     [DocSummary("Finds a room by a room's UUID")]
     [DocError(typeof(ApiValidationError), ApiValidationError.ObjectIdParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The room could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleRoom)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleRoom)]
     public ApiResponse<ApiGameRoomResponse> GetRoomByUuid(RequestContext context, MatchService service,
         [DocSummary("The UUID of the room")] string uuid, DataContext dataContext)
     {
@@ -57,7 +57,7 @@ public class MatchingApiEndpoints : EndpointGroup
     
     [ApiV3Endpoint("rooms"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets all rooms on the server")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfRooms)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfRooms)]
     public ApiListResponse<ApiGameRoomResponse> GetRooms(RequestContext context, MatchService service,
         DataContext dataContext)
     {

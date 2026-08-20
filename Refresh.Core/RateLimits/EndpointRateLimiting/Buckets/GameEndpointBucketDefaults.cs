@@ -7,7 +7,7 @@ public static class GameEndpointBucketDefaults
 {
     // TODO split into multiple dictionaries to not overwhelm other instance owners as much, but what should they be grouped by?
     // game/API/any? category?
-    public static readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> Defaults = new Dictionary<BucketName, ConfigRateLimitBucket>()
+    public static readonly FrozenDictionary<EndpointRateLimitBucket, ConfigRateLimitBucket> Buckets = new Dictionary<EndpointRateLimitBucket, ConfigRateLimitBucket>()
     {
 #region Misc
         {BucketName.Default, new(90, 380, 45)},

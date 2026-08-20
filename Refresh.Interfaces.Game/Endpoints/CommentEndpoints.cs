@@ -23,7 +23,7 @@ public class CommentEndpoints : EndpointGroup
 {
     [GameEndpoint("postUserComment/{username}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadComment)]
+    [EndpointRateLimit(EndpointBucketName.UploadComment)]
     public Response PostProfileComment(RequestContext context, GameDatabaseContext database, string username, SerializedComment body, GameUser user, IDateTimeProvider timeProvider, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config))
@@ -50,7 +50,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("userComments/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
     public SerializedCommentList? GetProfileComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext, string username)
     {
         GameUser? profile = database.GetUserByUsername(username);
@@ -63,7 +63,7 @@ public class CommentEndpoints : EndpointGroup
     }
 
     [GameEndpoint("deleteUserComment/{username}", HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.DeleteComment)]
+    [EndpointRateLimit(EndpointBucketName.DeleteComment)]
     public Response DeleteProfileComment(RequestContext context, GameDatabaseContext database, string username, GameUser user)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -89,7 +89,7 @@ public class CommentEndpoints : EndpointGroup
 
     [GameEndpoint("postComment/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadComment)]
+    [EndpointRateLimit(EndpointBucketName.UploadComment)]
     public Response PostLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id,
         SerializedComment body, GameUser user, GameServerConfig config)
     {
@@ -116,7 +116,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("comments/{slotType}/{id}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
     public SerializedCommentList? GetLevelComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         string slotType, int id)
     {
@@ -130,7 +130,7 @@ public class CommentEndpoints : EndpointGroup
     }
 
     [GameEndpoint("deleteComment/{slotType}/{id}", HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.DeleteComment)]
+    [EndpointRateLimit(EndpointBucketName.DeleteComment)]
     public Response DeleteLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id, GameUser user)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -155,7 +155,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateUserComment/{content}", HttpMethods.Post)] // profile comments
-    [EndpointRateLimit(GameEndpointBucketName.RateComment)]
+    [EndpointRateLimit(EndpointBucketName.RateComment)]
     public Response RateProfileComment(RequestContext context, GameDatabaseContext database, GameUser user, string content, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
@@ -173,7 +173,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateComment/{slotType}/{content}", HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.RateComment)]
+    [EndpointRateLimit(EndpointBucketName.RateComment)]
     public Response RateLevelComment(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, string content, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 

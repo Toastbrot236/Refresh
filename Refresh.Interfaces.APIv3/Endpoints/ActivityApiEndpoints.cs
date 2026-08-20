@@ -29,7 +29,7 @@ public class ActivityApiEndpoints : EndpointGroup
     [DocUsesPageData, DocSummary("Fetch a list of recent happenings on the server.")]
     [DocQueryParam("timestamp", "A timestamp in unix seconds, used to search backwards.")]
     [DocError(typeof(ApiValidationError), ApiValidationError.NumberParseErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     public ApiResponse<ApiActivityPageResponse> GetRecentActivity(RequestContext context, GameServerConfig config, GameDatabaseContext database,
         GameUser? user, IDataStore dataStore, DataContext dataContext)
     {
@@ -67,7 +67,7 @@ public class ActivityApiEndpoints : EndpointGroup
     [DocQueryParam("timestamp", "A timestamp in unix seconds, used to search backwards")]
     [DocError(typeof(ApiValidationError), ApiValidationError.NumberParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The level could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     public ApiResponse<ApiActivityPageResponse> GetRecentActivityForLevel(RequestContext context,
         GameServerConfig config, GameDatabaseContext database, IDataStore dataStore, GameUser? user,
         [DocSummary("The ID of the level")] int id, DataContext dataContext)
@@ -109,7 +109,7 @@ public class ActivityApiEndpoints : EndpointGroup
     [DocQueryParam("timestamp", "A timestamp in unix seconds, used to search backwards")]
     [DocError(typeof(ApiValidationError), ApiValidationError.NumberParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The user could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     public ApiResponse<ApiActivityPageResponse> GetRecentActivityForUser(RequestContext context,
         GameServerConfig config, GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 

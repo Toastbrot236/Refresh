@@ -29,7 +29,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}"), Authentication(false)]
     [DocSummary("Gets an individual level by a numerical ID")]
     [DocError(typeof(ApiNotFoundError), "The level cannot be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleLevel)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleLevel)]
     public ApiResponse<ApiGameLevelResponse> GetLevelById(RequestContext context, GameDatabaseContext database,
         IDataStore dataStore,
         [DocSummary("The ID of the level")] int id, DataContext dataContext)
@@ -43,7 +43,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/hash/{hash}"), Authentication(false)]
     [DocSummary("Gets an individual level by the level's RootResource hash")]
     [DocError(typeof(ApiNotFoundError), "The level cannot be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleLevel)]
+    [EndpointRateLimit(EndpointBucketName.GetSingleLevel)]
     public ApiResponse<ApiGameLevelResponse> GetLevelByRootResource(RequestContext context, GameDatabaseContext database,
         IDataStore dataStore,
         [DocSummary("The RootResource hash of the level")] string hash, DataContext dataContext)
@@ -58,7 +58,7 @@ public class LevelApiEndpoints : EndpointGroup
     [DocSummary("Edits a level by the level's numerical ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [DocError(typeof(ApiAuthenticationError), ApiAuthenticationError.NoPermissionsForObjectWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.EditLevel)]
+    [EndpointRateLimit(EndpointBucketName.EditLevel)]
     public ApiResponse<ApiGameLevelResponse> EditLevelById(RequestContext context, GameUser user,
         [DocSummary("The ID of the level")] int id, ApiEditLevelRequest body, DataContext dataContext, GameServerConfig config)
     {
@@ -90,7 +90,7 @@ public class LevelApiEndpoints : EndpointGroup
     [DocSummary("Deletes a level by the level's numerical ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [DocError(typeof(ApiAuthenticationError), ApiAuthenticationError.NoPermissionsForObjectWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.DeleteLevel)]
+    [EndpointRateLimit(EndpointBucketName.DeleteLevel)]
     public ApiOkResponse DeleteLevelById(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         [DocSummary("The ID of the level")] int id)
     {
@@ -109,7 +109,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/setAsOverride", HttpMethods.Post)]
     [DocSummary("Marks the level to show in the next slot list gotten from the game")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.OverrideLevel)]
+    [EndpointRateLimit(EndpointBucketName.OverrideLevel)]
     public ApiOkResponse SetLevelAsOverrideById(RequestContext context, 
         GameDatabaseContext database, 
         GameUser user, 
@@ -128,7 +128,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/hash/{hash}/setAsOverride", HttpMethods.Post)]
     [DocSummary("Marks the level hash to show in the next slot list gotten from the game")]
     [DocError(typeof(ApiValidationError), ApiValidationError.HashInvalidErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.OverrideLevel)]
+    [EndpointRateLimit(EndpointBucketName.OverrideLevel)]
     public ApiOkResponse SetLevelAsOverrideByHash(RequestContext context, GameDatabaseContext database, GameUser user,
         PlayNowService service, PresenceService presenceService, [DocSummary("The hash of level root resource")] string hash)
     {
@@ -145,7 +145,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/relations"), MinimumRole(GameUserRole.Restricted)]
     [DocSummary("Gets your relations to a level by it's ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.GetOwnRelationsOnLevel)]
+    [EndpointRateLimit(EndpointBucketName.GetOwnRelationsOnLevel)]
     public ApiResponse<ApiGameLevelOwnRelationsResponse> GetLevelRelationsOfUser(RequestContext context, DataContext dataContext, GameUser user,
         [DocSummary("The ID of the level")] int id)
     {
@@ -158,7 +158,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/heart", HttpMethods.Post)]
     [DocSummary("Adds a specific level by its ID to your hearted levels")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.HeartLevel)]
+    [EndpointRateLimit(EndpointBucketName.HeartLevel)]
     public ApiOkResponse HeartLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the level")] int id, DataContext dataContext, GameServerConfig config) 
     {
@@ -176,7 +176,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/unheart", HttpMethods.Post)]
     [DocSummary("Removes a specific level by its ID from your hearted levels")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.HeartLevel)]
+    [EndpointRateLimit(EndpointBucketName.HeartLevel)]
     public ApiOkResponse UnheartLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the level")] int id, DataContext dataContext, GameServerConfig config) 
     {
@@ -194,7 +194,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/queue", HttpMethods.Post)]
     [DocSummary("Adds a specific level by its ID to your queue")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public ApiOkResponse QueueLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the level")] int id, DataContext dataContext) 
     {
@@ -215,7 +215,7 @@ public class LevelApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/dequeue", HttpMethods.Post)]
     [DocSummary("Removes a specific level by its ID from your queue")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(ApiEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public ApiOkResponse DequeueLevel(RequestContext context, GameDatabaseContext database, GameUser user,
         [DocSummary("The ID of the level")] int id, DataContext dataContext) 
     {
@@ -229,7 +229,7 @@ public class LevelApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("levels/queued/clear", HttpMethods.Post)]
     [DocSummary("Clears your level queue")]
-    [EndpointRateLimit(ApiEndpointBucketName.QueueLevel)]
+    [EndpointRateLimit(EndpointBucketName.QueueLevel)]
     public ApiOkResponse ClearQueuedLevels(RequestContext context, GameDatabaseContext database,
         GameUser user, DataContext dataContext) 
     {

@@ -31,7 +31,7 @@ public class ResourceEndpoints : EndpointGroup
     [GameEndpoint("upload/{hash}", HttpMethods.Post)]
     [RequireEmailVerified]
     [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
-    [EndpointRateLimit(GameEndpointBucketName.UploadAsset)]
+    [EndpointRateLimit(EndpointBucketName.UploadAsset)]
     public Response UploadAsset(RequestContext context, string hash, string type, byte[] body, IDataStore dataStore,
         GameDatabaseContext database, GameUser user, AssetImporter importer, GameServerConfig config, IDateTimeProvider timeProvider, Token token,
         DataContext dataContext)
@@ -113,7 +113,7 @@ public class ResourceEndpoints : EndpointGroup
 
     [GameEndpoint("r/{hash}")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.DownloadAsset)]
+    [EndpointRateLimit(EndpointBucketName.DownloadAsset)]
     public Response GetResource(RequestContext context, GameUser user, Token token, string hash, DataContext dataContext, ChallengeGhostRateLimitService ghostService)
     {
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return BadRequest;
@@ -157,7 +157,7 @@ public class ResourceEndpoints : EndpointGroup
     [GameEndpoint("filterResources", HttpMethods.Post, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(BadRequest)]
-    [EndpointRateLimit(GameEndpointBucketName.FilterModeratedAssets)]
+    [EndpointRateLimit(EndpointBucketName.FilterModeratedAssets)]
     public SerializedResourceList? GetAssetsMissingFromStore(RequestContext context, SerializedResourceList body, IDataStore dataStore)
     {
         if(body.Items.Any(hash => !CommonPatterns.Sha1Regex().IsMatch(hash)))

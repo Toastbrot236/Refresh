@@ -28,7 +28,7 @@ public class ActivityEndpoints : EndpointGroup
 
     [GameEndpoint("stream", ContentType.Xml)]
     [GameEndpoint("stream", ContentType.Xml, HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
     public SerializedActivityPage? GetRecentActivity(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser? user,
@@ -67,7 +67,7 @@ public class ActivityEndpoints : EndpointGroup
     [GameEndpoint("stream/slot/{type}/{id}", ContentType.Xml)]
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     public Response GetRecentActivityForLevel(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser? user,
         string type, int id, DataContext dataContext)
     {
@@ -115,7 +115,7 @@ public class ActivityEndpoints : EndpointGroup
     [GameEndpoint("stream/user2/{username}", ContentType.Xml)]
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetActivityPage)]
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)]
     public Response GetRecentActivityFromUser(RequestContext context, GameServerConfig config, GameDatabaseContext database, string username,
         DataContext dataContext)
     {
@@ -171,7 +171,7 @@ public class ActivityEndpoints : EndpointGroup
     [GameEndpoint("news", ContentType.Xml)]
     [Authentication(false)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetActivityPage)] // basically the same
+    [EndpointRateLimit(EndpointBucketName.GetActivityPage)] // basically the same
     public Response GetNews(RequestContext context, GameDatabaseContext database, IDateTimeProvider time, Token? token)
     {
         List<GameNewsItem> items = new();
