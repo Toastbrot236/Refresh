@@ -1,7 +1,7 @@
 using System.Collections.Frozen;
 using Refresh.Core.Configuration;
 
-namespace Refresh.Core.RateLimits;
+namespace Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 
 public static class GameEndpointBucketDefaults
 {
