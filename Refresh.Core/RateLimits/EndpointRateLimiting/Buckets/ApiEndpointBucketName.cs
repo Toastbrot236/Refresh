@@ -1,4 +1,4 @@
-namespace Refresh.Core.RateLimits;
+namespace Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 
 /*
  * TODO should more fetch endpoints have their buckets split between game and API?
@@ -14,6 +14,7 @@ public enum ApiEndpointBucketName
     #region Levels
     GetListOfLevels,
     GetSingleLevel,
+    GetOwnRelationsOnLevel,
     
     EditLevel,
     DeleteLevel,
@@ -22,6 +23,7 @@ public enum ApiEndpointBucketName
     QueueLevel,
     TagLevel,
     RateLevel,
+    OverrideLevel,
     #endregion
         
     #region Level Scores
@@ -34,6 +36,7 @@ public enum ApiEndpointBucketName
     GetSingleReview,
     
     UploadReview,
+    UpdateReview,
     RateReview,
     DeleteReview,
     #endregion
@@ -60,7 +63,7 @@ public enum ApiEndpointBucketName
     GetSingleUser,
     GetOwnUser,
     
-    UpdateOwnUser,
+    UpdateUser,
     HeartUser,
     DeleteOwnUser,
     #endregion
@@ -83,7 +86,8 @@ public enum ApiEndpointBucketName
     GetSinglePlaylist,
     
     CreatePlaylist,
-    UpdatePlaylist,
+    UpdatePlaylistMetadata,
+    UpdatePlaylistContents,
     HeartPlaylist,
     DeletePlaylist,
     #endregion
@@ -93,29 +97,33 @@ public enum ApiEndpointBucketName
     #endregion
     
     #region Notifications
-    GetNotifications,
+    GetListOfNotifications,
     GetSingleNotification,
     DeleteNotification,
     #endregion
         
     #region Categories
-    GetLevelCategories,
-    GetUserCategories,
+    GetListOfCategories,
+    #endregion
+        
+    #region Contests
+    GetListOfContests,
+    GetSingleContest,
     #endregion
         
     #region Instance
     GetInstanceInfo,
     GetInstanceStats,
+    GetApiDocumentation,
     GetEula,
-    GetAnnouncements,
+    GetListOfAnnouncements,
     #endregion
 
     #region Authentication
     Login,
     Register,
-    RefreshToken,
     
-    SendEmail,
+    RequestEmail,
     VerifyEmailAddress,
     ResetPassword,
     

@@ -1,4 +1,4 @@
-namespace Refresh.Core.RateLimits;
+namespace Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 
 /*
  * TODO should more fetch endpoints have their buckets split between game and API?
@@ -64,16 +64,13 @@ public enum GameEndpointBucketName
     #endregion
         
     #region Users
-    GetUsers,
-    GetUsersByListOfNames,
+    GetListOfUsers,
     GetSingleUser,
-    ApiGetOwnUser,
     
     UpdateUser,
     UploadFriendData,
+    SyncUserPrivacySettings,
     HeartUser,
-    
-    DeleteOwnUser,
     #endregion
         
     #region Moderation
@@ -83,33 +80,24 @@ public enum GameEndpointBucketName
     #endregion
         
     #region Assets
-    GameUploadAsset,
-    GameDownloadAsset,
-    
-    ApiUploadImage,
-    ApiDownloadAsset,
-    ApiDownloadImage,
-    
-    ApiGetAssetInfo,
+    UploadAsset,
+    DownloadAsset,
     #endregion
         
     #region Matching
-    GameUpdateRoomOrGetRooms,
-    
-    ApiGetRooms,
-    ApiGetSingleRoom,
+    UpdateRoomOrGetRooms,
     #endregion
         
     #region Playlists
-    GetPlaylists,
-    GetLevelsFromPlaylist,
-    GetSinglePlaylist,
+    GetListOfPlaylists,
+    GetPlaylistContents,
     
-    Lbp3GetPlaylists,
+    Lbp3GetListOfPlaylists,
     Lbp3GetLevelsFromPlaylist,
     
     CreatePlaylist,
-    UpdatePlaylist,
+    UpdatePlaylistMetadata,
+    UpdatePlaylistContents,
     HeartPlaylist,
     DeletePlaylist,
     #endregion
@@ -119,21 +107,18 @@ public enum GameEndpointBucketName
     #endregion
     
     #region Notifications
-    GetNotifications,
-    GetSingleNotification,
-    DeleteNotification,
+    GetListOfNotifications,
     #endregion
         
     #region Categories
-    GetCategories,
+    GetListOfCategories,
     #endregion
         
     #region Instance
     GetGameConfig,
-    GetInstanceInfo,
     GetInstanceStats,
     GetEula,
-    GetAnnouncements,
+    GetListOfAnnouncements,
     #endregion
         
     #region Pins
@@ -141,8 +126,8 @@ public enum GameEndpointBucketName
     #endregion
         
     #region Challenges
-    GetPlayerChallenges,
-    GetPlayerChallengeScores,
+    GetListOfPlayerChallenges,
+    GetListOfPlayerChallengeScores,
     GetSinglePlayerChallengeScore,
     
     UploadPlayerChallenge,
@@ -150,14 +135,6 @@ public enum GameEndpointBucketName
     #endregion
 
     #region Authentication
-    GameLogin,
-    ApiLogin,
-    Register,
-    RefreshToken,
-    
-    SendEmail,
-    VerifyEmailAddress,
-    ResetPassword,
-    
+    Login,
     #endregion
 }
