@@ -1,6 +1,5 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -10,6 +9,8 @@ using Refresh.Common.Time;
 using Refresh.Common.Verification;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models;
@@ -25,12 +26,6 @@ namespace Refresh.Interfaces.Game.Endpoints.Levels;
 
 public class PublishEndpoints : EndpointGroup
 {
-    private const int RequestTimeoutDuration = 900; // 15 minutes
-    private const int MaxRequestAmount = 15;
-    private const int RequestBlockDuration = RequestTimeoutDuration;
-    private const string PublishBucket = "level-publish";
-    private const string StartPublishBucket = "level-start-publish";
-    
     /// <summary>
     /// Does basic verification on a level
     /// </summary>
@@ -101,7 +96,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, StartPublishBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.PrepareLevelPublish)]
     public Response StartPublish(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -158,7 +153,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("publish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(RequestTimeoutDuration, MaxRequestAmount, RequestBlockDuration, PublishBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.RealLevelPublish)]
     public Response PublishLevel(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -258,6 +253,7 @@ public class PublishEndpoints : EndpointGroup
     }
 
     [GameEndpoint("unpublish/{id}", ContentType.Xml, HttpMethods.Post)]
+    [EndpointRateLimit(GameEndpointBucketName.DeleteLevel)]
     public Response DeleteLevel(RequestContext context, GameUser user, GameDatabaseContext database, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelById(id);

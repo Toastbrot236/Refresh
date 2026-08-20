@@ -1,13 +1,13 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Photos;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -24,7 +24,7 @@ public class PhotoEndpoints : EndpointGroup
 {
     [GameEndpoint("uploadPhoto", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [RateLimitSettings(300, 30, 240, "upload-photo")]
+    [EndpointRateLimit(GameEndpointBucketName.UploadPhoto)]
     public Response UploadPhoto(RequestContext context, SerializedPhoto body, GameDatabaseContext database,
         GameUser user, IDataStore dataStore,
         DataContext dataContext, AipiService aipi, GameServerConfig config)
@@ -103,6 +103,7 @@ public class PhotoEndpoints : EndpointGroup
     }
 
     [GameEndpoint("deletePhoto/{id}", HttpMethods.Post)]
+    [EndpointRateLimit(GameEndpointBucketName.DeletePhoto)]
     public Response DeletePhoto(RequestContext context, GameDatabaseContext database, GameUser user, int id, DataContext dataContext)
     {
         GamePhoto? photo = database.GetPhotoById(id);
@@ -140,23 +141,20 @@ public class PhotoEndpoints : EndpointGroup
     [GameEndpoint("photos/with", ContentType.Xml)]
     [Authentication(false)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.GameRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.GameRequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
     public Response PhotosWithUser(RequestContext context, GameDatabaseContext database, DataContext dataContext) 
         => GetPhotos(context, database, dataContext, database.GetPhotosWithUser);
     
     [GameEndpoint("photos/by", ContentType.Xml)]
     [Authentication(false)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.GameRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.GameRequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
     public Response PhotosByUser(RequestContext context, GameDatabaseContext database, DataContext dataContext) 
         => GetPhotos(context, database, dataContext, database.GetPhotosByUser);
 
     [GameEndpoint("photos/{slotType}/{levelId}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.GameRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.GameRequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
     public SerializedPhotoList? GetPhotosOnLevel(RequestContext context, DataContext dataContext, string slotType, int levelId)
     {
         GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, levelId);
@@ -183,8 +181,7 @@ public class PhotoEndpoints : EndpointGroup
     [GameEndpoint("photo/{id}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(SinglePhotoEndpointLimits.TimeoutDuration, SinglePhotoEndpointLimits.RequestAmount, 
-                            SinglePhotoEndpointLimits.BlockDuration, SinglePhotoEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetSinglePhoto)]
     public SerializedPhoto? GetPhotoById(RequestContext context, DataContext dataContext, int id)
     {
         GamePhoto? photo = dataContext.Database.GetPhotoById(id);

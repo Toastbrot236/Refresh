@@ -1,6 +1,5 @@
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Bunkum.Protocols.Http;
@@ -8,8 +7,8 @@ using Refresh.Common.Constants;
 using Refresh.Common.Time;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Comments;
-using Refresh.Core.RateLimits.Relations;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Comments;
@@ -24,8 +23,7 @@ public class CommentEndpoints : EndpointGroup
 {
     [GameEndpoint("postUserComment/{username}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommentUploadEndpointLimits.TimeoutDuration, CommentUploadEndpointLimits.RequestAmount, 
-                            CommentUploadEndpointLimits.BlockDuration, CommentUploadEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.UploadComment)]
     public Response PostProfileComment(RequestContext context, GameDatabaseContext database, string username, SerializedComment body, GameUser user, IDateTimeProvider timeProvider, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config))
@@ -52,8 +50,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("userComments/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(CommentListEndpointLimits.TimeoutDuration, CommentListEndpointLimits.RequestAmount, 
-                            CommentListEndpointLimits.BlockDuration, CommentListEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetListOfComments)]
     public SerializedCommentList? GetProfileComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext, string username)
     {
         GameUser? profile = database.GetUserByUsername(username);
@@ -66,6 +63,7 @@ public class CommentEndpoints : EndpointGroup
     }
 
     [GameEndpoint("deleteUserComment/{username}", HttpMethods.Post)]
+    [EndpointRateLimit(GameEndpointBucketName.DeleteComment)]
     public Response DeleteProfileComment(RequestContext context, GameDatabaseContext database, string username, GameUser user)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -91,8 +89,7 @@ public class CommentEndpoints : EndpointGroup
 
     [GameEndpoint("postComment/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [RateLimitSettings(CommentUploadEndpointLimits.TimeoutDuration, CommentUploadEndpointLimits.RequestAmount, 
-                            CommentUploadEndpointLimits.BlockDuration, CommentUploadEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.UploadComment)]
     public Response PostLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id,
         SerializedComment body, GameUser user, GameServerConfig config)
     {
@@ -119,8 +116,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("comments/{slotType}/{id}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [RateLimitSettings(CommentListEndpointLimits.TimeoutDuration, CommentListEndpointLimits.RequestAmount, 
-                            CommentListEndpointLimits.BlockDuration, CommentListEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.GetListOfComments)]
     public SerializedCommentList? GetLevelComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         string slotType, int id)
     {
@@ -134,6 +130,7 @@ public class CommentEndpoints : EndpointGroup
     }
 
     [GameEndpoint("deleteComment/{slotType}/{id}", HttpMethods.Post)]
+    [EndpointRateLimit(GameEndpointBucketName.DeleteComment)]
     public Response DeleteLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id, GameUser user)
     {
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -158,8 +155,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateUserComment/{content}", HttpMethods.Post)] // profile comments
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.RateComment)]
     public Response RateProfileComment(RequestContext context, GameDatabaseContext database, GameUser user, string content, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
@@ -177,8 +173,7 @@ public class CommentEndpoints : EndpointGroup
     }
     
     [GameEndpoint("rateComment/{slotType}/{content}", HttpMethods.Post)]
-    [RateLimitSettings(CommonRelationEndpointLimits.TimeoutDuration, CommonRelationEndpointLimits.RequestAmount, 
-                            CommonRelationEndpointLimits.BlockDuration, CommonRelationEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(GameEndpointBucketName.RateComment)]
     public Response RateLevelComment(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, string content, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
