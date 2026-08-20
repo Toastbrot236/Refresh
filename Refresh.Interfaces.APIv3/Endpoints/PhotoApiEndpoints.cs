@@ -1,10 +1,10 @@
 using AttribDoc.Attributes;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Storage;
 using Bunkum.Protocols.Http;
-using Refresh.Core.RateLimits.Photos;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Levels;
@@ -25,6 +25,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [DocSummary("Deletes an uploaded photo")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.PhotoMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.NoPhotoDeletionPermissionErrorWhen)]
+    [EndpointRateLimit(ApiEndpointBucketName.DeletePhoto)]
     public ApiResponse<ApiEmptyResponse> DeletePhoto(RequestContext context, GameDatabaseContext database, GameUser user, int id, DataContext dataContext)
     {
         GamePhoto? photo = database.GetPhotoById(id);
@@ -42,8 +43,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [ApiV3Endpoint("photos/by/{userIdType}/{id}"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets photos uploaded by a user specified by their username or UUID")]
     [DocError(typeof(ApiNotFoundError), "The user cannot be found")]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.ApiRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.ApiRequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfPhotos)]
     public ApiListResponse<ApiGamePhotoResponse> PhotosByUser(RequestContext context, GameDatabaseContext database,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string userIdType, DataContext dataContext) 
@@ -61,8 +61,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [ApiV3Endpoint("photos/with/{userIdType}/{id}"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets photos depicting a user specified by their username or UUID")]
     [DocError(typeof(ApiNotFoundError), "The user cannot be found")]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.ApiRequestAmount, 
-                                PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.ApiRequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfPhotos)]
     public ApiListResponse<ApiGamePhotoResponse> PhotosWithUser(RequestContext context,
         GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
@@ -81,8 +80,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/photos"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets photos taken in a level by its id")]
     [DocError(typeof(ApiNotFoundError), "The level cannot be found")]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.ApiRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.ApiRequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfPhotos)]
     public ApiListResponse<ApiGamePhotoResponse> PhotosInLevelById(RequestContext context, GameDatabaseContext database,
         IDataStore dataStore,
         [DocSummary("The ID of the level")] int id, DataContext dataContext)
@@ -99,8 +97,7 @@ public class PhotoApiEndpoints : EndpointGroup
     
     [ApiV3Endpoint("photos"), Authentication(false)]
     [DocUsesPageData, DocSummary("Get all photos taken recently")]
-    [RateLimitSettings(PhotoListEndpointLimits.TimeoutDuration, PhotoListEndpointLimits.ApiRequestAmount, 
-                            PhotoListEndpointLimits.BlockDuration, PhotoListEndpointLimits.ApiRequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfPhotos)]
     public ApiListResponse<ApiGamePhotoResponse> RecentPhotos(RequestContext context, GameDatabaseContext database,
         IDataStore dataStore, DataContext dataContext)
     {
@@ -114,8 +111,7 @@ public class PhotoApiEndpoints : EndpointGroup
     [ApiV3Endpoint("photos/id/{id}"), Authentication(false)]
     [DocUsesPageData, DocSummary("Get an individual photo by the photo's id")]
     [DocError(typeof(ApiNotFoundError), "The photo cannot be found")]
-    [RateLimitSettings(SinglePhotoEndpointLimits.TimeoutDuration, SinglePhotoEndpointLimits.RequestAmount, 
-                            SinglePhotoEndpointLimits.BlockDuration, SinglePhotoEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetSinglePhoto)]
     public ApiResponse<ApiGamePhotoResponse> PhotoById(RequestContext context, GameDatabaseContext database,
         IDataStore dataStore, [DocSummary("The ID of the photo")] int id, DataContext dataContext)
     {

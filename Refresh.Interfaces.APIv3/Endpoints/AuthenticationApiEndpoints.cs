@@ -10,6 +10,8 @@ using Refresh.Common.Time;
 using Refresh.Common.Verification;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
@@ -48,7 +50,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("login", HttpMethods.Post), Authentication(false), AllowDuringMaintenance]
     [DocRequestBody(typeof(ApiAuthenticationRequest))]
-    [RateLimitSettings(300, 10, 300, "auth")]
+    [EndpointRateLimit(ApiEndpointBucketName.Login)]
     public ApiResponse<IApiAuthenticationResponse> Authenticate(RequestContext context, GameDatabaseContext database, ApiAuthenticationRequest body, GameServerConfig config)
     {
         if (!config.PermitWebLogin || !config.PermitAllLogins)
@@ -138,7 +140,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("refreshToken", HttpMethods.Post), Authentication(false), AllowDuringMaintenance]
     [DocRequestBody(typeof(ApiRefreshRequest))]
-    [RateLimitSettings(300, 10, 300, "auth")]
+    [EndpointRateLimit(ApiEndpointBucketName.Login)]
     public ApiResponse<IApiAuthenticationResponse> RefreshToken(RequestContext context, GameDatabaseContext database, ApiRefreshRequest body)
     {
         Token? refreshToken = database.GetTokenFromTokenData(body.TokenData, TokenType.ApiRefresh);
@@ -168,7 +170,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     }
 
     [ApiV3Endpoint("resetPassword", HttpMethods.Put), Authentication(false)]
-    [RateLimitSettings(300, 10, 300, "auth")]
+    [EndpointRateLimit(ApiEndpointBucketName.ResetPassword)]
     public ApiOkResponse ResetPassword(RequestContext context, GameDatabaseContext database, ApiResetPasswordRequest body, GameUser? user)
     {
         user ??= database.GetUserFromTokenData(body.ResetToken, TokenType.PasswordReset);
@@ -189,7 +191,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     }
     
     [ApiV3Endpoint("sendPasswordResetEmail", HttpMethods.Put), Authentication(false)]
-    [RateLimitSettings(86400 / 2, 5, 86400, "resetPassword")]
+    [EndpointRateLimit(ApiEndpointBucketName.RequestEmail)]
     public ApiOkResponse SendPasswordResetEmail(RequestContext context,
         GameDatabaseContext database,
         ApiSendPasswordResetEmailRequest body,
@@ -224,18 +226,11 @@ public class AuthenticationApiEndpoints : EndpointGroup
         database.RevokeToken(token);
         return new ApiOkResponse();
     }
-
-    private const int IpVerificationTimeoutDuration = 300;
-    private const int IpVerificationListAmount = 12;
-    private const int IpVerificationActionAmount = 18;
-    private const int IpVerificationBlockDuration = 240;
-    private const string IpVerificationListBucket = "ip-verification-list";
-    private const string IpVerificationActionBucket = "ip-verification-action";
     
     // IP Verification
     [ApiV3Endpoint("verificationRequests"), MinimumRole(GameUserRole.Restricted)]
     [DocSummary("Retrieves a list of IP addresses that have attempted to connect.")]
-    [RateLimitSettings(IpVerificationTimeoutDuration, IpVerificationListAmount, IpVerificationBlockDuration, IpVerificationListBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfIpAddresses)]
     public ApiListResponse<ApiGameIpVerificationRequestResponse> GetVerificationRequests(RequestContext context,
         GameDatabaseContext database, GameUser user, DataContext dataContext)
     {
@@ -247,7 +242,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("verifiedIps"), MinimumRole(GameUserRole.Restricted)]
     [DocSummary("Retrieves the list of IP addresses that have been verified by the logged in user.")]
-    [RateLimitSettings(IpVerificationTimeoutDuration, IpVerificationListAmount, IpVerificationBlockDuration, IpVerificationListBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfIpAddresses)]
     public ApiListResponse<ApiGameUserVerifiedIpResponse> GetVerifiedIps(RequestContext context,
         GameDatabaseContext database, DataContext dataContext, GameUser user)
     {
@@ -263,7 +258,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     [DocError(typeof(ApiValidationError), ApiValidationError.IpAddressParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.VerifiedIpMissingErrorWhen)]
     [DocRequestBody("127.0.0.1")]
-    [RateLimitSettings(IpVerificationTimeoutDuration, IpVerificationActionAmount, IpVerificationBlockDuration, IpVerificationActionBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.ApproveOrDenyIpAddress)]
     public ApiOkResponse RemoveVerifiedIp(
         RequestContext context, 
         GameDatabaseContext database, 
@@ -285,7 +280,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     [DocSummary("Approves a given IP, and clears all remaining verification requests. Send the IP in the body.")]
     [DocError(typeof(ApiValidationError), ApiValidationError.IpAddressParseErrorWhen)]
     [DocRequestBody("127.0.0.1")]
-    [RateLimitSettings(IpVerificationTimeoutDuration, IpVerificationActionAmount, IpVerificationBlockDuration, IpVerificationActionBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.ApproveOrDenyIpAddress)]
     public ApiOkResponse ApproveVerificationRequest(
         RequestContext context,
         GameDatabaseContext database,
@@ -308,7 +303,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     [DocSummary("Denies all verification requests matching a given IP. Send the IP in the body.")]
     [DocError(typeof(ApiValidationError), ApiValidationError.IpAddressParseErrorWhen)]
     [DocRequestBody("127.0.0.1")]
-    [RateLimitSettings(IpVerificationTimeoutDuration, IpVerificationActionAmount, IpVerificationBlockDuration, IpVerificationActionBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.ApproveOrDenyIpAddress)]
     public ApiOkResponse DenyVerificationRequest(RequestContext context, GameDatabaseContext database, GameUser user, string body)
     {
         string ipAddress = body.Trim();
@@ -325,9 +320,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     [DocSummary("Registers a new user.")]
     [DocError(typeof(ApiValidationError), ApiValidationError.InvalidUsernameErrorWhen)]
     [DocRequestBody(typeof(ApiRegisterRequest))]
-    #if !DEBUG
-    [RateLimitSettings(3600, 10, 3600 / 2, "register")]
-    #endif
+    [EndpointRateLimit(ApiEndpointBucketName.Register)]
     public ApiResponse<IApiAuthenticationResponse> Register(RequestContext context,
         GameDatabaseContext database,
         ApiRegisterRequest body,
@@ -403,6 +396,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("verify", HttpMethods.Post)]
     [DocSummary("Verifies an email address using the given code")]
+    [EndpointRateLimit(ApiEndpointBucketName.VerifyEmailAddress)]
     public ApiOkResponse VerifyEmail(RequestContext context, GameUser user, GameDatabaseContext database)
     {
         string? code = context.QueryString.Get("code");
@@ -416,6 +410,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("verify/resend", HttpMethods.Post)]
     [DocSummary("Instructs the server to resend the verification email with a new code")]
+    [EndpointRateLimit(ApiEndpointBucketName.RequestEmail)]
     public ApiOkResponse ResendVerificationCode(RequestContext context, GameUser user, GameDatabaseContext database, SmtpService smtpService)
     {
         EmailVerificationCode code = database.CreateEmailVerificationCode(user);
@@ -425,6 +420,7 @@ public class AuthenticationApiEndpoints : EndpointGroup
     }
 
     [ApiV3Endpoint("users/me", HttpMethods.Delete), MinimumRole(GameUserRole.Restricted)]
+    [EndpointRateLimit(ApiEndpointBucketName.DeleteOwnUser)]
     [DocSummary("Deletes your own account. This action is non-reversible. This endpoint now requires you to include your own password while being authenticated.")]
     public ApiOkResponse DeleteMyAccount(RequestContext context, GameUser user, ApiOwnUserDeletionRequest body, GameDatabaseContext database)
     {
