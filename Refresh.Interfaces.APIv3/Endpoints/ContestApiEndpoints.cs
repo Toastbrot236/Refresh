@@ -1,10 +1,10 @@
 using AttribDoc.Attributes;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Protocols.Http;
 using MongoDB.Bson;
-using Refresh.Core.RateLimits.Contests;
+using Refresh.Core.RateLimits.EndpointRateLimiting;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Contests;
@@ -22,8 +22,7 @@ public class ContestApiEndpoints : EndpointGroup
     [ApiV3Endpoint("contests"), Authentication(false)]
     [DocSummary("Gets all contests.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ContestMissingErrorWhen)]
-    [RateLimitSettings(ContestGetEndpointLimits.TimeoutDuration, ContestGetEndpointLimits.RequestAmount, 
-                                ContestGetEndpointLimits.BlockDuration, ContestGetEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetListOfContests)]
     public ApiListResponse<ApiContestResponse> GetAllContests(RequestContext context, GameDatabaseContext database,
         DataContext dataContext)
     {
@@ -33,8 +32,7 @@ public class ContestApiEndpoints : EndpointGroup
     [ApiV3Endpoint("contests/{id}"), Authentication(false)]
     [DocSummary("Gets a contest by the contest's unique ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ContestMissingErrorWhen)]
-    [RateLimitSettings(ContestGetEndpointLimits.TimeoutDuration, ContestGetEndpointLimits.RequestAmount, 
-                                ContestGetEndpointLimits.BlockDuration, ContestGetEndpointLimits.RequestBucket)]
+    [EndpointRateLimit(ApiEndpointBucketName.GetSingleContest)]
     public ApiResponse<ApiContestResponse> GetContest(RequestContext context, GameDatabaseContext database, string id,
         DataContext dataContext)
     {
