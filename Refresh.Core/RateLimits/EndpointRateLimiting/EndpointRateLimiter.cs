@@ -1,137 +1,125 @@
 using System.Net;
 using System.Reflection;
 using System.Collections.Frozen;
-using System.Net;
-using System.Reflection;
-using Bunkum.Core.RateLimit;
 using Bunkum.Listener.Request;
+using MongoDB.Bson;
 using NotEnoughLogs;
 using Refresh.Common;
 using Refresh.Common.Time;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Info;
-using Refresh.Database.Models.Authentication;
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
+using Refresh.Database.Models.Users;
 
 namespace Refresh.Core.RateLimits.EndpointRateLimiting ;
 
-public class BasicRateLimiter : IRateLimiter
+public class EndpointRateLimiter
 {
     private readonly Logger _logger;
     private readonly IDateTimeProvider _timeProvider;
-    private readonly FrozenDictionary<BucketName, ConfigRateLimitBucket> _validBuckets;
-
-    private readonly List<RateLimitUserInfo> _userInfos = new(25);
-    private readonly List<RateLimitRemoteEndpointInfo> _remoteEndpointInfos = new(25);
+    private readonly FrozenDictionary<EndpointBucketName, ConfigRateLimitBucket> _buckets;
     
-    public BasicRateLimiter(IDateTimeProvider timeProvider, Logger logger, Dictionary<string, ConfigRateLimitBucket> buckets)
+    private readonly List<RateLimitClientBucketInfo<ObjectId>> _userInfos = new(25);
+    private readonly List<RateLimitClientBucketInfo<IPAddress>> _remoteEndpointInfos = new(25);
+    
+    public EndpointRateLimiter(IDateTimeProvider timeProvider, Logger logger, Dictionary<string, ConfigRateLimitBucket> configBuckets)
     {
         this._timeProvider = timeProvider;
         this._logger = logger;
 
         // Copy the buckets over, converting the string bucket names to their corresponding enum values.
-        Dictionary<BucketName, ConfigRateLimitBucket> validBuckets = new();
-        foreach (KeyValuePair<string, ConfigRateLimitBucket> bucket in buckets)
+        Dictionary<EndpointBucketName, ConfigRateLimitBucket> validBuckets = new();
+        
+        foreach (KeyValuePair<string, ConfigRateLimitBucket> bucket in configBuckets)
         {
-            bool parsed = Enum.TryParse(bucket.Key, true, out BucketName nameParsed);
+            bool parsed = Enum.TryParse(bucket.Key, true, out EndpointBucketName nameParsed);
             if (!parsed)
             {
-                // TODO: Should this be logged as just a debug message or as a warning, incase an instance owner accidentally screws their config up?
-                this._logger.LogDebug(RefreshContext.RateLimit, $"Bucket name '{bucket.Key}' found in rate-limit config is unknown (does not map to a valid {nameof(BucketName)} enum value), its bucket will be ignored.");
+                this._logger.LogDebug(RefreshContext.RateLimit, $"Bucket name '{bucket.Key}' found in rate-limit config is unknown (does not map to a valid {nameof(EndpointBucketName)} enum value), its bucket will be ignored.");
                 continue;
             }
             
             validBuckets.Add(nameParsed, bucket.Value);
         }
         
-        this._validBuckets = validBuckets.ToFrozenDictionary();
+        this._buckets = validBuckets.ToFrozenDictionary();
     }
 
-    private EndpointRateLimitBucket GetBucket(ListenerContext context, MethodInfo? method)
+    private EndpointRateLimitBucket GetBucketNameAndData(ListenerContext context, MethodInfo? method, bool isPsp)
     {
-        BucketName bucketName = method?.GetCustomAttribute<EndpointRateLimitAttribute>()?.Bucket ?? BucketName.Global;
+        EndpointRateLimitAttribute? attribute = method?.GetCustomAttribute<EndpointRateLimitAttribute>();
         
-        // If we're on PSP, then find out if there is a PSP-specific bucket for this, and override with the PSP-specific name.
-        // This is because PSP uses the same endpoints as LBP1 (and other games in some cases), so we can just use the regular
-        // game bucket name on the endpoints and have it be corrected here.
-        if (context.IsPSP())
-        {
-            bucketName = ApiEndpointBucketDefaults.PspNameOverrides.GetValueOrDefault(bucketName, bucketName); // Look for bucketName as key, use bucketName as default if no override found
-        }
+        EndpointBucketName bucketName = EndpointBucketName.Default;
+        if (attribute != null) bucketName = isPsp ? attribute.PspBucket : attribute.MainBucket;
         
-        ConfigRateLimitBucket? bucketData = this._validBuckets.GetValueOrDefault(bucketName);
+        ConfigRateLimitBucket? bucketData = this._buckets.GetValueOrDefault(bucketName);
 
         if (bucketData == null)
         {
             this._logger.LogDebug(RefreshContext.RateLimit, $"Could not find bucket '{bucketName}' in config, falling back to hardcoded defaults.");
-            bucketData = ApiEndpointBucketDefaults.Values.GetValueOrDefault(bucketName);
+            bucketData = EndpointBucketDefaults.Buckets.GetValueOrDefault(bucketName);
             
             if (bucketData == null)
             {
-                throw new NotImplementedException($"Could not find bucket '{bucketName}' in neither the config file nor the hardcoded defaults!");
+                throw new NotImplementedException($"Could not find bucket '{bucketName}' in neither the config file nor the hardcoded defaults! You should open an issue about this.");
             }
         }
         
-        return new EndpointRateLimitBucket(bucketData.Value, bucketName);
+        return new EndpointRateLimitBucket(bucketName, bucketData);
     }
 
-    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo? method, IRateLimitUser user)
+    public bool UserViolatesRateLimit(ListenerContext context, MethodInfo method, bool isPsp, GameUser user)
     {
-        EndpointRateLimitBucket bucket = this.GetBucket(context, method);
+        EndpointRateLimitBucket bucket = this.GetBucketNameAndData(context, method, isPsp);
 
-        lock (this._remoteEndpointInfos)
+        lock (this._userInfos)
         {
-            RateLimitUserInfo? info = this._userInfos
-                .FirstOrDefault(i =>
-                    user.RateLimitUserIdIsEqual(i.User.RateLimitUserId) && i.Bucket == bucket.Name);
+            RateLimitClientBucketInfo<ObjectId>? info = this._userInfos.FirstOrDefault(i =>
+                    user.UserId.Equals(i.ClientId) && i.Bucket == bucket.Name);
 
             if (info == null)
             {
-                info = new RateLimitUserInfo(user, bucket.Name);
-                lock (this._userInfos)
-                {
-                    this._userInfos.Add(info);
-                }
+                info = new RateLimitClientBucketInfo<ObjectId>(user.UserId, bucket.Name);
+                this._userInfos.Add(info);
             }
 
             lock (info)
             {
-                return this.ViolatesRateLimit(context, info, bucket);
+                return this.ViolatesRateLimit(context, bucket, info, user);
             }
         }
     }
 
-    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo? method)
+    public bool RemoteEndpointViolatesRateLimit(ListenerContext context, MethodInfo method)
     {
         IPAddress ipAddress = context.RemoteEndpoint.Address;
         
-        EndpointRateLimitBucket bucket = this.GetBucket(context, method);
+        EndpointRateLimitBucket bucket = this.GetBucketNameAndData(context, method, false);
 
         lock (this._remoteEndpointInfos)
         {
-            RateLimitRemoteEndpointInfo? info = this._remoteEndpointInfos
-                .FirstOrDefault(i => ipAddress.Equals(i.IpAddress) && i.Bucket == bucket.Name);
+            RateLimitClientBucketInfo<IPAddress>? info = this._remoteEndpointInfos
+                .FirstOrDefault(i => ipAddress.Equals(i.ClientId) && i.Bucket == bucket.Name);
 
             if (info == null)
             {
-                info = new RateLimitRemoteEndpointInfo(ipAddress, bucket.Name);
-
+                info = new RateLimitClientBucketInfo<IPAddress>(ipAddress, bucket.Name);
                 this._remoteEndpointInfos.Add(info);
             }
 
             lock (info)
             {
-                return this.ViolatesRateLimit(context, info, bucket);
+                return this.ViolatesRateLimit(context, bucket, info, null);
             }
         }
     }
 
-    private bool ViolatesRateLimit(ListenerContext context, IRateLimitInfo info, EndpointRateLimitBucket bucket)
+    public bool ViolatesRateLimit(ListenerContext context, EndpointRateLimitBucket bucket, IRateLimitClientBucketInfo info, GameUser? user)
     {
         int now = (int)this._timeProvider.TimestampSeconds;
         
         // Always clear all expired and add this request as a new one,
         // to make the block duration longer the more the client continues to spam
-        info.RequestTimes.RemoveAll(r => r <= now - bucket.TimeWindowSeconds);
+        info.RequestTimes.RemoveAll(r => r <= now - bucket.Data.TimeWindowSeconds);
         info.RequestTimes.Add(now);
         
         // Repeat block
@@ -140,10 +128,10 @@ public class BasicRateLimiter : IRateLimiter
             return true;
         
         // Initial block
-        if (info.RequestTimes.Count > bucket.MaxRequestCount)
+        if (info.RequestTimes.Count > bucket.Data.MaxRequestCount)
         {
-            info.LimitedUntil = now + bucket.BlockDurationSeconds;
-            context.ResponseHeaders.TryAdd("Retry-After", bucket.BlockDurationSeconds.ToString()); // TODO also include overshot time
+            info.LimitedUntil = now + bucket.Data.BlockDurationSeconds;
+            context.ResponseHeaders.TryAdd("Retry-After", bucket.Data.BlockDurationSeconds.ToString()); // TODO also include overshot time
             
             return true;
         }

@@ -6,6 +6,7 @@ using Bunkum.Core.Services;
 using Bunkum.Listener.Protocol;
 using Bunkum.Listener.Request;
 using NotEnoughLogs;
+using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Users;
 
 namespace Refresh.Core.Services;
@@ -24,12 +25,15 @@ public class GameRateLimitService : Service
 
     public override Response? OnRequestHandled(ListenerContext context, MethodInfo method, Lazy<IDatabaseContext> database)
     {
-        GameUser? user = this._authService.AuthenticateToken(context, database)?.User;
+        Token? token = this._authService.AuthenticateToken(context, database);
+        // Don't rely on user-agent as much so users couldn't just bypass the rate-limit by overwriting their user agent
+        // TODO don't rely on PSP user agent to determine whether the game is PSP in other places either, for similar reasons
+        bool isPsp = token?.TokenGame == TokenGame.LittleBigPlanetPSP;
 
         bool violated = false;
 
-        if (user != null)
-            violated = this._rateLimiter.UserViolatesRateLimit(context, method, user);
+        if (token != null)
+            violated = this._rateLimiter.UserViolatesRateLimit(context, method, token.User);
         else
             violated = this._rateLimiter.RemoteEndpointViolatesRateLimit(context, method);
 

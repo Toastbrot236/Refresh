@@ -1,13 +1,15 @@
+using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
+
 namespace Refresh.Core.RateLimits.EndpointRateLimiting;
 
-public class RateLimitClientBucketInfo<TClientType>
+public class RateLimitClientBucketInfo<TClientType> : IRateLimitClientBucketInfo
 {
-    internal List<int> RequestTimes { get; init; } = new(25);
-    internal int LimitedUntil { get; set; }
+    public List<int> RequestTimes { get; init; } = new(25);
+    public int LimitedUntil { get; set; }
     public TClientType ClientId { get; init; }
-    public EndpointRateLimitBucket Bucket { get; init; }
+    public EndpointBucketName Bucket { get; init; }
     
-    public RateLimitClientBucketInfo(TClientType clientId, EndpointRateLimitBucket bucket)
+    public RateLimitClientBucketInfo(TClientType clientId, EndpointBucketName bucket)
     {
         this.ClientId = clientId;
         this.Bucket = bucket;
