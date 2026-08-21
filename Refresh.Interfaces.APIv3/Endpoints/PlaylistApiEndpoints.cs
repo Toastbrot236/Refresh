@@ -156,7 +156,7 @@ public class PlaylistApiEndpoints : EndpointGroup
     [ApiV3Endpoint("playlists/id/{id}"), Authentication(false)]
     [DocSummary("Gets a playlist specified by ID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.PlaylistMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetSinglePlaylist)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetSinglePlaylist)]
     public ApiResponse<ApiGamePlaylistResponse> GetPlaylistById(RequestContext context, DataContext dataContext, int id)
     {
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);

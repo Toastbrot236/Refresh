@@ -112,7 +112,7 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     [GameEndpoint("playlists/{playlistId}/slots", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.Lbp3GetLevelsFromPlaylist)]
+    [EndpointRateLimit(EndpointBucketName.Lbp3GetPlaylistContents)]
     public SerializedMinimalLevelList? GetPlaylistLevels(RequestContext context, DataContext dataContext, GameUser user, int playlistId)
     {
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
@@ -200,7 +200,7 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     [GameEndpoint("user/{username}/playlists", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfPlaylists)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfPlaylists)]
     public SerializedLbp3PlaylistList? GetPlaylistsByUser(RequestContext context, DataContext dataContext, string username)
     {
         GameUser? user = dataContext.Database.GetUserByUsername(username);
@@ -218,7 +218,7 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     [GameEndpoint("favouritePlaylists/{username}", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfPlaylists)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfPlaylists)]
     public SerializedLbp3PlaylistList? GetFavouritedPlaylists(RequestContext context, DataContext dataContext, string username)
     {
         GameUser? user = dataContext.Database.GetUserByUsername(username);

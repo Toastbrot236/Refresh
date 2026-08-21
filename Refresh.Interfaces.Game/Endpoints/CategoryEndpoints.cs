@@ -25,7 +25,7 @@ public class CategoryEndpoints : EndpointGroup
     [GameEndpoint("searches", ContentType.Xml)]
     [GameEndpoint("genres", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfCategories)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfCategories)]
     public SerializedCategoryList GetModernCategories(RequestContext context, CategoryService categoryService, DataContext dataContext, GameServerConfig config)
     {
         (int skip, int count) = context.GetPageData();
@@ -57,7 +57,7 @@ public class CategoryEndpoints : EndpointGroup
     [GameEndpoint("searches/levels/{apiRoute}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfLevels)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfLevels)]
     public SerializedCategoryResultsList? GetLevelsFromCategory(RequestContext context, CategoryService categories, GameUser user, 
         string apiRoute, DataContext dataContext)
     {
@@ -81,7 +81,7 @@ public class CategoryEndpoints : EndpointGroup
     [GameEndpoint("searches/users/{apiRoute}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfUsers)]
     public SerializedCategoryResultsList? GetUsersFromCategory(RequestContext context, CategoryService categories, GameUser user, 
         string apiRoute, DataContext dataContext, GameServerConfig config)
     {

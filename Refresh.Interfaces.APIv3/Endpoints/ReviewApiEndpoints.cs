@@ -27,7 +27,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levels/id/{id}/reviews"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets a list of the reviews posted to a level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetListOfReviews)]
     public ApiListResponse<ApiGameReviewResponse> GetReviewsForLevel(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore,
         [DocSummary("The ID of the level")] int id, DataContext dataContext)
@@ -46,7 +46,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("users/{idType}/{id}/reviews"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets a list of the reviews posted by a user.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetListOfReviews)]
     public ApiListResponse<ApiGameReviewResponse> GetReviewsByUser(RequestContext context,
         GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
@@ -66,7 +66,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [ApiV3Endpoint("reviews/id/{id}"), Authentication(false)]
     [DocSummary("Gets a review by ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetSingleReview)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetSingleReview)]
     public ApiResponse<ApiGameReviewResponse> GetReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore,
         [DocSummary("The ID of the review")] int id, DataContext dataContext)
@@ -142,7 +142,7 @@ public class ReviewApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.ReviewMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.NoReviewEditPermissionErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.UpdateReview)]
+    [EndpointRateLimit(EndpointBucketName.UploadReview)]
     public ApiResponse<ApiGameReviewResponse> UpdateReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the review")] int id, ApiSubmitReviewRequest body, DataContext dataContext, GameServerConfig config)

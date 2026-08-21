@@ -126,7 +126,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("playlist/{id}", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetPlaylistContents)]
+    [EndpointRateLimit(EndpointBucketName.GameGetPlaylistContents)]
     public SerializedMinimalLevelList? GetPlaylistSlots(RequestContext context, DataContext dataContext, int id)
     {
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
@@ -155,7 +155,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("playlistsContainingSlot/{slotType}/{slotId}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfPlaylists)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfPlaylists)]
     public SerializedMinimalLevelList? PlaylistsContainingSlot(RequestContext context, DataContext dataContext,
         string slotType, int slotId)
     {

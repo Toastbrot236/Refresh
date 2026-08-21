@@ -25,14 +25,14 @@ public class UserEndpoints : EndpointGroup
 {
     [GameEndpoint("user/{name}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetSingleUser)]
+    [EndpointRateLimit(EndpointBucketName.GameGetSingleUser)]
     public GameUserResponse? GetUser(RequestContext context, GameDatabaseContext database, string name, Token token,
         IDataStore dataStore, DataContext dataContext) 
         => GameUserResponse.FromOld(database.GetUserByUsername(name), dataContext);
 
     [GameEndpoint("users", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfUsers)]
     public SerializedUserList GetMultipleUsers(RequestContext context, GameDatabaseContext database, Token token,
         IDataStore dataStore, DataContext dataContext)
     {
@@ -58,7 +58,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("myFriends", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfUsers)]
     public SerializedFriendsList GetFriends(RequestContext context, GameDatabaseContext database,
         GameUser user, DataContext dataContext)
     {
@@ -160,7 +160,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("update_my_pins", HttpMethods.Post, ContentType.Json)]
     [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
-    [EndpointRateLimit(EndpointBucketName.SyncPinProgress)]
+    [EndpointRateLimit(EndpointBucketName.GameSyncPinProgress)]
     public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config)) 
@@ -210,7 +210,7 @@ public class UserEndpoints : EndpointGroup
     [GameEndpoint("get_my_pins", HttpMethods.Get, ContentType.Json)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(Unauthorized)]
-    [EndpointRateLimit(EndpointBucketName.SyncPinProgress)]
+    [EndpointRateLimit(EndpointBucketName.GameSyncPinProgress)]
     public SerializedPins? GetPins(RequestContext context, DataContext dataContext, GameUser user)
     {
         return SerializedPins.FromOld

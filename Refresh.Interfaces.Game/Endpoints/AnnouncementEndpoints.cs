@@ -79,7 +79,7 @@ public class AnnouncementEndpoints : EndpointGroup
     [GameEndpoint("announce")]
     [MinimumRole(GameUserRole.Restricted)]
     [SuppressMessage("ReSharper", "RedundantAssignment")]
-    [EndpointRateLimit(EndpointBucketName.GetListOfAnnouncements)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfAnnouncements)]
     public string Announce(RequestContext context, GameServerConfig config, GameUser user, GameDatabaseContext database, Token token, IDateTimeProvider timeProvider)
     {
         if (user.Role == GameUserRole.Restricted)
@@ -129,7 +129,7 @@ public class AnnouncementEndpoints : EndpointGroup
 
     [GameEndpoint("notification", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfNotifications)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfNotifications)]
     public string Notification(RequestContext context, GameServerConfig config, Token token, GameDatabaseContext database, MatchService matchService)
     {
         // On LBP1 the only regular ticking request is /notification,

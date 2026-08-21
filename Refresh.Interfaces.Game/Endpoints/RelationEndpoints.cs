@@ -97,7 +97,7 @@ public class RelationEndpoints : EndpointGroup
     [GameEndpoint("favouriteUsers/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfUsers)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfUsers)]
     public SerializedFavouriteUserList? GetFavouriteUsers(RequestContext context, GameDatabaseContext database,
         string username, DataContext dataContext)
     {

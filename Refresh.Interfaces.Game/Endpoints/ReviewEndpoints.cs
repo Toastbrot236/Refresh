@@ -98,7 +98,7 @@ public class ReviewEndpoints : EndpointGroup
     [GameEndpoint("reviewsFor/{slotType}/{id}", ContentType.Xml)]
     [AllowEmptyBody]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfReviews)]
     public Response GetReviewsForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
         DataContext dataContext)
     {
@@ -115,7 +115,7 @@ public class ReviewEndpoints : EndpointGroup
     [GameEndpoint("reviewsBy/{username}", ContentType.Xml)]
     [AllowEmptyBody]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfReviews)]
     public Response GetReviewsByUser(RequestContext context, GameDatabaseContext database, string username,
         DataContext dataContext)
     {

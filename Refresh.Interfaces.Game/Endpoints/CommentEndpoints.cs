@@ -50,7 +50,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("userComments/{username}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfComments)]
     public SerializedCommentList? GetProfileComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext, string username)
     {
         GameUser? profile = database.GetUserByUsername(username);
@@ -116,7 +116,7 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("comments/{slotType}/{id}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.GameGetListOfComments)]
     public SerializedCommentList? GetLevelComments(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
         string slotType, int id)
     {

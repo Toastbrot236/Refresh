@@ -28,7 +28,7 @@ public class UserApiEndpoints : EndpointGroup
     [ApiV3Endpoint("users/{idType}/{id}"), Authentication(false)]
     [DocSummary("Tries to find a user by name or UUID")]
     [DocError(typeof(ApiNotFoundError), "The user cannot be found")]
-    [EndpointRateLimit(EndpointBucketName.GetSingleUser)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetSingleUser)]
     public ApiResponse<ApiGameUserResponse> GetUser(RequestContext context, GameDatabaseContext database,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext)
@@ -86,7 +86,7 @@ public class UserApiEndpoints : EndpointGroup
     [ApiV3Endpoint("users/me"), MinimumRole(GameUserRole.Restricted)]
     [DocSummary("Returns your own user, provided you are authenticated")]
     [DocError(typeof(ApiAuthenticationError), "You are not authenticated")]
-    [EndpointRateLimit(EndpointBucketName.GetOwnUser)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetOwnUser)]
     public ApiResponse<ApiExtendedGameUserResponse> GetMyUser(RequestContext context, GameUser? user,
         GameDatabaseContext database, IDataStore dataStore, DataContext dataContext)
     {

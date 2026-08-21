@@ -4,7 +4,7 @@ namespace Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 // Api = only used for API endpoints
 // Game = only used for game endpoints (unless you're on a special-cased game)
 // (specific game) = only used for game endpoints if you're on the specified game
-// Shared = shared across both game and API endpoints
+// No prefix = shared across both game and API endpoints (by default)
 //
 // Usually, fetch endpoints have separated buckets, while post/patch/delete endpoints share buckets
 public enum EndpointBucketName
@@ -24,11 +24,11 @@ public enum EndpointBucketName
     GameRealLevelPublish,
     ApiEditLevel,
     
-    SharedDeleteLevel,
-    SharedHeartLevel,
-    SharedQueueLevel,
-    SharedTagLevel,
-    SharedRateLevel,
+    DeleteLevel,
+    HeartLevel,
+    QueueLevel,
+    TagLevel,
+    RateLevel,
     ApiOverrideLevel,
     
     PspRateLevel,
@@ -36,15 +36,16 @@ public enum EndpointBucketName
         
     #region Level Scores
     GameGetListOfLevelScores,
-    GamePspGetListOfLevelScores,
+    PspGetListOfLevelScores,
+    
     ApiGetListOfLevelScores,
-    ApiPspGetListOfLevelScores,
+    ApiGetSingleLevelScore,
     
     GamePlayLevel,
-    GamePspPlayLevel,
+    PspPlayLevel,
     
     GameUploadLevelScore,
-    GamePspUploadLevelScore,
+    PspUploadLevelScore,
     #endregion
         
     #region Reviews
@@ -53,9 +54,9 @@ public enum EndpointBucketName
     ApiGetListOfReviews,
     ApiGetSingleReview,
     
-    SharedUploadReview,
-    SharedRateReview,
-    SharedDeleteReview,
+    UploadReview,
+    RateReview,
+    DeleteReview,
     #endregion
         
     #region Comments (both Profile and Level)
@@ -64,9 +65,9 @@ public enum EndpointBucketName
     ApiGetListOfComments,
     ApiGetSingleComment,
     
-    SharedUploadComment,
-    SharedRateComment,
-    SharedDeleteComment,
+    UploadComment,
+    RateComment,
+    DeleteComment,
     #endregion
         
     #region Photos
@@ -76,7 +77,7 @@ public enum EndpointBucketName
     ApiGetSinglePhoto,
     
     GameUploadPhoto,
-    SharedDeletePhoto,
+    DeletePhoto,
     #endregion
         
     #region Users
@@ -86,10 +87,10 @@ public enum EndpointBucketName
     ApiGetSingleUser,
     ApiGetOwnUser,
     
-    SharedUpdateUser,
+    UpdateUser,
     GameUploadFriendData,
     GameSyncUserPrivacySettings,
-    SharedHeartUser,
+    HeartUser,
     ApiDeleteOwnUser,
     #endregion
         
@@ -102,6 +103,11 @@ public enum EndpointBucketName
     #region Assets
     GameUploadAsset,
     GameDownloadAsset,
+    
+    ApiDownloadAsset,
+    ApiDownloadImage,
+    ApiGetAssetMetadata,
+    ApiUploadImage,
     #endregion
         
     #region Matching
@@ -120,11 +126,11 @@ public enum EndpointBucketName
     ApiGetListOfPlaylists,
     ApiGetSinglePlaylist,
     
-    SharedCreatePlaylist,
-    SharedUpdatePlaylistMetadata,
-    SharedUpdatePlaylistContents,
-    SharedHeartPlaylist,
-    SharedDeletePlaylist,
+    CreatePlaylist,
+    UpdatePlaylistMetadata,
+    UpdatePlaylistContents,
+    HeartPlaylist,
+    DeletePlaylist,
     #endregion
         
     #region Activity
@@ -135,6 +141,8 @@ public enum EndpointBucketName
     #region Notifications
     GameGetListOfNotifications,
     ApiGetListOfNotifications,
+    ApiGetSingleNotification,
+    ApiDeleteNotification,
     #endregion
         
     #region Categories
@@ -152,6 +160,7 @@ public enum EndpointBucketName
     GameGetInstanceStats,
     ApiGetInstanceStats,
     ApiGetInstanceInfo,
+    ApiGetDocumentation,
     
     GameGetEula,
     GameGetListOfAnnouncements,

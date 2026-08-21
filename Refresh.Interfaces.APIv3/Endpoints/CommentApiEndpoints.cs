@@ -28,7 +28,7 @@ public class CommentApiEndpoints : EndpointGroup
     [DocSummary("Gets comments posted under the specified user's profile.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocUsesPageData]
-    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetListOfComments)]
     public ApiListResponse<ApiProfileCommentResponse> GetCommentsOnProfile(RequestContext context, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
@@ -68,7 +68,7 @@ public class CommentApiEndpoints : EndpointGroup
     [ApiV3Endpoint("profileComments/id/{id}"), Authentication(false)]
     [DocSummary("Gets the profile comment specified by its ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.CommentMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetSingleComment)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetSingleComment)]
     public ApiResponse<ApiProfileCommentResponse> GetProfileComment(RequestContext context, DataContext dataContext, int id)
     {
         GameProfileComment? comment = dataContext.Database.GetProfileCommentById(id);
@@ -122,7 +122,7 @@ public class CommentApiEndpoints : EndpointGroup
     [DocSummary("Gets comments posted under the specified level.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [DocUsesPageData]
-    [EndpointRateLimit(EndpointBucketName.GetListOfComments)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetListOfComments)]
     public ApiListResponse<ApiLevelCommentResponse> GetCommentsOnLevel(RequestContext context, DataContext dataContext, int id)
     {
         GameLevel? level = dataContext.Database.GetLevelById(id);
@@ -158,7 +158,7 @@ public class CommentApiEndpoints : EndpointGroup
     [ApiV3Endpoint("levelComments/id/{id}"), Authentication(false)]
     [DocSummary("Gets the level comment specified by its ID.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.CommentMissingErrorWhen)]
-    [EndpointRateLimit(EndpointBucketName.GetSingleComment)]
+    [EndpointRateLimit(EndpointBucketName.ApiGetSingleComment)]
     public ApiResponse<ApiLevelCommentResponse> GetLevelComment(RequestContext context, DataContext dataContext, int id)
     {
         GameLevelComment? comment = dataContext.Database.GetLevelCommentById(id);

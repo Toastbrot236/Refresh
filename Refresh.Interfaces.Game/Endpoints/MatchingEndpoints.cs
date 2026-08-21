@@ -73,7 +73,7 @@ public class MatchingEndpoints : EndpointGroup
     [GameEndpoint("match", HttpMethods.Post, ContentType.Json)]
     [DebugRequestBody, DebugResponseBody]
     [RequireEmailVerified]
-    [EndpointRateLimit(EndpointBucketName.UpdateRoomOrGetRooms)]
+    [EndpointRateLimit(EndpointBucketName.GameUpdateRoomOrGetRooms)]
     public Response Match(
         RequestContext context, 
         string body, 
@@ -108,7 +108,7 @@ public class MatchingEndpoints : EndpointGroup
     // since the "bump" is much less often. This will at the very least make API tools be able to see LBP1 player activity and player counts.
     // LBP1 doesn't send any requests to /play if a user enters an online user level, so use this endpoint to increment plays for those.
     [GameEndpoint("enterLevel/{slotType}/{id}", HttpMethods.Post)]
-    [EndpointRateLimit(EndpointBucketName.UpdateRoomOrGetRooms)]
+    [EndpointRateLimit(EndpointBucketName.GameUpdateRoomOrGetRooms)]
     public Response EnterLevel(RequestContext context, Token token, MatchService matchService, string slotType, int id, DataContext dataContext)
     {
         GameRoom room = matchService.GetOrCreateRoomByPlayer(token.User, token.TokenPlatform, token.TokenGame, NatType.Strict, false);

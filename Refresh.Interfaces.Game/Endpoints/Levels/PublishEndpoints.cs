@@ -96,7 +96,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(EndpointBucketName.PrepareLevelPublish)]
+    [EndpointRateLimit(EndpointBucketName.GamePrepareLevelPublish)]
     public Response StartPublish(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
@@ -153,7 +153,7 @@ public class PublishEndpoints : EndpointGroup
 
     [GameEndpoint("publish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(EndpointBucketName.RealLevelPublish)]
+    [EndpointRateLimit(EndpointBucketName.GameRealLevelPublish)]
     public Response PublishLevel(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
