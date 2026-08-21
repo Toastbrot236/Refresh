@@ -1,10 +1,8 @@
 using AttribDoc.Attributes;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Storage;
 using Refresh.Core.Configuration;
-using Refresh.Core.RateLimits.Activity;
 using Refresh.Core.RateLimits.EndpointRateLimiting;
 using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;

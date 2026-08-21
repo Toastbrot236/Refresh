@@ -3,7 +3,6 @@ using System.Net;
 using AttribDoc.Attributes;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Protocols.Http;
 using Refresh.Common;
 using Refresh.Common.Time;

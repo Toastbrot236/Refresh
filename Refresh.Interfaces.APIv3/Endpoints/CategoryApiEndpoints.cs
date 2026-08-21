@@ -1,14 +1,11 @@
 using AttribDoc.Attributes;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
-using Bunkum.Core.RateLimit;
 using Bunkum.Core.Responses;
 using Bunkum.Listener.Protocol;
 using Refresh.Core.Configuration;
 using Refresh.Core.RateLimits.EndpointRateLimiting;
 using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
-using Refresh.Core.RateLimits.Levels;
-using Refresh.Core.RateLimits.Users;
 using Refresh.Core.Types.Categories;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
