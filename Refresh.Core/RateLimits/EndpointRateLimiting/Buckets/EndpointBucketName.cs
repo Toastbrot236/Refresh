@@ -91,7 +91,6 @@ public enum EndpointBucketName
     GameUploadFriendData,
     GameSyncUserPrivacySettings,
     HeartUser,
-    ApiDeleteOwnUser,
     #endregion
         
     #region Moderation
@@ -189,5 +188,6 @@ public enum EndpointBucketName
     ApiResetPassword,
     ApiGetListOfIpAddresses,
     ApiApproveOrDenyIpAddress,
+    ApiDeleteOwnUser,
     #endregion
 }
