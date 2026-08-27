@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Bunkum.Core.Storage;
 using Refresh.Core.Importing;
 using Refresh.Core.Services;
@@ -14,7 +15,7 @@ public struct AssetValidationParameters
     /// The reference (hash/guid/blank) to validate
     /// </summary>
     public string AssetRef { get; set; } = "0";
-    public GameUser? User { get; set; }
+    public GameUser User { get; set; }
     public TokenGame GameToUseIn { get; set; }
     public TokenPlatform PlatformToUseIn { get; set; }
     public GameDatabaseContext Database { get; set; } = null!;
@@ -38,8 +39,11 @@ public struct AssetValidationParameters
 
     public AssetValidationParameters(string assetRef, DataContext dataContext, AssetImporter assetImporter, AipiService? aipi = null)
     {
+        // Assert that only authed users may upload/update content
+        Debug.Assert(dataContext.User != null);
+        
         this.AssetRef = assetRef;
-        this.User = dataContext.User;
+        this.User = dataContext.User!;
         this.GameToUseIn = dataContext.Game;
         this.PlatformToUseIn = dataContext.Platform;
         this.Database = dataContext.Database;
@@ -48,10 +52,5 @@ public struct AssetValidationParameters
         this.GuidChecker = dataContext.GuidChecker;
         this.AssetImporter = assetImporter;
         this.Aipi = aipi;
-    }
-
-    public AssetValidationParameters()
-    {
-
     }
 }
