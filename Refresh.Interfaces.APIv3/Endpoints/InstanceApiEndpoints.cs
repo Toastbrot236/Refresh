@@ -5,7 +5,6 @@ using Refresh.Core;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Core.RateLimits.EndpointRateLimiting;
-using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
@@ -20,7 +19,7 @@ public class InstanceApiEndpoints : EndpointGroup
 {
     [ApiV3Endpoint("statistics"), Authentication(false)]
     [DocSummary("Retrieves various statistics about the Refresh instance.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetInstanceStats)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetInstanceStats)]
     public ApiResponse<ApiStatisticsResponse> GetStatistics(RequestContext context, GameDatabaseContext database,
         MatchService match, GameServerConfig config, DataContext dataContext)
     {
@@ -44,14 +43,14 @@ public class InstanceApiEndpoints : EndpointGroup
 
     [ApiV3Endpoint("announcements"), Authentication(false), AllowDuringMaintenance]
     [DocSummary("Retrieves all current announcements.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfAnnouncements)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetListOfAnnouncements)]
     public ApiResponse<List<ApiGameAnnouncementResponse>> GetAllAnnouncements(RequestContext context, DataContext dataContext) 
         => ApiGameAnnouncementResponse.FromOldList(dataContext.Database.GetAnnouncements().ToArray(), dataContext).ToList();
 
     [ApiV3Endpoint("instance"), Authentication(false), AllowDuringMaintenance]
     [ClientCacheResponse(3600)] // One hour
     [DocSummary("Retrieves various information and metadata about the Refresh instance.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetInstanceInfo)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetInstanceInfo)]
     public ApiResponse<ApiInstanceResponse> GetInstanceInformation(RequestContext context,
         GameServerConfig gameConfig,
         RichPresenceConfig richConfig,

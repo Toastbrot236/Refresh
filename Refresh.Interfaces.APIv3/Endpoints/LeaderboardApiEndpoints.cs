@@ -3,7 +3,6 @@ using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.Storage;
 using Refresh.Core.RateLimits.EndpointRateLimiting;
-using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Levels;
@@ -24,7 +23,7 @@ public class LeaderboardApiEndpoints : EndpointGroup
                               "If true, all scores will be shown no matter what. False by default.")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), "The boolean 'showAll' could not be parsed by the server.")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfLevelScores)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetListOfLevelScores)]
     public ApiListResponse<ApiGameScoreResponse> GetTopScoresForLevel(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore,
         [DocSummary("The ID of the level")] int id,
@@ -50,7 +49,7 @@ public class LeaderboardApiEndpoints : EndpointGroup
     [ApiV3Endpoint("scores/{uuid}"), Authentication(false)]
     [DocSummary("Gets an individual score by a UUID")]
     [DocError(typeof(ApiNotFoundError), "The score could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleLevelScore)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetSingleLevelScore)]
     public ApiResponse<ApiGameScoreResponse> GetScoreByUuid(RequestContext context, GameDatabaseContext database,
         DataContext dataContext,
         [DocSummary("The UUID of the score")] string uuid)

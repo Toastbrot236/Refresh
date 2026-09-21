@@ -3,7 +3,6 @@ using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using MongoDB.Bson;
 using Refresh.Core.RateLimits.EndpointRateLimiting;
-using Refresh.Core.RateLimits.EndpointRateLimiting.Buckets;
 using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Core.Types.Matching;
@@ -23,7 +22,7 @@ public class MatchingApiEndpoints : EndpointGroup
     [DocSummary("Finds a room by a player's username or UUID")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The room could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleRoom)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetSingleRoom)]
     public ApiResponse<ApiGameRoomResponse> GetRoomByUser(RequestContext context, MatchService service,
         GameDatabaseContext database, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
@@ -42,7 +41,7 @@ public class MatchingApiEndpoints : EndpointGroup
     [DocSummary("Finds a room by a room's UUID")]
     [DocError(typeof(ApiValidationError), ApiValidationError.ObjectIdParseErrorWhen)]
     [DocError(typeof(ApiNotFoundError), "The room could not be found")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetSingleRoom)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetSingleRoom)]
     public ApiResponse<ApiGameRoomResponse> GetRoomByUuid(RequestContext context, MatchService service,
         [DocSummary("The UUID of the room")] string uuid, DataContext dataContext)
     {
@@ -57,7 +56,7 @@ public class MatchingApiEndpoints : EndpointGroup
     
     [ApiV3Endpoint("rooms"), Authentication(false)]
     [DocUsesPageData, DocSummary("Gets all rooms on the server")]
-    [EndpointRateLimit(ApiEndpointBucketName.GetListOfRooms)]
+    [EndpointRateLimit(EndpointBucketId.ApiGetListOfRooms)]
     public ApiListResponse<ApiGameRoomResponse> GetRooms(RequestContext context, MatchService service,
         DataContext dataContext)
     {
