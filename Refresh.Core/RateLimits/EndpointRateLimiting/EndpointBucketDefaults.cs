@@ -52,11 +52,10 @@ public static class EndpointBucketDefaults
         #endregion
 
         #region Level Scores
-        {EndpointBucketId.GamePlayLevel, new(300, 30, 180)},
+        {EndpointBucketId.GameGetListOfLevelScores, new(300, 40, 180)},
         {EndpointBucketId.GameUploadLevelScore, new(300, 30, 180)},
 
-        // PSP spams these requests for story levels every time the download moon is loaded, apparently.
-        {EndpointBucketId.GameGetListOfLevelScores, new(300, 40, 180)},
+        {EndpointBucketId.GamePlayLevel, new(300, 30, 180)},
         #endregion
 
         #region Reviews
@@ -90,9 +89,9 @@ public static class EndpointBucketDefaults
         {EndpointBucketId.GameGetSingleUser, new(300, 60, 180)},
 
         {EndpointBucketId.UpdateUser, new(300, 20, 180)},
-        {EndpointBucketId.HeartUser, new(300, 30, 180)},
         {EndpointBucketId.GameUploadFriendData, new(240, 6, 180)},
-
+        {EndpointBucketId.GameSyncUserPrivacySettings, new(300, 10, 180)},
+        {EndpointBucketId.HeartUser, new(300, 30, 180)},
         #endregion
 
         #region Assets

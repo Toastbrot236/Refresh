@@ -81,12 +81,6 @@ public enum EndpointBucketId
     HeartUser,
     #endregion
 
-    #region Moderation
-    GameUploadGriefReport,
-    GameFilterModeratedAssets,
-    GameFilterChatMessage,
-    #endregion
-
     #region Assets
     GameUploadAsset,
     GameDownloadAsset,
@@ -118,16 +112,22 @@ public enum EndpointBucketId
     GameGetListOfNotifications,
     #endregion
 
+    #region Moderation
+    GameUploadGriefReport,
+    GameFilterModeratedAssets,
+    GameFilterChatMessage,
+    #endregion
+
     #region Pins
     GameSyncPinProgress,
     #endregion
 
     #region Challenges
+    GameUploadPlayerChallenge,
+    GameUploadPlayerChallengeScore,
+
     GameGetListOfPlayerChallenges,
     GameGetListOfPlayerChallengeScores,
     GameGetSinglePlayerChallengeScore,
-
-    GameUploadPlayerChallenge,
-    GameUploadPlayerChallengeScore,
     #endregion
 }
