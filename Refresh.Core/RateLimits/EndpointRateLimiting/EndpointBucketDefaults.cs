@@ -104,8 +104,8 @@ public static class EndpointBucketDefaults
         #endregion
 
         #region Playlists
-        {EndpointBucketId.GameGetListOfPlaylists, new(240, 50, 180)},
-        {EndpointBucketId.GameGetPlaylistContents, new(240, 50, 180)},
+        {EndpointBucketId.Lbp1GetListOfPlaylists, new(240, 50, 180)},
+        {EndpointBucketId.Lbp1GetPlaylistContents, new(240, 50, 180)},
 
         // LBP3 doesn't cache these at all, and is inefficient with them in general, so we need less lenient rate-limits
         {EndpointBucketId.Lbp3GetListOfPlaylists, new(240, 50, 180)},

@@ -26,7 +26,7 @@ public class AuthenticationEndpoints : EndpointGroup
 {
     [GameEndpoint("login", HttpMethods.Post, ContentType.Xml), Authentication(false), AllowDuringMaintenance]
     [NullStatusCode(Forbidden)]
-    [EndpointRateLimit(GameEndpointBucketName.Login)]
+    [EndpointRateLimit(EndpointBucketId.GameLogin)]
     [MinimumRole(GameUserRole.Restricted)]
     public object? Authenticate(RequestContext context,
         GameDatabaseContext database,

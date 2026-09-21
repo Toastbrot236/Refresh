@@ -25,7 +25,7 @@ public class LeaderboardEndpoints : EndpointGroup
     // LBP1 doesn't send any requests to this endpoint if a user enters an online user level.
     [GameEndpoint("play/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.PlayLevel, GameEndpointBucketName.PspPlayLevel)]
+    [EndpointRateLimit(EndpointBucketId.GamePlayLevel)]
     public Response PlayLevel(RequestContext context, GameUser user, GameDatabaseContext database, string slotType, int id, DataContext dataContext)
     {
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -58,7 +58,7 @@ public class LeaderboardEndpoints : EndpointGroup
     
     [GameEndpoint("scoreboard/{slotType}/{id}", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfLevelScores, GameEndpointBucketName.PspGetListOfLevelScores)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfLevelScores)]
     public Response GetUserScores(RequestContext context, GameUser user, GameDatabaseContext database, string slotType,
         int id, Token token, DataContext dataContext)
     {
@@ -73,7 +73,7 @@ public class LeaderboardEndpoints : EndpointGroup
 
     [GameEndpoint("scoreboard/friends/{slotType}/{id}", HttpMethods.Post, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfLevelScores, GameEndpointBucketName.PspGetListOfLevelScores)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfLevelScores)]
     [NullStatusCode(NotFound)]
     public SerializedScoreLeaderboardList? GetLevelFriendLeaderboard(RequestContext context,
         GameUser user,
@@ -91,7 +91,7 @@ public class LeaderboardEndpoints : EndpointGroup
     }
     
     [GameEndpoint("scoreboard/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.UploadLevelScore, GameEndpointBucketName.PspUploadLevelScore)]
+    [EndpointRateLimit(EndpointBucketId.GameUploadLevelScore)]
     [RequireEmailVerified]
     public Response SubmitScore(RequestContext context, GameUser user, GameServerConfig config,
         GameDatabaseContext database, string slotType, int id, SerializedScore body, Token token,
@@ -245,7 +245,7 @@ public class LeaderboardEndpoints : EndpointGroup
     [GameEndpoint("topscores/{slotType}/{id}/{type}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfLevelScores)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfLevelScores)]
     public SerializedScoreList? GetTopScoresForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
         int type, DataContext dataContext, GameUser user, IDateTimeProvider dateTimeProvider)
     {
@@ -262,7 +262,7 @@ public class LeaderboardEndpoints : EndpointGroup
     [GameEndpoint("friendscores/{slotType}/{id}/{type}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfLevelScores)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfLevelScores)]
     public SerializedScoreList? GetFriendTopScoresForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
         int type, DataContext dataContext, GameUser user, IDateTimeProvider dateTimeProvider)
     {

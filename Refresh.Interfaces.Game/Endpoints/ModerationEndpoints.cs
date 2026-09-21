@@ -27,7 +27,7 @@ public class ModerationEndpoints : EndpointGroup
     }
 
     [GameEndpoint("showModerated", HttpMethods.Post, ContentType.Xml)]
-    [EndpointRateLimit(GameEndpointBucketName.FilterModeratedAssets)]
+    [EndpointRateLimit(EndpointBucketId.GameFilterModeratedAssets)]
     public SerializedModeratedResourceList ModerateResources(RequestContext context, SerializedModeratedResourceList body, DataContext dataContext)
     {
         return new SerializedModeratedResourceList
@@ -48,7 +48,7 @@ public class ModerationEndpoints : EndpointGroup
     /// <returns>The string shown in-game.</returns>
     [GameEndpoint("filter", HttpMethods.Post)]
     [AllowEmptyBody]
-    [EndpointRateLimit(GameEndpointBucketName.FilterChatMessage)]
+    [EndpointRateLimit(EndpointBucketId.GameFilterChatMessage)]
     public string Filter(RequestContext context, CommandService commandService, string body, GameUser user, Token token, GameDatabaseContext database)
     {
         // TODO: Add actual filtering/censoring

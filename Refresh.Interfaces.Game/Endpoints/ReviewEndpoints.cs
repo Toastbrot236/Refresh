@@ -22,7 +22,7 @@ public class ReviewEndpoints : EndpointGroup
 {
     [GameEndpoint("dpadrate/{slotType}/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.RateLevel)]
+    [EndpointRateLimit(EndpointBucketId.RateLevel)]
     public Response SubmitLevelDpadRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
         int id, GameServerConfig config, DataContext dataContext)
     {
@@ -51,7 +51,7 @@ public class ReviewEndpoints : EndpointGroup
     [GameEndpoint("rate/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [AllowEmptyBody]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.RateLevel, GameEndpointBucketName.PspRateLevel)]
+    [EndpointRateLimit(EndpointBucketId.RateLevel)]
     public Response SubmitLevelStarRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, 
         DataContext dataContext, GameServerConfig config)
     {
@@ -95,7 +95,7 @@ public class ReviewEndpoints : EndpointGroup
     [GameEndpoint("reviewsFor/{slotType}/{id}", ContentType.Xml)]
     [AllowEmptyBody]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfReviews)]
     public Response GetReviewsForLevel(RequestContext context, GameDatabaseContext database, string slotType, int id,
         DataContext dataContext)
     {
@@ -112,7 +112,7 @@ public class ReviewEndpoints : EndpointGroup
     [GameEndpoint("reviewsBy/{username}", ContentType.Xml)]
     [AllowEmptyBody]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfReviews)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfReviews)]
     public Response GetReviewsByUser(RequestContext context, GameDatabaseContext database, string username,
         DataContext dataContext)
     {
@@ -132,7 +132,7 @@ public class ReviewEndpoints : EndpointGroup
 
     [GameEndpoint("postReview/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadReview)]
+    [EndpointRateLimit(EndpointBucketId.UploadReview)]
     public Response PostReviewForLevel(RequestContext context,
         GameDatabaseContext database,
         string slotType,
@@ -185,7 +185,7 @@ public class ReviewEndpoints : EndpointGroup
     
     [GameEndpoint("rateReview/user/{levelId}/{username}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.RateReview)]
+    [EndpointRateLimit(EndpointBucketId.RateReview)]
     public Response SubmitReviewRating(RequestContext request, GameDatabaseContext database, GameUser user, int levelId,
         string username, GameServerConfig config)
     {

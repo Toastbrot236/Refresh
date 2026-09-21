@@ -27,7 +27,7 @@ public class PhotoEndpoints : EndpointGroup
 {
     [GameEndpoint("uploadPhoto", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UploadPhoto)]
+    [EndpointRateLimit(EndpointBucketId.GameUploadPhoto)]
     public Response UploadPhoto(RequestContext context, SerializedPhoto body, GameDatabaseContext database,
         GameUser user, IDataStore dataStore, AssetImporter importer,
         DataContext dataContext, AipiService? aipi, GameServerConfig config)
@@ -185,20 +185,20 @@ public class PhotoEndpoints : EndpointGroup
     [GameEndpoint("photos/with", ContentType.Xml)]
     [Authentication(false)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfPhotos)]
     public Response PhotosWithUser(RequestContext context, GameDatabaseContext database, DataContext dataContext) 
         => GetPhotos(context, database, dataContext, database.GetPhotosWithUser);
     
     [GameEndpoint("photos/by", ContentType.Xml)]
     [Authentication(false)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfPhotos)]
     public Response PhotosByUser(RequestContext context, GameDatabaseContext database, DataContext dataContext) 
         => GetPhotos(context, database, dataContext, database.GetPhotosByUser);
 
     [GameEndpoint("photos/{slotType}/{levelId}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPhotos)]
+    [EndpointRateLimit(EndpointBucketId.GameGetListOfPhotos)]
     public SerializedPhotoList? GetPhotosOnLevel(RequestContext context, DataContext dataContext, string slotType, int levelId)
     {
         GameLevel? level = dataContext.Database.GetLevelByIdAndType(slotType, levelId);
@@ -225,7 +225,7 @@ public class PhotoEndpoints : EndpointGroup
     [GameEndpoint("photo/{id}", ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetSinglePhoto)]
+    [EndpointRateLimit(EndpointBucketId.GameGetSinglePhoto)]
     public SerializedPhoto? GetPhotoById(RequestContext context, DataContext dataContext, int id)
     {
         GamePhoto? photo = dataContext.Database.GetPhotoById(id);

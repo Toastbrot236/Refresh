@@ -23,7 +23,7 @@ public class MetadataEndpoints : EndpointGroup
 {
     [GameEndpoint("privacySettings", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.SyncUserPrivacySettings)]
+    [EndpointRateLimit(EndpointBucketId.GameSyncUserPrivacySettings)]
     public SerializedPrivacySettings GetPrivacySettings(RequestContext context, GameUser user)
     {
         return new SerializedPrivacySettings
@@ -35,7 +35,7 @@ public class MetadataEndpoints : EndpointGroup
     
     [GameEndpoint("privacySettings", ContentType.Xml, HttpMethods.Post)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.SyncUserPrivacySettings)]
+    [EndpointRateLimit(EndpointBucketId.GameSyncUserPrivacySettings)]
     public SerializedPrivacySettings SetPrivacySettings(RequestContext context, SerializedPrivacySettings body, GameDatabaseContext database, GameUser user)
     {
         database.SetPrivacySettings(user, body);
@@ -44,7 +44,7 @@ public class MetadataEndpoints : EndpointGroup
     }
 
     [GameEndpoint("npdata", ContentType.Xml, HttpMethods.Post)]
-    [EndpointRateLimit(GameEndpointBucketName.UploadFriendData)]
+    [EndpointRateLimit(EndpointBucketId.GameUploadFriendData)]
     public Response SetFriendData(RequestContext context, GameUser user, GameDatabaseContext database, SerializedFriendData body, DataContext dataContext, GameServerConfig config)
     {
         if (user.IsWriteBlocked(config))
@@ -73,7 +73,7 @@ public class MetadataEndpoints : EndpointGroup
     
     [GameEndpoint("network_settings.nws")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string NetworkSettings(RequestContext context, GameServerConfig config)
     {
         string? networkSettings = NetworkSettingsFile.Value;
@@ -121,7 +121,7 @@ public class MetadataEndpoints : EndpointGroup
     [GameEndpoint("telemetry.cfg")]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(Gone)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string? TelemetryConfig(RequestContext context) 
     {
         bool created = TelemetryConfigFile.IsValueCreated;
@@ -147,7 +147,7 @@ public class MetadataEndpoints : EndpointGroup
     [GameEndpoint("promotions")]
     [NullStatusCode(OK)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string? Promotions(RequestContext context) 
     {
         bool created = PromotionsFile.IsValueCreated;
@@ -165,7 +165,7 @@ public class MetadataEndpoints : EndpointGroup
     // TODO apparently this can be used to send a farc and map containing custom pin, dlc pack, and translation data to lbp2/3
     [GameEndpoint("farc_hashes")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public Response FarcHashes(RequestContext context) => Gone;
     
     //TODO: In the future this should allow you to have separate files per language since the game sends the language through the `language` query parameter.
@@ -180,7 +180,7 @@ public class MetadataEndpoints : EndpointGroup
     [GameEndpoint("developer_videos")]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(OK)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string? DeveloperVideos(RequestContext context)
     {
         bool created = DeveloperVideosFile.IsValueCreated;
@@ -219,7 +219,7 @@ public class MetadataEndpoints : EndpointGroup
     
     [GameEndpoint("ChallengeConfig.xml", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string ChallengeConfig(RequestContext context)
     {
         bool created = ChallengeConfigFile.IsValueCreated;
@@ -256,7 +256,7 @@ public class MetadataEndpoints : EndpointGroup
     [GameEndpoint("tags")]
     [GameEndpoint("tags/popular")]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetGameConfig)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
     public string Tags(RequestContext context) => TagExtensions.AllTags;
 
     // Stub this for now. Nothing will happen if this is unimplemented, and we likely won't use any data sent here for now.

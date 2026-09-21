@@ -52,7 +52,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     // Creates a playlist, with an optional parent ID
     [GameEndpoint("createPlaylist", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.CreatePlaylist)]
+    [EndpointRateLimit(EndpointBucketId.CreatePlaylist)]
     public Response CreatePlaylist(RequestContext context, DataContext dataContext, GameServerConfig config, SerializedLbp1Playlist body)
     {
         GameUser user = dataContext.User!;
@@ -125,7 +125,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("playlist/{id}", HttpMethods.Get, ContentType.Xml)]
     [NullStatusCode(NotFound)]
     [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(GameEndpointBucketName.GetPlaylistContents)]
+    [EndpointRateLimit(EndpointBucketId.Lbp1GetPlaylistContents)]
     public SerializedMinimalLevelList? GetPlaylistSlots(RequestContext context, DataContext dataContext, int id)
     {
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
@@ -154,7 +154,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("playlistsContainingSlot/{slotType}/{slotId}", ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     [NullStatusCode(NotFound)]
-    [EndpointRateLimit(GameEndpointBucketName.GetListOfPlaylists)]
+    [EndpointRateLimit(EndpointBucketId.Lbp1GetListOfPlaylists)]
     public SerializedMinimalLevelList? PlaylistsContainingSlot(RequestContext context, DataContext dataContext,
         string slotType, int slotId)
     {
@@ -205,7 +205,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
     [GameEndpoint("setPlaylistMetaData/{id}", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UpdatePlaylistMetadata)]
+    [EndpointRateLimit(EndpointBucketId.UpdatePlaylistMetadata)]
     public Response UpdatePlaylistMetadata(RequestContext context, GameServerConfig config, DataContext dataContext, GameUser user, int id, SerializedLbp1Playlist body)
     {
         if (user.IsWriteBlocked(config))
@@ -235,7 +235,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
     [GameEndpoint("deletePlaylist/{id}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.DeletePlaylist)]
+    [EndpointRateLimit(EndpointBucketId.DeletePlaylist)]
     public Response DeletePlaylist(RequestContext context, GameDatabaseContext database, GameUser user, int id)
     {
         GamePlaylist? playlist = database.GetPlaylistById(id);
@@ -252,7 +252,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
     [GameEndpoint("addToPlaylist/{playlistId}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UpdatePlaylistContents)]
+    [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
     public Response AddSlotToPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user, int playlistId)
     {
         if (user.IsWriteBlocked(config))
@@ -333,7 +333,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
     [GameEndpoint("removeFromPlaylist/{playlistId}", HttpMethods.Post)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UpdatePlaylistContents)]
+    [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
     public Response RemoveSlotFromPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user,
         int playlistId)
     {
@@ -385,7 +385,7 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
     [GameEndpoint("moveFromPlaylist/{from}", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
-    [EndpointRateLimit(GameEndpointBucketName.UpdatePlaylistContents)]
+    [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
     public Response MoveSlotFromPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user, int from)     
     {
         if (user.IsWriteBlocked(config))

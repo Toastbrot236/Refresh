@@ -101,9 +101,13 @@ public enum EndpointBucketId
     #endregion
 
     #region Playlists
-    GameGetListOfPlaylists,
-    GameGetPlaylistContents,
+    Lbp1GetListOfPlaylists,
+    Lbp1GetPlaylistContents,
 
+    // LBP3 doesn't cache playlists or playlist levels, so it'll request these far more often than LBP1.
+    // Also, it will spam the levels endpoint for every playlist from the playlist response for a particular user.
+    // Playlists in general are very messy and buggy in LBP3, they have a property on their playlist response describing its
+    // preview level icons, but they instead spam these level requests to get the icons instead of using the playlist property.
     Lbp3GetListOfPlaylists,
     Lbp3GetPlaylistContents,
 
