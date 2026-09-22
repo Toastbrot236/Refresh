@@ -125,7 +125,7 @@ public partial class GameDatabaseContext // Users
             .Where(u => u.Statistics!.FavouriteCount > 0)
             .OrderByDescending(u => u.Statistics!.FavouriteCount), skip, count);
 
-    public DatabaseList<GameUser> SearchForUsers(int count, int skip, GameUser? user, LevelFilterSettings levelFilterSettings, string query)
+    public DatabaseList<GameUser> SearchForUsers(int count, int skip, string query)
     {
         IQueryable<GameUser> validUsers = this.GameUsersIncluded;
 
