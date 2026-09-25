@@ -67,18 +67,18 @@ public class LevelEndpoints : EndpointGroup
         
         (int skip, int count) = context.GetPageData();
 
-        DatabaseList<GameLevel>? levels = categoryService.LevelCategories
+        DatabaseResultList? results = categoryService.LevelCategories
             .FirstOrDefault(c => c.GameRoutes.Any(r => r.StartsWith(route)))?
-            .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromGameRequest(context, token.TokenGame), user)?
-            .Levels;
+            .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromGameRequest(context, token.TokenGame), user);
 
-        if (levels == null) return null;
+        if (results == null) return null;
         
-        IEnumerable<GameMinimalLevelResponse> slots = levels.Items.ToArray()
-            .Select(l => GameMinimalLevelResponse.FromOld(l, dataContext)!);
+        IEnumerable<GameMinimalLevelResponse> slots = results.Levels?.Items.ToArray()
+            .Select(l => GameMinimalLevelResponse.FromOld(l, dataContext)!) ?? [];
 
         int injectedAmount = 0;
         
+        // TODO remove this mess, return playlists using the related categories
         // Special case the `by` route for LBP1 requests, to inject the user's playlist info
         if (route == "by" && dataContext.Game == TokenGame.LittleBigPlanet1)
         {
@@ -99,8 +99,9 @@ public class LevelEndpoints : EndpointGroup
                 injectedAmount += playlists.TotalItems;
             }
         }   
-
-        return new SerializedMinimalLevelList(slots, levels.TotalItems + injectedAmount, skip + count);
+        
+        IEnumerable<GameUserResponse> users = GameUserResponse.FromOldList(results.Users?.Items ?? [], dataContext);
+        return new SerializedMinimalLevelList(slots, results.TotalItemsMax + injectedAmount, skip + count, users);
     }
 
     [GameEndpoint("slots/{route}/{username}", ContentType.Xml)]
