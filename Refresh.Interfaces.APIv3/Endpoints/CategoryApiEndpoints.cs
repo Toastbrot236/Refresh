@@ -71,12 +71,6 @@ public class CategoryApiEndpoints : EndpointGroup
         
         (int skip, int count) = context.GetPageData();
         
-        LevelFilterSettings filters = LevelFilterSettings.FromApiRequest(context);
-        // We only care about levels here, so avoid user and playlist lookups if this category supports them.
-        filters.DisplayLevels = true;
-        filters.DisplayUsers = false;
-        filters.DisplayPlaylists = false;
-
         DatabaseList<GameLevel>? list = categories.LevelCategories
             .FirstOrDefault(c => c.ApiRoute.StartsWith(route))?
             .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromApiRequest(context), user)?
@@ -137,16 +131,10 @@ public class CategoryApiEndpoints : EndpointGroup
 
         if (!config.PermitShowingOnlineUsers) return ApiNotFoundError.Instance;
         (int skip, int count) = context.GetPageData();
-
-        LevelFilterSettings filters = LevelFilterSettings.FromApiRequest(context);
-        // We only care about users here, so avoid level and playlist lookups if this category supports them.
-        filters.DisplayLevels = false;
-        filters.DisplayUsers = true;
-        filters.DisplayPlaylists = false;
         
         DatabaseList<GameUser>? list = categories.UserCategories
             .FirstOrDefault(c => c.ApiRoute.StartsWith(route))?
-            .Fetch(context, skip, count, dataContext, filters, user)?
+            .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromApiRequest(context), user)?
             .Users;
 
         if (list == null) return ApiNotFoundError.Instance;
