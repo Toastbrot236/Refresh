@@ -13,7 +13,7 @@ namespace Refresh.Core.Types.Categories.Levels;
 // For the API however, we should keep searching for different entity types in separate categories for now.
 // This is due to current limitations in APIv3 spec (level categories may only return levels, user categories only users etc.)
 // I couldn't find a way to have one search category for API without having something very hacky or messy in general,
-// and separate categories should be enough for now. I really don't feel like thinking about this anymore,
+// and separate categories should be enough for now. I really don't feel like bothering with this anymore,
 // so if we really do want one for all types eventually, we should think of it when that time comes.
 // Doing it like this (for now) will keep us from adding new stuff to the spec we might regret later on anyway.
 public class SearchLevelCategory : GameCategory
@@ -36,17 +36,14 @@ public class SearchLevelCategory : GameCategory
                         ?? context.QueryString["textFilter"]; // LBP3 sends this instead of query
         if (query == null) return null;
 
-        // Unlike the dedicated search categories for the other
         DatabaseList<GameLevel>? levels = !levelFilterSettings.DisplayLevels
             ? null
             : dataContext.Database.SearchForLevels(count, skip, dataContext.User, levelFilterSettings, query);
         
-        // The API endpoint methods already override entity type params themselves to avoid DB calls for types
-        // they don't want, so we don't have to do anything special here.
         // TODO Allow specifying custom params in queries, so users could filter entity types in LBP1/2 as well.
         // TODO Also allow users to explicitly tell us to not search in name or description.
         //
-        // Additionally, for some reason, LBP1 shows user results as large instead of small polaroids.
+        // For some reason, LBP1 shows user results as large instead of small polaroids.
         // We should return less users than requested there to not make the polaroids/badges too messy.
         // We also need to modify skip for this so we don't skip over users when paginating.
         int userCount = count;
@@ -57,7 +54,7 @@ public class SearchLevelCategory : GameCategory
             userSkip /= 3;
         }
         
-        DatabaseList<GameUser>? users = !levelFilterSettings.DisplayUsers
+        DatabaseList<GameUser>? users = !levelFilterSettings.DisplayUsers || context.IsApi() // won't be able to return users anyway there
             ? null
             : dataContext.Database.SearchForUsers(userCount, userSkip, query);
         
