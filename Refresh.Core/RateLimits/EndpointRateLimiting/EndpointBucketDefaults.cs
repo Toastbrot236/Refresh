@@ -25,23 +25,24 @@ public static class EndpointBucketDefaults
         {EndpointBucketId.ApiDeleteOwnUser, new(600, 6, 480)},
         #endregion
 
-        #region Categories
-        {EndpointBucketId.ApiGetListOfCategories, new(240, 20, 180)},
-        #endregion
-
         #region Instance
         {EndpointBucketId.ApiGetInstanceInfo, new(240, 30, 180)},
         {EndpointBucketId.ApiGetInstanceStats, new(240, 30, 180)},
         {EndpointBucketId.ApiGetDocumentation, new(240, 30, 180)},
         {EndpointBucketId.ApiGetListOfAnnouncements, new(240, 30, 180)},
         #endregion
+
+        #region Categories
+        {EndpointBucketId.ApiGetListOfCategories, new(240, 20, 180)},
+        #endregion
         
         #region Levels
         {EndpointBucketId.GameGetSingleLevel, new(240, 200, 180)},
 
-        {EndpointBucketId.ApiGetListOfLevels, new(240, 50, 180)},
         {EndpointBucketId.ApiGetSingleLevel, new(240, 50, 180)},
         {EndpointBucketId.ApiGetOwnRelationsToLevel, new(240, 50, 180)},
+        
+        {EndpointBucketId.ApiGetListOfLevels, new(240, 50, 180)},
 
         {EndpointBucketId.ApiEditLevel, new(300, 20, 180)},
 
@@ -50,6 +51,7 @@ public static class EndpointBucketDefaults
         {EndpointBucketId.QueueLevel, new(300, 50, 180)},
         {EndpointBucketId.TagLevel, new(300, 10, 180)},
         {EndpointBucketId.RateLevel, new(300, 20, 180)},
+        {EndpointBucketId.ApiOverrideLevel, new(300, 20, 180)},
         #endregion
 
         #region Level Scores
@@ -91,18 +93,18 @@ public static class EndpointBucketDefaults
 
         {EndpointBucketId.UpdateUser, new(300, 20, 180)},
         {EndpointBucketId.HeartUser, new(300, 30, 180)},
-
         #endregion
 
         #region Assets
-        // Regular download limits are this high on both game and API because both the game and third party API clients
-        // (e.g. archive_dl) are likely to download many of these at times depending on what level they're trying to load
-        // (additionally, adventures can have even more dependencies!)
-        {EndpointBucketId.ApiUploadImage, new(300, 20, 180)},
         {EndpointBucketId.ApiDownloadAsset, new(240, 500, 120)},
         {EndpointBucketId.ApiDownloadImage, new(240, 250, 120)},
 
         {EndpointBucketId.ApiGetAssetMetadata, new(240, 250, 120)},
+        
+        // Regular download limits are this high on both game and API because both the game and third party API clients
+        // (e.g. archive_dl) are likely to download many of these at times depending on what level they're trying to load
+        // (additionally, adventures can have even more dependencies!)
+        {EndpointBucketId.ApiUploadImage, new(300, 20, 180)},
         #endregion
 
         #region Matching
