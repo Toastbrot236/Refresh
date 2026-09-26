@@ -59,24 +59,26 @@ public class AdminCategoryTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         this.PrepareUsers(context);
+        GameUser accessor = context.CreateUser(role: role);
+        using HttpClient client = context.GetAuthenticatedClient(TokenType.Api, accessor);
 
         // Can't discover them
-        HttpResponseMessage message = context.Http.GetAsync("/api/v3/admin/userCategories").Result;
-        Assert.That(message.StatusCode, Is.EqualTo(Forbidden));
+        HttpResponseMessage message = client.GetAsync("/api/v3/admin/userCategories").Result;
+        Assert.That(message.StatusCode, Is.EqualTo(Unauthorized));
 
         // Can't use newest user redirect
-        message = context.Http.GetAsync("/api/v3/admin/users").Result;
-        Assert.That(message.StatusCode, Is.EqualTo(Forbidden));
+        message = client.GetAsync("/api/v3/admin/users").Result;
+        Assert.That(message.StatusCode, Is.EqualTo(Unauthorized));
 
         // Can't use the 2 existing categories
-        message = context.Http.GetAsync("/api/v3/admin/userCategories/newest").Result;
-        Assert.That(message.StatusCode, Is.EqualTo(Forbidden));
-        message = context.Http.GetAsync("/api/v3/admin/userCategories/searchAddress?query=local").Result;
-        Assert.That(message.StatusCode, Is.EqualTo(Forbidden));
+        message = client.GetAsync("/api/v3/admin/userCategories/newest").Result;
+        Assert.That(message.StatusCode, Is.EqualTo(Unauthorized));
+        message = client.GetAsync("/api/v3/admin/userCategories/searchAddress?query=local").Result;
+        Assert.That(message.StatusCode, Is.EqualTo(Unauthorized));
         
         // Can't use non-existent category
-        message = context.Http.GetAsync("/api/v3/admin/userCategories/grinchy").Result;
-        Assert.That(message.StatusCode, Is.EqualTo(Forbidden));
+        message = client.GetAsync("/api/v3/admin/userCategories/grinchy").Result;
+        Assert.That(message.StatusCode, Is.EqualTo(Unauthorized));
     }
     
     [Test]
