@@ -2,6 +2,7 @@ using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.RateLimit;
 using Bunkum.Listener.Protocol;
+using Refresh.Common;
 using Refresh.Core.Authentication.Permission;
 using Refresh.Core.Configuration;
 using Refresh.Core.RateLimits.Levels;
@@ -73,8 +74,8 @@ public class CategoryEndpoints : EndpointGroup
         
         return new SerializedCategoryResultsList
         (
-            GameMinimalLevelResponse.FromOldList(results.Levels?.Items ?? [], dataContext),
-            GameUserResponse.FromOldList(results.Users?.Items ?? [], dataContext),
+            GameMinimalLevelResponse.FromOldList(results.Levels?.Items.ToArray() ?? [], dataContext),
+            GameUserResponse.FromOldList(results.Users?.Items.ToArray() ?? [], dataContext),
             results.TotalItemsMax,
             results.NextPageIndexMax
         );
