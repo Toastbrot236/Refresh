@@ -16,6 +16,15 @@ public class AdminCategoryTests : GameServerTest
         {
             context.CreateUser();
         }
+        
+        // Deleting an extra user sets their email address to null, so we can just easily do that for testing.
+        GameUser noEmailUser = context.CreateUser("nomail");
+        context.Database.DeleteUser(noEmailUser);
+        
+        // Ensure it's null
+        GameUser? noEmailUserCheck = context.Database.GetUserByObjectId(noEmailUser.UserId);
+        Assert.That(noEmailUserCheck, Is.Not.Null);
+        Assert.That(noEmailUserCheck!.EmailAddress, Is.Null);
     }
     
     [Test]
@@ -89,15 +98,16 @@ public class AdminCategoryTests : GameServerTest
         ApiListResponse<ApiExtendedGameUserResponse>? list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/users");
         Assert.That(list?.Data, Is.Not.Null);
         Assert.That(list!.ListInfo, Is.Not.Null);
-        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(11)); // our 10 users + the mod
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(12)); // our 10 users + the mod + deleted user
         Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(list!.Data!.Count));
 
         // Can use the extended newest API category
         list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/newest");
         Assert.That(list?.Data, Is.Not.Null);
         Assert.That(list!.ListInfo, Is.Not.Null);
-        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(11)); // our 10 users + the mod
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(12)); // our 10 users + the mod + deleted user
         Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(list!.Data!.Count));
+        Assert.That(list!.Data.Any(u => u.Username == "nomail"), Is.True);
         
         // Can search users (query correctly affects results)
         list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/searchAddress?query=101");
@@ -110,9 +120,10 @@ public class AdminCategoryTests : GameServerTest
         list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/searchAddress?query=local");
         Assert.That(list?.Data, Is.Not.Null);
         Assert.That(list!.ListInfo, Is.Not.Null);
-        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(11)); // the one user who has 101 in their email
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(11)); // deleted user won't show due to null address
         Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(list!.Data!.Count));
         Assert.That(list!.Data.All(u => u.EmailAddress != null && u.EmailAddress.Contains("local")), Is.True);
+        Assert.That(list!.Data.Any(u => u.Username == "nomail"), Is.False);
         
         // Missing query should fail
         list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/searchAddress", false, true);
