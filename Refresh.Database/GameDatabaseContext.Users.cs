@@ -129,8 +129,7 @@ public partial class GameDatabaseContext // Users
     {
         IQueryable<GameUser> validUsers = this.GameUsersIncluded;
 
-        // Wildcards let us input incomplete addresses as well, like e.g. domains, which makes this useful to begin with,
-        // and is the reason we want to return a list instead of a single user.
+        // Allow inputting incomplete addresses (e.g. domains). This is why we return a list instead of a single user.
         string dbQuery = $"%{query}%";
         List<GameUser> matchingUsers = validUsers.Where(l =>
             // TODO maybe also allow searching users with null email address?
