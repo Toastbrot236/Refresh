@@ -70,7 +70,7 @@ public class AdminUserApiEndpoints : EndpointGroup
     {
         (int skip, int count) = context.GetPageData();
         
-        DatabaseList<GameUser>? list = categories.UserCategories
+        DatabaseList<GameUser>? list = categories.AdminUserCategories
             .FirstOrDefault(c => c.ApiRoute.StartsWith(route))?
             .Fetch(context, skip, count, dataContext, LevelFilterSettings.FromApiRequest(context), user)?
             .Users;
