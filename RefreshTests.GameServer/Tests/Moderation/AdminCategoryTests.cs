@@ -190,4 +190,30 @@ public class AdminCategoryTests : GameServerTest
         HttpResponseMessage message = client.GetAsync($"/lbp/slots/searchAddress?count=67").Result;
         Assert.That(message.StatusCode, Is.EqualTo(NotFound));
     }
+    
+    [Test]
+    [TestCase(true)]
+    [TestCase(false)]
+    public void SearchByAddressWorksRegardlessOfConfig(bool permitShowingOnlineUsers)
+    {
+        using TestContext context = this.GetServer();
+        this.PrepareUsers(context);
+        GameUser accessor = context.CreateUser(role: GameUserRole.Moderator);
+        using HttpClient client = context.GetAuthenticatedClient(TokenType.Api, accessor);
+        
+        context.Server.Value.GameServerConfig.PermitShowingOnlineUsers = permitShowingOnlineUsers;
+
+        // Can receive users even if they are hidden for regular users
+        ApiListResponse<ApiExtendedGameUserResponse>? list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/newest");
+        Assert.That(list?.Data, Is.Not.Null);
+        Assert.That(list!.ListInfo, Is.Not.Null);
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(12));
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(list!.Data!.Count));
+        
+        list = client.GetList<ApiExtendedGameUserResponse>("/api/v3/admin/userCategories/searchAddress?query=local");
+        Assert.That(list?.Data, Is.Not.Null);
+        Assert.That(list!.ListInfo, Is.Not.Null);
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(11));
+        Assert.That(list!.ListInfo!.TotalItems, Is.EqualTo(list!.Data!.Count));
+    }
 }
