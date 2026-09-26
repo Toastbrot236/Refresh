@@ -7,7 +7,7 @@ namespace Refresh.Core.Types.Categories.Users;
 
 public class SearchUserByEmailCategory : GameCategory
 {
-    public SearchUserByEmailCategory() : base("newest", [], true)
+    public SearchUserByEmailCategory() : base("searchAddress", [], true)
     {
         this.Name = "Search by address";
         this.Description = "Search users by (incomplete) email addresses or domains. This category is staff-only.";
