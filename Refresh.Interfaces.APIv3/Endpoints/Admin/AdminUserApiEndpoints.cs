@@ -90,9 +90,6 @@ public class AdminUserApiEndpoints : EndpointGroup
         return this.GetExtendedUsersViaCategory(context, dataContext, categories, user, "newest");
     }
 
-    // TODO these two can also be moved to categories.
-    // Unlike the newest users category, we wouldn't even need to keep redirects for these, since they
-    // haven't been in any stable release yet.
     [ApiV3Endpoint("admin/previousUsernames/byName/{username}"), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Gets all users (with extended information) who have once used the specified username.")]
     [DocUsesPageData]

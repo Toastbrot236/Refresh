@@ -49,7 +49,7 @@ public class CategoryService : EndpointService
     ];
 
     // User Categories which may only be accessed by mods/admins and only via API.
-    // These are the only ones they may use to receive extended user lists.
+    // These are the only ones they should use to receive extended user lists.
     public readonly FrozenSet<GameCategory> AdminUserCategories;
 
     // ReSharper disable once InconsistentNaming

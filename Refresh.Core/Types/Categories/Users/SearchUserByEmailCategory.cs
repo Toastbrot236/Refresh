@@ -39,7 +39,7 @@ public class SearchUserByEmailCategory : GameCategory
         if (!context.IsApi())
         {
             context.Logger.LogWarning(BunkumCategory.LevelCategories, 
-                $"User {user} attempted to search users by email address from non-APIv3 client {dataContext.Game}! " +
+                $"User {user} attempted to search users by email address from non-API client {dataContext.Game}! " +
                 $"We blocked this request, but it shouldn't be possible for them to reach this category to begin with. Please report this.");
             return null;
         }
