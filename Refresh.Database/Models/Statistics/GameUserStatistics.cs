@@ -19,4 +19,9 @@ public class GameUserStatistics
     public int FavouritePlaylistCount { get; set; }
     public int QueueCount { get; set; }
     public int PlaylistCount { get; set; }
+    public int TotalPlayCount { get; set; }
+    public int TotalCompletionCount { get; set; }
+    public int UniquePlayCount { get; set; }
+    public int UniqueCompletionCount { get; set; }
+    public long TotalPlayTimeMinutes { get; set; }
 }

@@ -633,14 +633,30 @@ public partial class GameDatabaseContext // Relations
     public int GetTotalPlaysForLevelByUser(GameLevel level, GameUser user) =>
         this.GetAllPlaysForLevelByUser(level, user).Sum(playLevelRelation => playLevelRelation.Count);
     
+    public int GetTotalPlaysByUser(GameUser user) =>
+        this.PlayLevelRelationsIncluded.Where(r => r.UserId == user.UserId)
+            .Sum(playLevelRelation => playLevelRelation.Count);
+    
     public int GetTotalUniquePlaysForLevel(GameLevel level, bool includingAuthor = true) =>
         this.UniquePlayLevelRelations.Count(r => r.Level == level && (includingAuthor || r.User != level.Publisher));
+    
+    public int GetTotalUniquePlaysByUser(GameUser user) =>
+        this.UniquePlayLevelRelations.Count(r => r.UserId != user.UserId);
 
     public int GetTotalCompletionsForLevel(GameLevel level) =>
         this.GameScores.Count(s => s.Level == level);
     
     public int GetTotalCompletionsForLevelByUser(GameLevel level, GameUser user) =>
         this.GameScores.Count(s => s.LevelId == level.LevelId && s.PublisherId == user.UserId);
+    
+    public int GetTotalCompletionsByUser(GameUser user) =>
+        this.GameScores.Count(s => s.PublisherId == user.UserId);
+    
+    public int GetTotalUniqueCompletionsByUser(GameUser user) =>
+        this.GameScores
+            .Where(s => s.PublisherId == user.UserId)
+            .GroupBy(s => s.LevelId)
+            .Count();
 
     #endregion
 

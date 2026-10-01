@@ -262,7 +262,7 @@ public partial class GameDatabaseContext // Statistics
 
     #region Users
 
-    internal const int UserStatisticsVersion = 2;
+    internal const int UserStatisticsVersion = 3;
     
     public IEnumerable<GameUser> GetUsersWithStatisticsNeedingUpdates()
     {
@@ -353,6 +353,12 @@ public partial class GameDatabaseContext // Statistics
         user.Statistics.FavouriteLevelCount = this.GetTotalLevelsFavouritedByUser(user);
         user.Statistics.FavouritePlaylistCount = this.GetTotalPlaylistsFavouritedByUser(user);
         user.Statistics.PlaylistCount = this.GetTotalPlaylistsByAuthor(user);
+        
+        user.Statistics.TotalPlayCount = this.GetTotalPlaysByUser(user);
+        user.Statistics.UniqueCompletionCount = this.GetTotalUniquePlaysByUser(user);
+        user.Statistics.TotalCompletionCount = this.GetTotalCompletionsByUser(user);
+        user.Statistics.UniqueCompletionCount = this.GetTotalUniqueCompletionsByUser(user);
+        user.Statistics.TotalPlayTimeMinutes = this.GetTotalPlayTimeByUser(user);
 
         user.Statistics.RecalculateAt = null;
         user.Statistics.Version = UserStatisticsVersion;
