@@ -1,4 +1,5 @@
 using Refresh.Common;
+using Refresh.Core.Configuration;
 using Refresh.Database;
 using Refresh.Database.Models.Users;
 using Refresh.Workers;
@@ -11,12 +12,12 @@ namespace Refresh.Interfaces.Workers.Repeating;
 // TODO also set users back as "new" if duration in config is updated to result in user being "new" again
 public class NewUserJob : RepeatingJob
 {
-    private readonly int _requiredAccountAge;
+    private readonly NewAccountPromotionRequirements _requirements;
     protected override int Interval => 60_000 * 5; // 5 minutes, no need to execute too often
     
-    public NewUserJob(int requiredAccountAge)
+    public NewUserJob(NewAccountPromotionRequirements requirements)
     {
-        this._requiredAccountAge = requiredAccountAge;
+        this._requirements = requirements;
     }
 
     public override void ExecuteJob(WorkContext context)
@@ -30,10 +31,18 @@ public class NewUserJob : RepeatingJob
             // consider max to be reached yet, so floor the difference.
             long accountAge = (long)Math.Floor(now.Subtract(user.JoinDate).TotalHours);
             
-            context.Logger.LogDebug(RefreshContext.Worker, $"{nameof(NewUserJob)} - new user: {user}, join date: {user.JoinDate}, current time: {now}, account age: {accountAge}h, configured required age: {this._requiredAccountAge}h.");
-            if (accountAge < this._requiredAccountAge) continue; // Don't promote user if they haven't reached max age yet
+            context.Logger.LogDebug(RefreshContext.Worker, $"{nameof(NewUserJob)} - new user: {user}, join date: {user.JoinDate}, current time: {now}, account age: {accountAge}h.");
+            if (accountAge < this._requirements.AccountAgeHours) continue;
+            if (user.Statistics == null) continue;
             
-            context.Logger.LogInfo(RefreshContext.Worker, $"Promoting {user} to regular user since their account is {accountAge} hours old now (configured required age: {this._requiredAccountAge}h).");
+            if (user.Statistics.TotalPlayCount < this._requirements.TotalLevelPlays) continue;
+            if (user.Statistics.TotalCompletionCount < this._requirements.TotalLevelCompletions) continue;
+            if (user.Statistics.UniquePlayCount < this._requirements.UniqueLevelPlays) continue;
+            if (user.Statistics.UniqueCompletionCount < this._requirements.UniqueLevelCompletions) continue;
+            
+            if (accountAge < this._requirements.ActivePlayTimeHours) continue;
+
+            context.Logger.LogInfo(RefreshContext.Worker, $"Promoting {user} to regular user since their account is {accountAge} hours old now.");
             context.Database.SetUserRole(user, GameUserRole.User);
         }
     }

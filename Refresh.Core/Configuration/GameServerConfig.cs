@@ -123,6 +123,13 @@ public class GameServerConfig : Config
         {
             this.NewUserPermissions = this.NormalUserPermissions;
         }
+        
+        // In version 30, HoursUntilNewAccountNoLongerNew was moved to NewAccountPromotionRequirements.AccountAgeHours
+        // to make room for more requirements.
+        if (oldVer == 29)
+        {
+            this.NewAccountPromotionRequirements.AccountAgeHours = (int)oldConfig.HoursUntilNewAccountNoLongerNew;
+        }
     }
 
     public string LicenseText { get; set; } = "Welcome to Refresh!";
@@ -141,13 +148,9 @@ public class GameServerConfig : Config
     public RolePermissions TrustedUserPermissions = new();
 
     /// <summary>
-    /// The minimum age (time after registration) an account must have before it automatically gets promoted from
-    /// NewUser to User.
-    /// We do this by using NewUserJob to compare the account's age, and if it is old enough, we update their role.
-    /// Currently, the only difference between new users and regular users is that we apply NewUserPermissions
-    /// instead of NormalUserPermissions, which you can freely configure in this config.
+    /// All requirements a new user must meet before they automatically get marked as no longer new.
     /// </summary>
-    public int HoursUntilNewAccountNoLongerNew { get; set; } = 24 * 7; // TODO should we think of a better name?
+    public NewAccountPromotionRequirements NewAccountPromotionRequirements = new();
     
     public bool AllowUsersToUseIpAuthentication { get; set; } = false;
     public bool PermitPsnLogin { get; set; } = true;
