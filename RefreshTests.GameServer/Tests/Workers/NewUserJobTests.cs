@@ -19,7 +19,10 @@ public class NewUserJobTests : GameServerTest
         
         // Prepare
         WorkContext workContext = context.GetWorkContext();
-        NewUserJob job = new(2); // Set required age to 2 hours
+        NewUserJob job = new(new()
+        {
+            AccountAgeHours = 2,
+        }); // Set required age to 2 hours
         
         // Ensure job doesn't promote the user immediately
         job.ExecuteJob(workContext);
