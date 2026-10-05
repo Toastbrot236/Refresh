@@ -34,12 +34,12 @@ public class NewUserJob : RepeatingJob
 
             context.Logger.LogDebug(RefreshContext.Worker, $"{nameof(NewUserJob)} - new user: {user}, current time: {now}, join date: {user.JoinDate}, \n"
                 + $"\tAccount age: {accountAge}h/{this._requirements.AccountAgeHours}h, \n"
-                + $"\tCached statistics: {user.Statistics == null ? "null, stats will show as -1" : "not null, stats will show properly"}, \n"
+                + $"\tCached statistics: {(user.Statistics == null ? "null, stats will show as -1" : "not null, stats will show properly")}, \n"
                 + $"\tTotal play time: {user.Statistics?.TotalPlayTimeMinutes ?? -1}min/{this._requirements.ActivePlayTimeHours * 60}min, \n"
-                + $"\tTotal plays: {user.Statistics?.TotalPlayCount ?? -1}/{this._requirements.TotalLevelPlays}, \n"
-                + $"\tUnique plays: {user.Statistics?.UniquePlayCount ?? -1}/{this._requirements.UniqueLevelPlays * 60}, \n"
-                + $"\tTotal completions: {user.Statistics?.TotalCompletionCount ?? -1}/{this._requirements.TotalLevelCompletions}, \n"
-                + $"\tUnique completions: {user.Statistics?.UniqueCompletionCount ?? -1}/{requiredPlayTimeMins}.");
+                + $"\tTotal plays: {user.Statistics?.TotalLevelPlayCount ?? -1}/{this._requirements.TotalLevelPlays}, \n"
+                + $"\tUnique plays: {user.Statistics?.UniqueLevelPlayCount ?? -1}/{this._requirements.UniqueLevelPlays * 60}, \n"
+                + $"\tTotal completions: {user.Statistics?.TotalLevelCompletionCount ?? -1}/{this._requirements.TotalLevelCompletions}, \n"
+                + $"\tUnique completions: {user.Statistics?.UniqueLevelCompletionCount ?? -1}/{requiredPlayTimeMins}.");
 
             if (accountAge < this._requirements.AccountAgeHours) continue;
             if (user.Statistics == null) continue; // No need to recalculate here, should be recalculated whenever the stats below change.
