@@ -354,10 +354,10 @@ public partial class GameDatabaseContext // Statistics
         user.Statistics.FavouritePlaylistCount = this.GetTotalPlaylistsFavouritedByUser(user);
         user.Statistics.PlaylistCount = this.GetTotalPlaylistsByAuthor(user);
         
-        user.Statistics.TotalPlayCount = this.GetTotalPlaysByUser(user);
-        user.Statistics.UniqueCompletionCount = this.GetTotalUniquePlaysByUser(user);
-        user.Statistics.TotalCompletionCount = this.GetTotalCompletionsByUser(user);
-        user.Statistics.UniqueCompletionCount = this.GetTotalUniqueCompletionsByUser(user);
+        user.Statistics.TotalLevelPlayCount = this.GetTotalPlaysByUser(user);
+        user.Statistics.UniqueLevelPlayCount = this.GetTotalUniquePlaysByUser(user);
+        user.Statistics.TotalLevelCompletionCount = this.GetTotalCompletionsByUser(user);
+        user.Statistics.UniqueLevelCompletionCount = this.GetTotalUniqueCompletionsByUser(user);
         user.Statistics.TotalPlayTimeMinutes = this.GetTotalPlayTimeByUser(user);
 
         user.Statistics.RecalculateAt = null;

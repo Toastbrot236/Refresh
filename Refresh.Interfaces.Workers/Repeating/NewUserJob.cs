@@ -45,10 +45,10 @@ public class NewUserJob : RepeatingJob
             if (user.Statistics == null) continue; // No need to recalculate here, should be recalculated whenever the stats below change.
 
             if (user.Statistics.TotalPlayTimeMinutes < requiredPlayTimeMins) continue;
-            if (user.Statistics.TotalPlayCount < this._requirements.TotalLevelPlays) continue;
-            if (user.Statistics.TotalCompletionCount < this._requirements.TotalLevelCompletions) continue;
-            if (user.Statistics.UniquePlayCount < this._requirements.UniqueLevelPlays) continue;
-            if (user.Statistics.UniqueCompletionCount < this._requirements.UniqueLevelCompletions) continue;
+            if (user.Statistics.TotalLevelPlayCount < this._requirements.TotalLevelPlays) continue;
+            if (user.Statistics.TotalLevelCompletionCount < this._requirements.TotalLevelCompletions) continue;
+            if (user.Statistics.UniqueLevelPlayCount < this._requirements.UniqueLevelPlays) continue;
+            if (user.Statistics.UniqueLevelCompletionCount < this._requirements.UniqueLevelCompletions) continue;
 
             context.Logger.LogInfo(RefreshContext.Worker, $"Promoting {user} to regular user since their account meets all requirements now.");
             context.Database.SetUserRole(user, GameUserRole.User);
