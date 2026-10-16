@@ -1,3 +1,4 @@
+using Refresh.Core.Configuration;
 using Refresh.Database.Models.Assets;
 using RefreshTests.GameServer.GameServer.Configuration;
 
@@ -24,32 +25,33 @@ public class GameServerConfigTests : GameServerTest
             UserFilesizeQuota = 141,
         };
 
-        config.TestMigration();
+        RolePermConfig rolePermConfig = new();
+        config.TestMigration(rolePermConfig);
 
-        // new is now the same as normal
-        Assert.That(config.NewUserPermissions.ReadOnlyMode, Is.True);
-        Assert.That(config.NormalUserPermissions.ReadOnlyMode, Is.True);
-        Assert.That(config.TrustedUserPermissions.ReadOnlyMode, Is.False);
+        // new is now the same as normal, and all config values were moved to RolePermConfig
+        Assert.That(rolePermConfig.NewUserPermissions.ReadOnlyMode, Is.True);
+        Assert.That(rolePermConfig.NormalUserPermissions.ReadOnlyMode, Is.True);
+        Assert.That(rolePermConfig.TrustedUserPermissions.ReadOnlyMode, Is.False);
 
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
 
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(67));
 
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(2));
 
-        Assert.That(config.NewUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Media));
-        Assert.That(config.NormalUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Media));
-        Assert.That(config.TrustedUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Modded));
+        Assert.That(rolePermConfig.NewUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Media));
+        Assert.That(rolePermConfig.NormalUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Media));
+        Assert.That(rolePermConfig.TrustedUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Modded));
 
-        Assert.That(config.NewUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
-        Assert.That(config.NormalUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
-        Assert.That(config.TrustedUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
+        Assert.That(rolePermConfig.NewUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
+        Assert.That(rolePermConfig.NormalUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
+        Assert.That(rolePermConfig.TrustedUserPermissions.UserFilesizeQuota, Is.EqualTo(141));
     }
 
     [Test]
@@ -78,20 +80,21 @@ public class GameServerConfigTests : GameServerTest
             },
         };
 
-        config.TestMigration();
+        RolePermConfig rolePermConfig = new();
+        config.TestMigration(rolePermConfig);
 
-        // Same as normal
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(1234567));
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(852094));
+        // Same as normal, and all config values were moved to RolePermConfig
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(1234567));
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(852094));
 
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(1234567));
-        Assert.That(config.NormalUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(852094));
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(1234567));
+        Assert.That(rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(852094));
 
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.Enabled, Is.False);
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(230));
-        Assert.That(config.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(7122036));
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.Enabled, Is.False);
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(230));
+        Assert.That(rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(7122036));
     }
 
     [Test]
@@ -104,11 +107,13 @@ public class GameServerConfigTests : GameServerTest
             MaximumAssetSafetyLevelForTrustedUsers = 2,
         };
 
-        config.TestMigration();
+        RolePermConfig rolePermConfig = new();
+        config.TestMigration(rolePermConfig);
 
-        Assert.That(config.NewUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Modded)); // same as normal
-        Assert.That(config.NormalUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Modded));
-        Assert.That(config.TrustedUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous));
+        // All (migrated) config values were all moved to RolePermConfig
+        Assert.That(rolePermConfig.NewUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Modded)); // same as normal
+        Assert.That(rolePermConfig.NormalUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous | AssetFlags.Modded));
+        Assert.That(rolePermConfig.TrustedUserPermissions.BlockedAssetFlags.ToAssetFlags(), Is.EqualTo(AssetFlags.Dangerous));
     }
 
     [Test]
@@ -129,15 +134,18 @@ public class GameServerConfigTests : GameServerTest
                 ReadOnlyMode = true,
             },
         };
-        config.TestMigration();
+        RolePermConfig rolePermConfig = new();
+        config.TestMigration(rolePermConfig);
         
-        // Ensure it's exactly the same as normal user now
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(22222));
-        Assert.That(config.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(4));
-        Assert.That(config.NewUserPermissions.BlockedAssetFlags.Dangerous, Is.True);
-        Assert.That(config.NewUserPermissions.BlockedAssetFlags.Modded, Is.True);
-        Assert.That(config.NewUserPermissions.BlockedAssetFlags.Media, Is.False);
-        Assert.That(config.NewUserPermissions.ReadOnlyMode, Is.True);
+        // Ensure it's exactly the same as normal user now, and all config values were moved to RolePermConfig
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.Enabled, Is.True);
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.TimeSpanHours, Is.EqualTo(22222));
+        Assert.That(rolePermConfig.NewUserPermissions.LevelUploadRateLimit.UploadQuota, Is.EqualTo(4));
+
+        Assert.That(rolePermConfig.NewUserPermissions.BlockedAssetFlags.Dangerous, Is.True);
+        Assert.That(rolePermConfig.NewUserPermissions.BlockedAssetFlags.Modded, Is.True);
+        Assert.That(rolePermConfig.NewUserPermissions.BlockedAssetFlags.Media, Is.False);
+
+        Assert.That(rolePermConfig.NewUserPermissions.ReadOnlyMode, Is.True);
     }
 }

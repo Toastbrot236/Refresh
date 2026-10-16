@@ -5,9 +5,13 @@ namespace RefreshTests.GameServer.GameServer.Configuration;
 
 public class TestGameServerConfig : GameServerConfig
 {
-    public void TestMigration()
+    public void TestMigration(RolePermConfig? rolePermConfig = null)
     {
         this.Migrate(this.Version, this);
+        if (rolePermConfig != null)
+        {
+            this.MigrateUsingOtherConfigs(this.Version, this, [rolePermConfig]);
+        }
     }
 
     // Various attributes to migrate from
@@ -25,4 +29,8 @@ public class TestGameServerConfig : GameServerConfig
     public int MaximumAssetSafetyLevel { get; set; } = 0;
     public int MaximumAssetSafetyLevelForTrustedUsers { get; set; } = 0;
     public int UserFilesizeQuota { get; set; } = 141;
+
+    public RolePermissions NewUserPermissions = new();
+    public RolePermissions NormalUserPermissions = new();
+    public RolePermissions TrustedUserPermissions = new();
 }
