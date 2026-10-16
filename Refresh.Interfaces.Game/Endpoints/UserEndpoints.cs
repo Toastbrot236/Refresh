@@ -209,9 +209,9 @@ public class UserEndpoints : EndpointGroup
     [RequireEmailVerified]
     [NullStatusCode(BadRequest)]
     [EndpointRateLimit(EndpointBucketId.GameSyncPinProgress)]
-    public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body, GameServerConfig config)
+    public SerializedPins? UpdatePins(RequestContext context, DataContext dataContext, GameUser user, SerializedPins body, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return null;
 
         // Try to convert pin progress

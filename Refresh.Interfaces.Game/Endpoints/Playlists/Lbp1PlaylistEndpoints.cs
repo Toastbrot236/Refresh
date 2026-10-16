@@ -53,18 +53,18 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("createPlaylist", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.CreatePlaylist)]
-    public Response CreatePlaylist(RequestContext context, DataContext dataContext, GameServerConfig config, SerializedLbp1Playlist body)
+    public Response CreatePlaylist(RequestContext context, DataContext dataContext, RolePermConfig rolePermConfig, SerializedLbp1Playlist body)
     {
         GameUser user = dataContext.User!;
         
         GamePlaylist? parent = null;
         GamePlaylist? rootPlaylist = dataContext.Database.GetUserRootPlaylist(user);
-        EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(config).PlaylistUploadRateLimit;
+        EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(rolePermConfig).PlaylistUploadRateLimit;
 
         // Don't block root playlist creation, as the game will otherwise spam requests and softlock
         if (rootPlaylist != null)
         {
-            if (user.IsWriteBlocked(config)) return Unauthorized;
+            if (user.IsWriteBlocked(rolePermConfig)) return Unauthorized;
 
             if (uploadLimit.Enabled)
             {
@@ -206,9 +206,9 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("setPlaylistMetaData/{id}", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UpdatePlaylistMetadata)]
-    public Response UpdatePlaylistMetadata(RequestContext context, GameServerConfig config, DataContext dataContext, GameUser user, int id, SerializedLbp1Playlist body)
+    public Response UpdatePlaylistMetadata(RequestContext context, RolePermConfig rolePermConfig, DataContext dataContext, GameUser user, int id, SerializedLbp1Playlist body)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
@@ -253,9 +253,9 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("addToPlaylist/{playlistId}", HttpMethods.Post)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
-    public Response AddSlotToPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user, int playlistId)
+    public Response AddSlotToPlaylist(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, GameUser user, int playlistId)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         string? slotType = context.QueryString["slot_type"];
@@ -334,10 +334,10 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("removeFromPlaylist/{playlistId}", HttpMethods.Post)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
-    public Response RemoveSlotFromPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user,
+    public Response RemoveSlotFromPlaylist(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, GameUser user,
         int playlistId)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         string? slotType = context.QueryString["slot_type"];
@@ -386,9 +386,9 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     [GameEndpoint("moveFromPlaylist/{from}", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UpdatePlaylistContents)]
-    public Response MoveSlotFromPlaylist(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser user, int from)     
+    public Response MoveSlotFromPlaylist(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, GameUser user, int from)     
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
 
         if (!int.TryParse(context.QueryString["to"], out int to))
@@ -396,10 +396,10 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
 
         Response ret;
         
-        if ((ret = this.RemoveSlotFromPlaylist(context, config, database, user, from)).StatusCode != OK)
+        if ((ret = this.RemoveSlotFromPlaylist(context, rolePermConfig, database, user, from)).StatusCode != OK)
             return ret;
         
-        if ((ret = this.AddSlotToPlaylist(context, config, database, user, to)).StatusCode != OK)
+        if ((ret = this.AddSlotToPlaylist(context, rolePermConfig, database, user, to)).StatusCode != OK)
             return ret;
 
         return OK;

@@ -97,9 +97,9 @@ public class ReviewApiEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.UploadReview)]
     public ApiResponse<ApiGameReviewResponse> PostReviewToLevel(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
-        [DocSummary("The ID of the level")] int id, ApiSubmitReviewRequest body, DataContext dataContext, GameServerConfig config)
+        [DocSummary("The ID of the level")] int id, ApiSubmitReviewRequest body, DataContext dataContext, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameLevel? level = database.GetLevelById(id);
@@ -144,9 +144,9 @@ public class ReviewApiEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.UploadReview)] // technically the same, like in-game
     public ApiResponse<ApiGameReviewResponse> UpdateReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
-        [DocSummary("The ID of the review")] int id, ApiSubmitReviewRequest body, DataContext dataContext, GameServerConfig config)
+        [DocSummary("The ID of the review")] int id, ApiSubmitReviewRequest body, DataContext dataContext, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameReview? review = database.GetReviewById(id);
@@ -208,9 +208,9 @@ public class ReviewApiEndpoints : EndpointGroup
     public ApiOkResponse RateReviewById(RequestContext context,
         GameDatabaseContext database, IDataStore dataStore, GameUser user,
         [DocSummary("The ID of the review")] int id, DataContext dataContext,
-        [DocSummary("The user's new rating. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, GameServerConfig config)
+        [DocSummary("The user's new rating. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameReview? review = database.GetReviewById(id);

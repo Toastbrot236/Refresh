@@ -19,7 +19,7 @@ public class RoleService : Service
     private readonly GameAuthenticationService _authService;
     private readonly GameServerConfig _config;
     
-    internal RoleService(GameAuthenticationService authService, GameServerConfig config, Logger logger) : base(logger)
+    internal RoleService(GameAuthenticationService authService, RolePermConfig rolePermConfig, Logger logger) : base(logger)
     {
         this._authService = authService;
         this._config = config;

@@ -45,9 +45,9 @@ public class MetadataEndpoints : EndpointGroup
 
     [GameEndpoint("npdata", ContentType.Xml, HttpMethods.Post)]
     [EndpointRateLimit(EndpointBucketId.GameUploadFriendData)]
-    public Response SetFriendData(RequestContext context, GameUser user, GameDatabaseContext database, SerializedFriendData body, DataContext dataContext, GameServerConfig config)
+    public Response SetFriendData(RequestContext context, GameUser user, GameDatabaseContext database, SerializedFriendData body, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return OK; // else the game will send a new request for this every minute
 
         IEnumerable<GameUser> friends = body.FriendsList.Names

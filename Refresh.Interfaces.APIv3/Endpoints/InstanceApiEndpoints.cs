@@ -53,6 +53,7 @@ public class InstanceApiEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.ApiGetInstanceInfo)]
     public ApiResponse<ApiInstanceResponse> GetInstanceInformation(RequestContext context,
         GameServerConfig gameConfig,
+         RolePermConfig rolePermConfig,
         RichPresenceConfig richConfig,
         IntegrationConfig integrationConfig,
         ContactInfoConfig contactInfoConfig,
@@ -68,8 +69,8 @@ public class InstanceApiEndpoints : EndpointGroup
             SoftwareSourceUrl = "https://github.com/LittleBigRefresh/Refresh",
             SoftwareLicenseName = "AGPL-3.0",
             SoftwareLicenseUrl = "https://www.gnu.org/licenses/agpl-3.0.txt",
-            BlockedAssetFlags = gameConfig.NormalUserPermissions.BlockedAssetFlags,
-            BlockedAssetFlagsForTrustedUsers = gameConfig.TrustedUserPermissions.BlockedAssetFlags,
+            BlockedAssetFlags = rolePermConfig.NormalUserPermissions.BlockedAssetFlags,
+            BlockedAssetFlagsForTrustedUsers = rolePermConfig.TrustedUserPermissions.BlockedAssetFlags,
             Announcements = ApiGameAnnouncementResponse.FromOldList(database.GetAnnouncements(), dataContext),
             MaintenanceModeEnabled = gameConfig.MaintenanceMode,
             RichPresenceConfiguration = ApiRichPresenceConfigurationResponse.FromOld(RichPresenceConfiguration.Create(
@@ -81,8 +82,8 @@ public class InstanceApiEndpoints : EndpointGroup
             IsPresenceServerEnabled = integrationConfig.PresenceEnabled,
             ServerStatusUrl = integrationConfig.ServerStatusUrl,
 
-            NormalUserPermissions = ApiRolePermissionsResponse.FromOld(gameConfig.NormalUserPermissions),
-            TrustedUserPermissions = ApiRolePermissionsResponse.FromOld(gameConfig.TrustedUserPermissions),
+            NormalUserPermissions = ApiRolePermissionsResponse.FromOld(rolePermConfig.NormalUserPermissions),
+            TrustedUserPermissions = ApiRolePermissionsResponse.FromOld(rolePermConfig.TrustedUserPermissions),
             
             ContactInfo = new ApiContactInfoResponse
             {

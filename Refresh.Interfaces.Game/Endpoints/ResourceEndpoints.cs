@@ -32,10 +32,10 @@ public class ResourceEndpoints : EndpointGroup
     [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
     [EndpointRateLimit(EndpointBucketId.GameUploadAsset)]
     public Response UploadAsset(RequestContext context, string hash, string? type, byte[] body, IDataStore dataStore,
-        GameDatabaseContext database, GameUser user, AssetImporter importer, GameServerConfig config, IDateTimeProvider timeProvider, Token token,
+        GameDatabaseContext database, GameUser user, AssetImporter importer, RolePermConfig rolePermConfig, IDateTimeProvider timeProvider, Token token,
         DataContext dataContext)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return BadRequest;
@@ -48,7 +48,7 @@ public class ResourceEndpoints : EndpointGroup
         if (dataStore.ExistsInStore(assetPath))
             return Conflict;
         
-        RolePermissions rolePerms = user.GetRolePermissionsForUser(config);
+        RolePermissions rolePerms = user.GetRolePermissionsForUser(rolePermConfig);
         
         if (body.Length + user.FilesizeQuotaUsage > rolePerms.UserFilesizeQuota)
         {

@@ -179,18 +179,18 @@ public class PublishEndpoints : EndpointGroup
     public Response StartPublish(RequestContext context,
         GameLevelRequest body,
         DataContext dataContext,
-        GameServerConfig config,
+        RolePermConfig rolePermConfig,
         AssetImporter importer,
         AipiService? aipi,
         GameUser user)
     {
-        if (dataContext.User!.IsWriteBlocked(config))
+        if (dataContext.User!.IsWriteBlocked(rolePermConfig))
         {
             dataContext.Database.AddPublishFailNotification($"The server is in read-only mode.", body.Title, dataContext.User!);
             return Unauthorized;
         }
         
-        if (IsTimedLevelLimitReached(dataContext, dataContext.User!, body.Title, user.GetRolePermissionsForUser(config).LevelUploadRateLimit)) 
+        if (IsTimedLevelLimitReached(dataContext, dataContext.User!, body.Title, user.GetRolePermissionsForUser(rolePermConfig).LevelUploadRateLimit)) 
             return Unauthorized;
 
         HttpStatusCode validationResult = VerifyLevel(body, dataContext, importer, aipi, false);
@@ -230,12 +230,12 @@ public class PublishEndpoints : EndpointGroup
         GameUser user,
         AssetImporter importer,
         AipiService? aipi,
-        GameServerConfig config)
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
-        EntityUploadRateLimitProperties timedLevelLimit = user.GetRolePermissionsForUser(config).LevelUploadRateLimit;
+        EntityUploadRateLimitProperties timedLevelLimit = user.GetRolePermissionsForUser(rolePermConfig).LevelUploadRateLimit;
         if (IsTimedLevelLimitReached(dataContext, user, body.Title, timedLevelLimit))
             return Unauthorized;
 

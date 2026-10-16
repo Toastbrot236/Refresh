@@ -30,7 +30,7 @@ public class ActivityEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.GameGetActivityPage)]
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
-    public SerializedActivityPage? GetRecentActivity(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser? user,
+    public SerializedActivityPage? GetRecentActivity(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, GameUser? user,
         DataContext dataContext)
     {
         if (!config.PermitShowingOnlineUsers)
@@ -67,7 +67,7 @@ public class ActivityEndpoints : EndpointGroup
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameGetActivityPage)]
-    public Response GetRecentActivityForLevel(RequestContext context, GameServerConfig config, GameDatabaseContext database, GameUser? user,
+    public Response GetRecentActivityForLevel(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, GameUser? user,
         string type, int id, DataContext dataContext)
     {
         if (!config.PermitShowingOnlineUsers)
@@ -115,7 +115,7 @@ public class ActivityEndpoints : EndpointGroup
     [NullStatusCode(BadRequest)]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameGetActivityPage)]
-    public Response GetRecentActivityFromUser(RequestContext context, GameServerConfig config, GameDatabaseContext database, string username,
+    public Response GetRecentActivityFromUser(RequestContext context, RolePermConfig rolePermConfig, GameDatabaseContext database, string username,
         DataContext dataContext)
     {
         if (!config.PermitShowingOnlineUsers)

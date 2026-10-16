@@ -30,12 +30,12 @@ public class PhotoEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.GameUploadPhoto)]
     public Response UploadPhoto(RequestContext context, SerializedPhoto body, GameDatabaseContext database,
         GameUser user, IDataStore dataStore, AssetImporter importer,
-        DataContext dataContext, AipiService? aipi, GameServerConfig config)
+        DataContext dataContext, AipiService? aipi, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
-        EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(config).PhotoUploadRateLimit;
+        EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(rolePermConfig).PhotoUploadRateLimit;
         if (uploadLimit.Enabled)
         {
             TimeSpan? rateLimitExpiresIn = database.GetRemainingTimeIfUploadRateLimitReached(user, GameDatabaseEntity.Photo, uploadLimit.UploadQuota);

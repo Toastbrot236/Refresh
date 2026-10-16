@@ -298,7 +298,7 @@ public class AuthenticationEndpoints : EndpointGroup
         return false;
     }
 
-    private static void SendVerificationFailureNotification(GameDatabaseContext database, GameUser user, GameServerConfig config)
+    private static void SendVerificationFailureNotification(GameDatabaseContext database, GameUser user, RolePermConfig rolePermConfig)
     {
         const string failHeader = "The ticket could not be verified.";
         string failReason = failHeader + '\n';

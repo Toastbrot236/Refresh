@@ -23,9 +23,10 @@ public class CommentEndpoints : EndpointGroup
     [GameEndpoint("postUserComment/{username}", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UploadComment)]
-    public Response PostProfileComment(RequestContext context, GameDatabaseContext database, string username, SerializedComment body, GameUser user, IDateTimeProvider timeProvider, GameServerConfig config)
+    public Response PostProfileComment(RequestContext context, GameDatabaseContext database, string username, SerializedComment body, GameUser user,
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         GameUser? profile = database.GetUserByUsername(username);
@@ -90,9 +91,9 @@ public class CommentEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.UploadComment)]
     public Response PostLevelComment(RequestContext context, GameDatabaseContext database, string slotType, int id,
-        SerializedComment body, GameUser user, GameServerConfig config)
+        SerializedComment body, GameUser user, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
 
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -155,9 +156,9 @@ public class CommentEndpoints : EndpointGroup
     
     [GameEndpoint("rateUserComment/{content}", HttpMethods.Post)] // profile comments
     [EndpointRateLimit(EndpointBucketId.RateComment)]
-    public Response RateProfileComment(RequestContext context, GameDatabaseContext database, GameUser user, string content, GameServerConfig config)
+    public Response RateProfileComment(RequestContext context, GameDatabaseContext database, GameUser user, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return Unauthorized;
 
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;
@@ -173,9 +174,9 @@ public class CommentEndpoints : EndpointGroup
     
     [GameEndpoint("rateComment/{slotType}/{content}", HttpMethods.Post)]
     [EndpointRateLimit(EndpointBucketId.RateComment)]
-    public Response RateLevelComment(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, string content, GameServerConfig config)
+    public Response RateLevelComment(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return Unauthorized;
 
         if (!int.TryParse(context.QueryString["commentId"], out int commentId)) return BadRequest;

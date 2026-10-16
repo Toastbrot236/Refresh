@@ -93,14 +93,14 @@ public class LeaderboardEndpoints : EndpointGroup
     [GameEndpoint("scoreboard/{slotType}/{id}", ContentType.Xml, HttpMethods.Post)]
     [EndpointRateLimit(EndpointBucketId.GameUploadLevelScore)]
     [RequireEmailVerified]
-    public Response SubmitScore(RequestContext context, GameUser user, GameServerConfig config,
+    public Response SubmitScore(RequestContext context, GameUser user, RolePermConfig rolePermConfig,
         GameDatabaseContext database, string slotType, int id, SerializedScore body, Token token,
         DataContext dataContext)
     {
         // Try to not return any non-OK responses for LBP PSP here, since that apparently bugs the game
         bool isPSP = context.IsPSP();
 
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return isPSP ? OK : Unauthorized;
         
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);

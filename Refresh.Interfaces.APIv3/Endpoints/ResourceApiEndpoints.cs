@@ -154,7 +154,7 @@ public class ResourceApiEndpoints : EndpointGroup
     [DocError(typeof(ApiValidationError), ApiValidationError.BodyMustBeImageErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.ApiUploadImage)]
     public ApiResponse<ApiGameAssetResponse> UploadImageAsset(RequestContext context, GameDatabaseContext database,
-        IDataStore dataStore, AssetImporter importer, GameServerConfig config,
+        IDataStore dataStore, AssetImporter importer, RolePermConfig rolePermConfig,
         [DocSummary("The SHA1 hash of the asset")]
         string hash,
         byte[] body, GameUser user, DataContext dataContext,
@@ -165,7 +165,7 @@ public class ResourceApiEndpoints : EndpointGroup
     {
         // If we're blocking asset uploads, throw unless the user is an admin.
         // We also have the ability to block asset uploads for trusted users (when they would normally bypass this)
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return ApiValidationError.HashInvalidError;
@@ -184,7 +184,7 @@ public class ResourceApiEndpoints : EndpointGroup
             return new ApiValidationError($"The asset must be under 2MB. Your file was {body.Length:N0} bytes.");
         }
 
-        RolePermissions rolePerms = user.GetRolePermissionsForUser(config);
+        RolePermissions rolePerms = user.GetRolePermissionsForUser(rolePermConfig);
         if (body.Length + user.FilesizeQuotaUsage > rolePerms.UserFilesizeQuota)
         {
             context.Logger.LogWarning(BunkumCategory.UserContent, "User {0} has hit the filesize quota ({1} bytes), rejecting.", user.Username, rolePerms.UserFilesizeQuota);

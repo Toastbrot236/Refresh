@@ -5,7 +5,7 @@ namespace Refresh.Core.Extensions;
 
 public static class GameUserExtensions
 {
-    public static bool IsWriteBlocked(this GameUser user, GameServerConfig config)
+    public static bool IsWriteBlocked(this GameUser user, RolePermConfig config)
     {
         // Admins may always bypass this
         if (user.Role == GameUserRole.Admin) return false;
@@ -30,7 +30,7 @@ public static class GameUserExtensions
         return true;
     }
 
-    public static RolePermissions GetRolePermissionsForUser(this GameUser user, GameServerConfig config)
+    public static RolePermissions GetRolePermissionsForUser(this GameUser user, RolePermConfig config)
     {
         return user.Role switch
         {

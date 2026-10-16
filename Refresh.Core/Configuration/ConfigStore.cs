@@ -7,6 +7,7 @@ namespace Refresh.Core.Configuration;
 public class ConfigStore
 {
     public GameServerConfig GameServer { get; }
+    public RolePermConfig RolePermissions { get; }
     public DatabaseConfig Database { get; }
     
     public ContactInfoConfig ContactInfo { get; }
@@ -21,7 +22,10 @@ public class ConfigStore
     {
         lock (ConfigLock)
         {
-            this.GameServer = Config.LoadFromJsonFile<GameServerConfig>("refreshGameServer.json", logger);
+            this.RolePermissions = Config.LoadFromJsonFile<RolePermConfig>("rolePermissions.json", logger);
+
+            // main config is loaded after role perms so we could migrate role perms from this one if necessary
+            this.GameServer = Config.LoadFromJsonFile<GameServerConfig>("refreshGameServer.json", logger, [this.RolePermissions]);
             this.Database = Config.LoadFromJsonFile<DatabaseConfig>("db.json", logger);
         
             this.ContactInfo = Config.LoadFromJsonFile<ContactInfoConfig>("contactInfo.json", logger);
@@ -36,6 +40,7 @@ public class ConfigStore
     public ConfigStore()
     {
         this.GameServer = new GameServerConfig();
+        this.RolePermissions = new RolePermConfig();
         this.Database = new DatabaseConfig();
 
         this.ContactInfo = new ContactInfoConfig();
@@ -49,6 +54,7 @@ public class ConfigStore
     public void AddToBunkum(BunkumServer server)
     {
         server.AddConfig(this.GameServer);
+        server.AddConfig(this.RolePermissions);
         server.AddConfig(this.Database);
         server.AddConfig(this.ContactInfo);
         server.AddConfig(this.Integration);

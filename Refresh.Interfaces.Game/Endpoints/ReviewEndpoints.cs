@@ -24,9 +24,9 @@ public class ReviewEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.RateLevel)]
     public Response SubmitLevelDpadRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
-        int id, GameServerConfig config, DataContext dataContext)
+        int id, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
 
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -53,9 +53,9 @@ public class ReviewEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.RateLevel)]
     public Response SubmitLevelStarRating(RequestContext context, GameDatabaseContext database, GameUser user, string slotType, int id, 
-        DataContext dataContext, GameServerConfig config)
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return Unauthorized;
 
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -139,11 +139,10 @@ public class ReviewEndpoints : EndpointGroup
         int id,
         SerializedGameReview body,
         GameUser user,
-        IDateTimeProvider timeProvider,
-        GameServerConfig config,
+        RolePermConfig rolePermConfig,
         DataContext dataContext)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
 
@@ -187,9 +186,9 @@ public class ReviewEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.RateReview)]
     public Response SubmitReviewRating(RequestContext request, GameDatabaseContext database, GameUser user, int levelId,
-        string username, GameServerConfig config)
+        string username, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         GameUser? reviewer = database.GetUserByUsername(username);

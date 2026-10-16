@@ -21,9 +21,9 @@ public class RelationEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.HeartLevel)]
     public Response FavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user, string slotType,
-        int id, GameServerConfig config, DataContext dataContext)
+        int id, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
         
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -39,9 +39,9 @@ public class RelationEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.HeartLevel)]
     public Response UnfavouriteLevel(RequestContext context, GameDatabaseContext database, GameUser user,
-        string slotType, int id, GameServerConfig config, DataContext dataContext)
+        string slotType, int id, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
 
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
@@ -57,9 +57,9 @@ public class RelationEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.HeartUser)]
     public Response FavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user, string username,
-        GameServerConfig config, DataContext dataContext)
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
         
         GameUser? userToFavourite = database.GetUserByUsername(username);
@@ -75,9 +75,9 @@ public class RelationEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.HeartUser)]
     public Response UnfavouriteUser(RequestContext context, GameDatabaseContext database, GameUser user,
-        string username, GameServerConfig config, DataContext dataContext)
+        string username, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
         
         GameUser? userToFavourite = database.GetUserByUsername(username);
@@ -142,9 +142,9 @@ public class RelationEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.TagLevel)]
     public Response SubmitTagsForLevel(RequestContext context, GameDatabaseContext database, GameUser user, DataContext dataContext,
-        string slotType, int id, string body, GameServerConfig config)
+        string slotType, int id, string body, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);

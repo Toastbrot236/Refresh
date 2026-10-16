@@ -13,141 +13,143 @@ public class GameServerConfig : Config
     
     protected override void Migrate(int oldVer, dynamic oldConfig)
     {
-        // In version 27, various (mostly already role-specific) perms, like blocked assets and read-only mode, were moved to dedicated child objects,
-        // to more cleanly split the perms between certain roles, and to make their enforcement easier.
-        if (oldVer < 27)
+        
+    }
+
+    protected override void MigrateUsingOtherConfigs(int oldVer, dynamic oldConfig, IEnumerable<Config> otherConfigs)
+    {
+        foreach (Config config in otherConfigs)
         {
-            this.NormalUserPermissions = new();
-            this.TrustedUserPermissions = new();
+            if (config is not RolePermConfig) continue;
 
-            // filesize quota limit was added during version 11, but the version wasn't bumped, so catch error to be safe
-            // Migrate filesize quota
-            if (oldVer >= 11)
+            RolePermConfig rolePermConfig = (RolePermConfig)config;
+            
+            // In version 27, various (mostly already role-specific) perms, like blocked assets and read-only mode, were moved to dedicated child objects,
+            // to more cleanly split the perms between certain roles, and to make their enforcement easier.
+            if (oldVer < 27)
             {
-                try
-                {
-                    this.NormalUserPermissions.UserFilesizeQuota = (int)oldConfig.UserFilesizeQuota;
-                    this.TrustedUserPermissions.UserFilesizeQuota = (int)oldConfig.UserFilesizeQuota;
-                }
-                catch (RuntimeBinderException)
-                {
-                    // do nothing
-                }
-            }
+                rolePermConfig.NormalUserPermissions = new();
+                rolePermConfig.TrustedUserPermissions = new();
 
-            // Migrate asset flags/safety level
-            if (oldVer >= 18)
-            {
-                this.NormalUserPermissions.BlockedAssetFlags.Dangerous = (bool)oldConfig.BlockedAssetFlags.Dangerous;
-                this.NormalUserPermissions.BlockedAssetFlags.Media = (bool)oldConfig.BlockedAssetFlags.Media;
-                this.NormalUserPermissions.BlockedAssetFlags.Modded = (bool)oldConfig.BlockedAssetFlags.Modded;
-
-                this.TrustedUserPermissions.BlockedAssetFlags.Dangerous = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Dangerous;
-                this.TrustedUserPermissions.BlockedAssetFlags.Media = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Media;
-                this.TrustedUserPermissions.BlockedAssetFlags.Modded = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Modded;
-            }
-            else
-            {
-                // Asset safety level was added in config version 2, so dont try to migrate if we are coming from an older version than that
-                if (oldVer >= 2)
+                // filesize quota limit was added during version 11, but the version wasn't bumped, so catch error to be safe
+                // Migrate filesize quota
+                if (oldVer >= 11)
                 {
-                    int oldSafetyLevel = (int)oldConfig.MaximumAssetSafetyLevel;
-                    ConfigAssetFlags fromSafetyLevel = new ConfigAssetFlags
-                    {
-                        Dangerous = oldSafetyLevel < 3,
-                        Modded = oldSafetyLevel < 2,
-                        Media = oldSafetyLevel < 1,
-                    };
-                    this.NormalUserPermissions.BlockedAssetFlags = fromSafetyLevel;
-                }
-
-                // Asset safety level for trusted users was added in config version 12, so dont try to migrate if we are coming from a version older than that
-                if (oldVer >= 12)
-                {
-                    // There was no version bump for trusted users being added, so we just have to catch this error :/
                     try
                     {
-                        int oldTrustedSafetyLevel = (int)oldConfig.MaximumAssetSafetyLevelForTrustedUsers;
-                        this.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
-                        {
-                            Dangerous = oldTrustedSafetyLevel < 3,
-                            Modded = oldTrustedSafetyLevel < 2,
-                            Media = oldTrustedSafetyLevel < 1,
-                        };
+                        rolePermConfig.NormalUserPermissions.UserFilesizeQuota = (int)oldConfig.UserFilesizeQuota;
+                        rolePermConfig.TrustedUserPermissions.UserFilesizeQuota = (int)oldConfig.UserFilesizeQuota;
                     }
                     catch (RuntimeBinderException)
                     {
-                        this.TrustedUserPermissions.BlockedAssetFlags = this.NormalUserPermissions.BlockedAssetFlags;
+                        // do nothing
                     }
+                }
+
+                // Migrate asset flags/safety level
+                if (oldVer >= 18)
+                {
+                    rolePermConfig.NormalUserPermissions.BlockedAssetFlags.Dangerous = (bool)oldConfig.BlockedAssetFlags.Dangerous;
+                    rolePermConfig.NormalUserPermissions.BlockedAssetFlags.Media = (bool)oldConfig.BlockedAssetFlags.Media;
+                    rolePermConfig.NormalUserPermissions.BlockedAssetFlags.Modded = (bool)oldConfig.BlockedAssetFlags.Modded;
+
+                    rolePermConfig.TrustedUserPermissions.BlockedAssetFlags.Dangerous = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Dangerous;
+                    rolePermConfig.TrustedUserPermissions.BlockedAssetFlags.Media = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Media;
+                    rolePermConfig.TrustedUserPermissions.BlockedAssetFlags.Modded = (bool)oldConfig.BlockedAssetFlagsForTrustedUsers.Modded;
+                }
+                else
+                {
+                    // Asset safety level was added in config version 2, so dont try to migrate if we are coming from an older version than that
+                    if (oldVer >= 2)
+                    {
+                        int oldSafetyLevel = (int)oldConfig.MaximumAssetSafetyLevel;
+                        ConfigAssetFlags fromSafetyLevel = new ConfigAssetFlags
+                        {
+                            Dangerous = oldSafetyLevel < 3,
+                            Modded = oldSafetyLevel < 2,
+                            Media = oldSafetyLevel < 1,
+                        };
+                        rolePermConfig.NormalUserPermissions.BlockedAssetFlags = fromSafetyLevel;
+                    }
+
+                    // Asset safety level for trusted users was added in config version 12, so dont try to migrate if we are coming from a version older than that
+                    if (oldVer >= 12)
+                    {
+                        // There was no version bump for trusted users being added, so we just have to catch this error :/
+                        try
+                        {
+                            int oldTrustedSafetyLevel = (int)oldConfig.MaximumAssetSafetyLevelForTrustedUsers;
+                            rolePermConfig.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+                            {
+                                Dangerous = oldTrustedSafetyLevel < 3,
+                                Modded = oldTrustedSafetyLevel < 2,
+                                Media = oldTrustedSafetyLevel < 1,
+                            };
+                        }
+                        catch (RuntimeBinderException)
+                        {
+                            rolePermConfig.TrustedUserPermissions.BlockedAssetFlags = rolePermConfig.NormalUserPermissions.BlockedAssetFlags;
+                        }
+                    }
+                }
+
+                // Timed level upload limits were added in version 19.
+                // Migrate level limits
+                if (oldVer >= 19)
+                {
+                    rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TimedLevelUploadLimits.Enabled;
+                    rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TimedLevelUploadLimits.TimeSpanHours;
+                    rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TimedLevelUploadLimits.LevelQuota;
+
+                    rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TimedLevelUploadLimits.Enabled;
+                    rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TimedLevelUploadLimits.TimeSpanHours;
+                    rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TimedLevelUploadLimits.LevelQuota;
+                }
+
+                // Read-only mode was added for both normal and trusted users in version 20.
+                if (oldVer >= 20)
+                {
+                    rolePermConfig.NormalUserPermissions.ReadOnlyMode = (bool)oldConfig.ReadOnlyMode;
+                    rolePermConfig.TrustedUserPermissions.ReadOnlyMode = (bool)oldConfig.ReadonlyModeForTrustedUsers;
                 }
             }
 
-            // Timed level upload limits were added in version 19.
-            // Migrate level limits
-            if (oldVer >= 19)
+            // In version 28, PhotoUploadRateLimit and PlaylistUploadRateLimit were added to RolePermissions
+            // and various attributes related to level rate-limiting were renamed
+            else if (oldVer == 27)
             {
-                this.NormalUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TimedLevelUploadLimits.Enabled;
-                this.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TimedLevelUploadLimits.TimeSpanHours;
-                this.NormalUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TimedLevelUploadLimits.LevelQuota;
+                rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.Enabled;
+                rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.TimeSpanHours;
+                rolePermConfig.NormalUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.LevelQuota;
 
-                this.TrustedUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TimedLevelUploadLimits.Enabled;
-                this.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TimedLevelUploadLimits.TimeSpanHours;
-                this.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TimedLevelUploadLimits.LevelQuota;
+                rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.Enabled;
+                rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.TimeSpanHours;
+                rolePermConfig.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.LevelQuota;
+            }
+            
+            // In version 29, the NewUser role and its related config options
+            // (NewUserPermissions and HoursUntilNewAccountNoLongerNew) were added.
+            // At this point, NormalUserPermissions will already be fully migrated, so we can just copy it.
+            if (oldVer < 29)
+            {
+                rolePermConfig.NewUserPermissions = rolePermConfig.NormalUserPermissions;
+            }
+            // In version 30, all role-perm related configs were moved to rolePermissions.json
+            if (oldVer == 29)
+            {
+                
+                rolePermConfig.NewUserPermissions = oldConfig.NewUserPermissions;
+                rolePermConfig.NormalUserPermissions = oldConfig.NormalUserPermissions;
+                rolePermConfig.TrustedUserPermissions = oldConfig.TrustedUserPermissions;
+                rolePermConfig.HoursUntilNewAccountNoLongerNew = oldConfig.HoursUntilNewAccountNoLongerNew;
             }
 
-            // Read-only mode was added for both normal and trusted users in version 20.
-            if (oldVer >= 20)
-            {
-                this.NormalUserPermissions.ReadOnlyMode = (bool)oldConfig.ReadOnlyMode;
-                this.TrustedUserPermissions.ReadOnlyMode = (bool)oldConfig.ReadonlyModeForTrustedUsers;
-            }
-        }
-
-        // In version 28, PhotoUploadRateLimit and PlaylistUploadRateLimit were added to RolePermissions
-        // and various attributes related to level rate-limiting were renamed
-        else if (oldVer == 27)
-        {
-            this.NormalUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.Enabled;
-            this.NormalUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.TimeSpanHours;
-            this.NormalUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.NormalUserPermissions.TimedLevelUploadLimits.LevelQuota;
-
-            this.TrustedUserPermissions.LevelUploadRateLimit.Enabled = (bool)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.Enabled;
-            this.TrustedUserPermissions.LevelUploadRateLimit.TimeSpanHours = (int)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.TimeSpanHours;
-            this.TrustedUserPermissions.LevelUploadRateLimit.UploadQuota = (int)oldConfig.TrustedUserPermissions.TimedLevelUploadLimits.LevelQuota;
-        }
-        
-        // In version 29, the NewUser role and its related config options
-        // (NewUserPermissions and HoursUntilNewAccountNoLongerNew) were added.
-        // At this point, NormalUserPermissions will already be fully migrated, so we can just copy it.
-        if (oldVer < 29)
-        {
-            this.NewUserPermissions = this.NormalUserPermissions;
+            rolePermConfig.SaveToJsonFile();
+            break;
         }
     }
 
     public string LicenseText { get; set; } = "Welcome to Refresh!";
-
-    /// <summary>
-    /// Role-specific permissions for new users.
-    /// </summary>
-    public RolePermissions NewUserPermissions = new();
-    /// <summary>
-    /// Role-specific permissions for normal, not-new users.
-    /// </summary>
-    public RolePermissions NormalUserPermissions = new();
-    /// <summary>
-    /// Role-specific permissions for trusted users and above.
-    /// </summary>
-    public RolePermissions TrustedUserPermissions = new();
-
-    /// <summary>
-    /// The minimum age (time after registration) an account must have before it automatically gets promoted from
-    /// NewUser to User.
-    /// We do this by using NewUserJob to compare the account's age, and if it is old enough, we update their role.
-    /// Currently, the only difference between new users and regular users is that we apply NewUserPermissions
-    /// instead of NormalUserPermissions, which you can freely configure in this config.
-    /// </summary>
-    public int HoursUntilNewAccountNoLongerNew { get; set; } = 24 * 7; // TODO should we think of a better name?
     
     public bool AllowUsersToUseIpAuthentication { get; set; } = false;
     public bool PermitPsnLogin { get; set; } = true;

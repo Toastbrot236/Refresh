@@ -27,9 +27,9 @@ public class ReportingEndpoints : EndpointGroup
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.GameUploadGriefReport)]
     public Response UploadReport(RequestContext context, GameDatabaseContext database, GameReport body, GameUser user,
-        IDateTimeProvider time, Token token, GameServerConfig config)
+        IDateTimeProvider time, Token token, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
         
         GameLevel? level = database.GetLevelByIdAndType(body.LevelType, body.LevelId);

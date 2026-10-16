@@ -30,9 +30,10 @@ public class ChallengeEndpoints : EndpointGroup
     [GameEndpoint("challenge", HttpMethods.Post, ContentType.Xml)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.GameUploadPlayerChallenge)]
-    public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body, GameServerConfig config)
+    public Response UploadChallenge(RequestContext context, DataContext dataContext, GameUser user, SerializedChallenge body,
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
 
         // Using the level specified in the request body is unreliable, since Hub allows users to create challenges in moon levels, in which case their
@@ -186,9 +187,9 @@ public class ChallengeEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.GameUploadPlayerChallengeScore)]
     public Response SubmitChallengeScore(RequestContext context, DataContext dataContext, GameUser user,
         SerializedChallengeAttempt body, int challengeId, ChallengeGhostRateLimitService ghostService,
-        GameServerConfig config)
+        RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(rolePermConfig))
             return Unauthorized;
 
         ghostService.RemoveUserFromRateLimit(user.UserId);

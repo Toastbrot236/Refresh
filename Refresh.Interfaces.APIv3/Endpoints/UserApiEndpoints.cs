@@ -44,9 +44,9 @@ public class UserApiEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.HeartUser)]
     public ApiOkResponse HeartUser(RequestContext context, GameDatabaseContext database,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
-        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext, GameUser user, GameServerConfig config)
+        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext, GameUser user, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameUser? target = database.GetUserByIdAndType(idType, id);
@@ -68,9 +68,9 @@ public class UserApiEndpoints : EndpointGroup
     [EndpointRateLimit(EndpointBucketId.HeartUser)]
     public ApiOkResponse UnheartUser(RequestContext context, GameDatabaseContext database,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
-        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext, GameUser user, GameServerConfig config)
+        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext, GameUser user, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameUser? target = database.GetUserByIdAndType(idType, id);

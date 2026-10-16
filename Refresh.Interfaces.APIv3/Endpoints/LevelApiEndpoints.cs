@@ -59,9 +59,9 @@ public class LevelApiEndpoints : EndpointGroup
     [DocError(typeof(ApiAuthenticationError), ApiAuthenticationError.NoPermissionsForObjectWhen)]
     [EndpointRateLimit(EndpointBucketId.ApiEditLevel)]
     public ApiResponse<ApiGameLevelResponse> EditLevelById(RequestContext context, GameUser user,
-        [DocSummary("The ID of the level")] int id, ApiEditLevelRequest body, DataContext dataContext, GameServerConfig config)
+        [DocSummary("The ID of the level")] int id, ApiEditLevelRequest body, DataContext dataContext, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameLevel? level = dataContext.Database.GetLevelById(id);
@@ -158,9 +158,9 @@ public class LevelApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.HeartLevel)]
     public ApiOkResponse HeartLevel(RequestContext context, GameDatabaseContext database, GameUser user,
-        [DocSummary("The ID of the level")] int id, DataContext dataContext, GameServerConfig config) 
+        [DocSummary("The ID of the level")] int id, DataContext dataContext, RolePermConfig rolePermConfig) 
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
 
         GameLevel? level = database.GetLevelById(id);
@@ -175,9 +175,9 @@ public class LevelApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.HeartLevel)]
     public ApiOkResponse UnheartLevel(RequestContext context, GameDatabaseContext database, GameUser user,
-        [DocSummary("The ID of the level")] int id, DataContext dataContext, GameServerConfig config) 
+        [DocSummary("The ID of the level")] int id, DataContext dataContext, RolePermConfig rolePermConfig) 
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         GameLevel? level = database.GetLevelById(id);

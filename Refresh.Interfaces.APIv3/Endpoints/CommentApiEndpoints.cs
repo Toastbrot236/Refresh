@@ -48,9 +48,9 @@ public class CommentApiEndpoints : EndpointGroup
     public ApiResponse<ApiProfileCommentResponse> PostCommentOnProfile(RequestContext context,
         DataContext dataContext, GameUser user, ApiCommentPostRequest body,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
-        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, GameServerConfig config)
+        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         GameUser? profile = dataContext.Database.GetUserByIdAndType(idType, id);
@@ -98,9 +98,9 @@ public class CommentApiEndpoints : EndpointGroup
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.RateComment)]
     public ApiOkResponse RateProfileComment(RequestContext context, DataContext dataContext, GameUser user, int id, 
-        [DocSummary("The user's new rating for the comment. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, GameServerConfig config)
+        [DocSummary("The user's new rating for the comment. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         GameProfileComment? comment = dataContext.Database.GetProfileCommentById(id);
@@ -138,9 +138,9 @@ public class CommentApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.LevelMissingErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.UploadComment)]
     public ApiResponse<ApiLevelCommentResponse> PostCommentOnLevel(RequestContext context,
-        DataContext dataContext, int id, GameUser user, ApiCommentPostRequest body, GameServerConfig config)
+        DataContext dataContext, int id, GameUser user, ApiCommentPostRequest body, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         GameLevel? level = dataContext.Database.GetLevelById(id);
@@ -188,9 +188,9 @@ public class CommentApiEndpoints : EndpointGroup
     [DocError(typeof(ApiValidationError), ApiValidationError.RatingParseErrorWhen)]
     [EndpointRateLimit(EndpointBucketId.RateComment)]
     public ApiOkResponse RateLevelComment(RequestContext context, DataContext dataContext, GameUser user, int id, 
-        [DocSummary("The user's new rating for the comment. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, GameServerConfig config)
+        [DocSummary("The user's new rating for the comment. -1 = dislike, 0 = neutral, 1 = like.")] string rawRating, RolePermConfig rolePermConfig)
     {
-        if (user.IsWriteBlocked(config)) 
+        if (user.IsWriteBlocked(rolePermConfig)) 
             return ApiAuthenticationError.ReadOnlyError;
         
         GameLevelComment? comment = dataContext.Database.GetLevelCommentById(id);
