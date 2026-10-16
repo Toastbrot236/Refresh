@@ -40,8 +40,8 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         
-        context.Server.Value.GameServerConfig.NormalUserPermissions.UserFilesizeQuota = 8;
-        context.Server.Value.GameServerConfig.TrustedUserPermissions.UserFilesizeQuota = 8;
+        context.Server.Value.RolePermConfig.NormalUserPermissions.UserFilesizeQuota = 8;
+        context.Server.Value.RolePermConfig.TrustedUserPermissions.UserFilesizeQuota = 8;
         
         context.Server.Value.Server.AddService<ImportService>();
         GameUser user = context.CreateUser();
@@ -73,7 +73,7 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
 
-        context.Server.Value.GameServerConfig.NormalUserPermissions.ReadOnlyMode = true;
+        context.Server.Value.RolePermConfig.NormalUserPermissions.ReadOnlyMode = true;
             
         context.Server.Value.Server.AddService<ImportService>();
         GameUser user = context.CreateUser();
@@ -97,8 +97,8 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.ReadOnlyMode = true;
-        context.Server.Value.GameServerConfig.TrustedUserPermissions.ReadOnlyMode = false;
+        context.Server.Value.RolePermConfig.NormalUserPermissions.ReadOnlyMode = true;
+        context.Server.Value.RolePermConfig.TrustedUserPermissions.ReadOnlyMode = false;
         
         GameUser user = context.CreateUser();
         context.Database.SetUserRole(user, GameUserRole.Trusted);
@@ -123,8 +123,8 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.ReadOnlyMode = true;
-        context.Server.Value.GameServerConfig.TrustedUserPermissions.ReadOnlyMode = true;
+        context.Server.Value.RolePermConfig.NormalUserPermissions.ReadOnlyMode = true;
+        context.Server.Value.RolePermConfig.TrustedUserPermissions.ReadOnlyMode = true;
         
         GameUser user = context.CreateUser();
         context.Database.SetUserRole(user, GameUserRole.Admin);
@@ -148,13 +148,13 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Modded = true,
             Media = true,
             Dangerous = true,
         };
-        context.Server.Value.GameServerConfig.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Dangerous = true,
             Modded = true,
@@ -180,13 +180,13 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Dangerous = true,
             Modded = true,
             Media = true,
         };
-        context.Server.Value.GameServerConfig.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.TrustedUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Dangerous = true,
             Modded = true,
@@ -211,7 +211,7 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Dangerous = true,
             Modded = true,
@@ -238,7 +238,7 @@ public class AssetUploadTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         context.Server.Value.Server.AddService<ImportService>();
-        context.Server.Value.GameServerConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
+        context.Server.Value.RolePermConfig.NormalUserPermissions.BlockedAssetFlags = new ConfigAssetFlags
         {
             Dangerous = true,
             Modded = true,

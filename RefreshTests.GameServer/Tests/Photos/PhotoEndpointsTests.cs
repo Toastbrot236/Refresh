@@ -648,7 +648,7 @@ public class PhotoEndpointsTests : GameServerTest
         GameLevel level = context.CreateLevel(user);
 
         // Prepare config
-        GameServerConfig config = context.Server.Value.GameServerConfig;
+        RolePermConfig config = context.Server.Value.RolePermConfig;
         EntityUploadRateLimitProperties uploadConfig = new()
         {
             Enabled = true,
