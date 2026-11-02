@@ -65,18 +65,13 @@ public class AipiTests : GameServerTest
         Assert.That(result!.Data, Is.Null);
     }
 
-    private bool ScanImage(float threshold, string[] bannedTags, TestContext context, GameUser? uploader = null, bool autoRestrict = false)
+    private TestAipiService InitAipi(float threshold, string[] bannedTags, TestContext context, bool autoRestrict = false)
     {
         TestRefreshGameServer server = context.Server.Value;
         server.Server.AddEndpointGroup<TestAipiEndpoints>();
         ImportService importer = server.GetService<ImportService>();
         IDataStore dataStore = context.GetDataStore(); // is an InMemoryDataStore here
-        
-        string hash = BitConverter.ToString(SHA1.HashData(TestAsset)).Replace("-", "").ToLower();
-        // Can't expect AipiService's ImageImporter to copy the PNG (or save the converted PNG if we weren't using a PNG)
-        // because Bunkum's InMemoryDataStore stubs OpenWriteStream() by throwing a NotImplementedException
-        dataStore.WriteToStore("png/" + hash, TestAsset);
-        
+
         IntegrationConfig integration = new()
         {
             AipiEnabled = true,
@@ -87,6 +82,16 @@ public class AipiTests : GameServerTest
         };
         TestAipiService aipi = new(server.Logger, integration, importer, null!, context.Http);
         aipi.Initialize();
+    }
+
+    private bool ScanImage(float threshold, string[] bannedTags, TestContext context, GameUser? uploader = null, bool autoRestrict = false)
+    {
+        string hash = BitConverter.ToString(SHA1.HashData(TestAsset)).Replace("-", "").ToLower();
+        // Can't expect AipiService's ImageImporter to copy the PNG (or save the converted PNG if we weren't using a PNG)
+        // because Bunkum's InMemoryDataStore stubs OpenWriteStream() by throwing a NotImplementedException
+        dataStore.WriteToStore("png/" + hash, TestAsset);
+        
+        TestAipiService aipi = this.InitAipi(threshold, bannedTags, context, autoRestrict);
         
         uploader ??= context.CreateUser();
         GameAsset metadata = new()
@@ -147,6 +152,34 @@ public class AipiTests : GameServerTest
     {
         using TestContext context = this.GetServer();
         GameUser uploader = context.CreateUser();
+        
+        Assert.That(this.ScanImage(0.0f, ["hi"], context, uploader, autoRestrict), Is.True);
+        
+        // re-get user from DB to check their role
+        GameUser? updatedUser = context.Database.GetUserByObjectId(uploader.UserId);
+        Assert.That(updatedUser, Is.Not.Null);
+        
+        if (autoRestrict)
+            Assert.That(updatedUser!.Role, Is.EqualTo(GameUserRole.Restricted));
+        else
+            Assert.That(updatedUser!.Role, Is.GreaterThan(GameUserRole.Restricted));
+    }
+
+    [Test]
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ImageGetsAipiScannedByReferenceValidatorIfAipiIsGiven(bool autoRestrict)
+    {
+        using TestContext context = this.GetServer();
+        GameUser uploader = context.CreateUser();
+        DataContext dataContext = context.GetDataContext(token);
+        AssetImporter importer = new(dataContext.Logger, context.Time);
+
+        ValidatedAssetResult result = ResourceValidationHelper.ValidateReference(new(blankHashVariation, dataContext, importer), dataContext.Logger);
+        
+        Assert.That(result.Status, Is.EqualTo(OK));
+        Assert.That(result.NewAssetRef, Is.EqualTo("0"));
+        Assert.That(result.AssetInfo, Is.Null);
         
         Assert.That(this.ScanImage(0.0f, ["hi"], context, uploader, autoRestrict), Is.True);
         
