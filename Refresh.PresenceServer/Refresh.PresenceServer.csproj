@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Refresh.Common\Refresh.Common.csproj" />
+      <ProjectReference Include="..\Refresh.Database\Refresh.Database.csproj" />
     </ItemGroup>
 
 </Project>

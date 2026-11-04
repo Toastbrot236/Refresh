@@ -45,6 +45,7 @@ public partial class GameDatabaseContext : DbContext, IDatabaseContext
     internal DbSet<LevelCommentRelation> LevelCommentRelations { get; set; }
     internal DbSet<FavouriteLevelRelation> FavouriteLevelRelations { get; set; }
     internal DbSet<QueueLevelRelation> QueueLevelRelations { get; set; }
+    internal DbSet<LevelOverrideRelation> LevelOverrideRelations { get; set; }
     internal DbSet<FavouriteUserRelation> FavouriteUserRelations { get; set; }
     internal DbSet<PlayLevelRelation> PlayLevelRelations { get; set; }
     internal DbSet<UniquePlayLevelRelation> UniquePlayLevelRelations { get; set; }

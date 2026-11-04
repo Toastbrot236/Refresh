@@ -6,4 +6,5 @@ public enum TokenType
     Api = 1,
     PasswordReset = 2,
     ApiRefresh = 3,
+    GamePresence = 4,
 }

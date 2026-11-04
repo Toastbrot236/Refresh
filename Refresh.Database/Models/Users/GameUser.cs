@@ -82,11 +82,6 @@ public partial class GameUser : IRateLimitUser
     public bool PsnAuthenticationAllowed { get; set; }
     
     /// <summary>
-    /// The auth token the presence server knows this user by, null if not connected to the presence server
-    /// </summary>
-    public string? PresenceServerAuthToken { get; set; }
-    
-    /// <summary>
     /// Whether the user's profile information is exposed in the public API.
     /// </summary>
     public Visibility ProfileVisibility { get; set; } = Visibility.All;

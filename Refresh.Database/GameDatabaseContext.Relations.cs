@@ -263,6 +263,55 @@ public partial class GameDatabaseContext // Relations
 
     #endregion
 
+    #region Play Now
+
+    private IQueryable<LevelOverrideRelation> LevelOverrideRelationsIncluded => this.LevelOverrideRelations
+        .Include(r => r.Level)
+        .Include(r => r.Level!.Statistics)
+        .Include(r => r.Level!.Publisher)
+        .Include(r => r.User)
+        .Include(r => r.User!.Statistics)
+        .Include(r => r.GriefReport!.Reporter)
+        .Include(r => r.GriefReport!.Reporter.Statistics)
+        .Include(r => r.GriefReport!.Level)
+        .Include(r => r.GriefReport!.Level!.Publisher)
+        .Include(r => r.GriefReport!.Level!.Statistics)
+        .Include(r => r.GriefReport!.ReviewedBy)
+        .Include(r => r.GriefReport!.ReviewedBy!.Statistics)
+        .Include(r => r.GriefReport!.Players)
+        .ThenInclude(p => p.User!)
+        .ThenInclude(p => p.Statistics);
+
+    // Category class should convert to DatabaseList<GameLevel> itself, since it'd have to create fake level entities
+    public DatabaseList<LevelOverrideRelation> GetLevelsOverriddenByUser(GameUser user, int skip, int count) => new(this.LevelOverrideRelationsIncluded
+        .Where(r => r.UserId == user.UserId)
+        .OrderByDescending(r => r.Timestamp), skip, count);
+
+    public bool IsLevelSetAsOverride(string levelRootHash, GameUser user)
+    {
+        return this.LevelOverrideRelations.Any(r => r.LevelRootHash == levelRootHash && r.UserId == user.UserId);
+    }
+
+    public bool AddLevelAsOverride(string levelRootHash, int? levelId, int? reportId, GameUser user)
+    {
+        if (this.IsLevelSetAsOverride(levelRootHash, user))
+            return false;
+        
+        LevelOverrideRelation relation = new()
+        {
+            LevelRootHash = levelRootHash,
+            LevelId = levelId,
+            GriefReportId = reportId,
+            UserId = user.UserId,
+            Timestamp = this._time.Now,
+        };
+        this.LevelOverrideRelations.Add(relation);
+        this.SaveChanges();
+        return true;
+    }
+
+    #endregion
+
     #region Rating and Reviewing
 
     public IQueryable<RateReviewRelation> RateReviewRelationsIncluded => this.RateReviewRelations
