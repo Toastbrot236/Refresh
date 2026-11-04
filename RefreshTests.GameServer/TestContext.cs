@@ -276,6 +276,25 @@ public class TestContext : IDisposable
         return (IDataStore)this.GetService<StorageService>()
             .AddParameterToEndpoint(null!, new BunkumParameterInfo(typeof(IDataStore), ""), null!)!;
     }
+    
+    public TestAipiService InitAipi(float threshold, string[] bannedTags, bool autoRestrict = false)
+    {
+        TestRefreshGameServer server = this.Server.Value;
+        server.Server.AddEndpointGroup<TestAipiEndpoints>();
+        ImportService importer = server.GetService<ImportService>();
+        IDataStore dataStore = this.GetDataStore(); // is an InMemoryDataStore here
+
+        IntegrationConfig integration = new()
+        {
+            AipiEnabled = true,
+            AipiThreshold = threshold,
+            AipiBannedTags = bannedTags,
+            AipiRestrictAccountOnDetection = autoRestrict,
+            DiscordStaffWebhookEnabled = false,
+        };
+        TestAipiService aipi = new(server.Logger, integration, importer, null!, this.Http);
+        aipi.Initialize();
+    }
 
     public void Dispose()
     {

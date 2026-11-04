@@ -65,25 +65,6 @@ public class AipiTests : GameServerTest
         Assert.That(result!.Data, Is.Null);
     }
 
-    private TestAipiService InitAipi(float threshold, string[] bannedTags, TestContext context, bool autoRestrict = false)
-    {
-        TestRefreshGameServer server = context.Server.Value;
-        server.Server.AddEndpointGroup<TestAipiEndpoints>();
-        ImportService importer = server.GetService<ImportService>();
-        IDataStore dataStore = context.GetDataStore(); // is an InMemoryDataStore here
-
-        IntegrationConfig integration = new()
-        {
-            AipiEnabled = true,
-            AipiThreshold = threshold,
-            AipiBannedTags = bannedTags,
-            AipiRestrictAccountOnDetection = autoRestrict,
-            DiscordStaffWebhookEnabled = false,
-        };
-        TestAipiService aipi = new(server.Logger, integration, importer, null!, context.Http);
-        aipi.Initialize();
-    }
-
     private bool ScanImage(float threshold, string[] bannedTags, TestContext context, GameUser? uploader = null, bool autoRestrict = false)
     {
         IDataStore dataStore = context.GetDataStore();
@@ -92,7 +73,7 @@ public class AipiTests : GameServerTest
         // because Bunkum's InMemoryDataStore stubs OpenWriteStream() by throwing a NotImplementedException
         dataStore.WriteToStore("png/" + hash, TestAsset);        
 
-        TestAipiService aipi = this.InitAipi(threshold, bannedTags, context, autoRestrict);
+        TestAipiService aipi = context.InitAipi(threshold, bannedTags, autoRestrict);
         
         uploader ??= context.CreateUser();
         GameAsset metadata = new()
@@ -174,7 +155,7 @@ public class AipiTests : GameServerTest
         using TestContext context = this.GetServer();
         GameUser uploader = context.CreateUser();
         DataContext dataContext = context.GetDataContext(token);
-        AipiService aipi = this.InitAipi(0.0f, ["hi"], context, uploader, autoRestrict);
+        AipiService aipi = context.InitAipi(0.0f, ["hi"], autoRestrict);
         AssetImporter importer = new(dataContext.Logger, context.Time);
 
         ValidatedAssetResult result = ResourceValidationHelper.ValidateReference(new(blankHashVariation, dataContext, importer, aipi)
