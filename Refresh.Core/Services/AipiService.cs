@@ -27,7 +27,7 @@ public class AipiService : EndpointService
     private readonly ImageImporter _importer;
     
     [UsedImplicitly]
-    public AipiService(Logger logger, IntegrationConfig config, ImportService import, DiscordStaffService discord) : base(logger)
+    public AipiService(Logger logger, IntegrationConfig config, ImportService import, DiscordStaffService? discord) : base(logger)
     {
         this._discord = discord;
         this._config = config;
