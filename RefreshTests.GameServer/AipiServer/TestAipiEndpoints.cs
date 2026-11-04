@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
 using Bunkum.Core.Responses;
@@ -10,7 +11,7 @@ namespace RefreshTests.GameServer.AipiServer;
 
 public class TestAipiEndpoints : EndpointGroup
 {
-    private const string IGNORED_IMAGE_HASH = "165c9093e7ca3b4b27ea6c6b41e5b7e432af4e4e";
+    public const string IGNORED_IMAGE_HASH = "165c9093e7ca3b4b27ea6c6b41e5b7e432af4e4e";
     public const string IGNORED_IMAGE = "TEX test hacks lol";
 
     [HttpEndpoint("/"), Authentication(false)]

@@ -3,9 +3,13 @@ using System.Security.Cryptography;
 using Bunkum.Core.Storage;
 using Newtonsoft.Json;
 using Refresh.Common.Helpers;
-using Refresh.Core.Configuration;
+using Refresh.Core.Helpers;
+using Refresh.Core.Importing;
 using Refresh.Core.Services;
+using Refresh.Core.Types.Assets.Validation;
+using Refresh.Core.Types.Data;
 using Refresh.Database.Models.Assets;
+using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Users;
 using RefreshTests.GameServer.AipiServer;
 using RefreshTests.GameServer.GameServer.Services;
@@ -153,12 +157,18 @@ public class AipiTests : GameServerTest
     public void ImageGetsAipiScannedByReferenceValidator(bool mustBeTexture) // param value should not matter
     {
         using TestContext context = this.GetServer();
-        GameUser uploader = context.CreateUser();
+        GameUser user = context.CreateUser();
+        HttpClient client = context.GetAuthenticatedClient(TokenType.Game, TokenGame.LittleBigPlanet1, TokenPlatform.PS3, out Token token, user);
+
         DataContext dataContext = context.GetDataContext(token);
-        AipiService aipi = context.InitAipi(0.0f, ["hi"], autoRestrict);
+        TestAipiService aipi = context.InitAipi(0.0f, ["hi"], false);
         AssetImporter importer = new(dataContext.Logger, context.Time);
 
-        ValidatedAssetResult result = ResourceValidationHelper.ValidateReference(new(blankHashVariation, dataContext, importer, aipi)
+        ReadOnlySpan<byte> data = "TEX "u8;
+        string hash = BitConverter.ToString(SHA1.HashData(data)).Replace("-", "").ToLower();
+        dataContext.DataStore.WriteToStore(hash, data);
+
+        ValidatedAssetResult result = ResourceValidationHelper.ValidateReference(new(hash, dataContext, importer, aipi)
         {
             MustBeTexture = mustBeTexture,
         }, dataContext.Logger);

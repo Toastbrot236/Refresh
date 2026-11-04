@@ -18,6 +18,9 @@ using Refresh.Database.Models.Playlists;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request;
 using Refresh.Database.Models.Photos;
 using Microsoft.EntityFrameworkCore;
+using Refresh.Core.Configuration;
+using RefreshTests.GameServer.AipiServer;
+using RefreshTests.GameServer.GameServer.Services;
 
 namespace RefreshTests.GameServer;
 
@@ -294,6 +297,7 @@ public class TestContext : IDisposable
         };
         TestAipiService aipi = new(server.Logger, integration, importer, null!, this.Http);
         aipi.Initialize();
+        return aipi;
     }
 
     public void Dispose()
