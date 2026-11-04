@@ -10,6 +10,9 @@ namespace RefreshTests.GameServer.AipiServer;
 
 public class TestAipiEndpoints : EndpointGroup
 {
+    // hash of RefreshTests.GameServer.Resources.1x1.png
+    private const string IGNORE_HASH = "0ec63b140374ba704a58fa0c743cb357683313dd";
+
     [HttpEndpoint("/"), Authentication(false)]
     public string TestAipi(RequestContext context)
     {
@@ -29,6 +32,19 @@ public class TestAipiEndpoints : EndpointGroup
                 Reason = forcedFailureReason,
                 Data = null,
             }, ContentType.Json, NotAcceptable);
+        }
+
+        // Explicitly ignore the 1x1 PNG so we don't just return the same for all images.
+        // Probably hacky, but should be enough for unit tests.
+        string receivedHash = BitConverter.ToString(SHA1.HashData(body)).Replace("-", "").ToLower();
+        if (receivedHash == IGNORE_HASH)
+        {
+            return new(new AipiResponse<Dictionary<string, float>>
+            {
+                Success = true,
+                Reason = null,
+                Data = [], // Nothing, the 1x1 is good to go
+            }, ContentType.Json);
         }
         
         string? thresholdStr = context.QueryString.Get("threshold");
