@@ -117,4 +117,15 @@ public class UserApiEndpoints : EndpointGroup
         database.UpdateUserData(user, body);
         return ApiExtendedGameUserResponse.FromOld(user, dataContext);
     }
+    
+    [ApiV3Endpoint("users/me/previousUsernames", HttpMethods.Get)]
+    [DocSummary("Gets your previously used usernames.")]
+    [EndpointRateLimit(EndpointBucketId.UpdateUser)]
+    public ApiListResponse<ApiExtendedPreviousUsernameResponse> UpdateUser(RequestContext context, GameDatabaseContext database,
+        GameUser user, DataContext dataContext)
+    {
+        (int skip, int count) = context.GetPageData();
+        DatabaseList<PreviousUsername> previousNames = database.GetPreviousUsernameRecordsByUser(user, skip, count);
+        return DatabaseListExtensions.FromOldList<ApiExtendedPreviousUsernameResponse, PreviousUsername>(previousNames, dataContext);
+    }
 }
