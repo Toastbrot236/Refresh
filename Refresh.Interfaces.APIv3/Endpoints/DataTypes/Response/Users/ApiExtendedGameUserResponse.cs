@@ -36,6 +36,7 @@ public class ApiExtendedGameUserResponse : ApiGameUserResponse, IApiResponse, ID
     
     public required int FilesizeQuotaUsage { get; set; }
     public required bool ConnectedToPresenceServer { get; set; }
+    public required ApiUserPermissionsResponse UserPermissions { get; set; }
     
     [ContractAnnotation("user:null => null; user:notnull => notnull")]
     public static new ApiExtendedGameUserResponse? FromOld(GameUser? user, DataContext dataContext)
@@ -77,6 +78,7 @@ public class ApiExtendedGameUserResponse : ApiGameUserResponse, IApiResponse, ID
             ShowModdedContent = user.ShowModdedContent,
             ShowReuploadedContent = user.ShowReuploadedContent,
             ConnectedToPresenceServer = user.PresenceServerAuthToken != null,
+            UserPermissions = ApiUserPermissionsResponse.FromOld(user, dataContext)!,
         };
     }
 
