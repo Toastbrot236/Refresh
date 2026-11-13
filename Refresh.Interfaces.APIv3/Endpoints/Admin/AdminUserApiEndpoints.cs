@@ -261,7 +261,7 @@ public class AdminUserApiEndpoints : EndpointGroup
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.MayNotModifyUserDueToLowRoleErrorWhen)]
     public ApiResponse<ApiExtendedGameUserResponse> UpdateUserPermissions(RequestContext context, GameDatabaseContext database,
-        GameUser user, ApiUpdateUserPermissionsRequest body, DataContext dataContext,
+        GameUser user, ApiUpdateUserRestrictionsRequest body, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
     {

@@ -7,7 +7,7 @@ namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Users;
 /// A user with full information, like current role, ban status, etc.
 /// </summary>
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-public class ApiUserPermissionsResponse : IApiResponse, IDataConvertableFrom<ApiUserPermissionsResponse, GameUser>
+public class ApiUserRestrictionsResponse : IApiResponse, IDataConvertableFrom<ApiUserRestrictionsResponse, GameUser>
 {
     public bool? IsAssetUploadingBlocked { get; set; }
     public bool? IsLevelPublishingBlocked { get; set; }
@@ -24,11 +24,11 @@ public class ApiUserPermissionsResponse : IApiResponse, IDataConvertableFrom<Api
     public bool? IsChallengeUploadingBlocked { get; set; }
     public bool? IsChallengeScoreUploadingBlocked { get; set; }
     
-    public static ApiUserPermissionsResponse? FromOld(GameUser? user, DataContext dataContext)
+    public static ApiUserRestrictionsResponse? FromOld(GameUser? user, DataContext dataContext)
     {
         if (user == null) return null;
         
-        return new ApiUserPermissionsResponse
+        return new ApiUserRestrictionsResponse
         {
             IsAssetUploadingBlocked = user.IsAssetUploadingBlocked,
             IsLevelPublishingBlocked = user.IsLevelPublishingBlocked,
@@ -47,6 +47,6 @@ public class ApiUserPermissionsResponse : IApiResponse, IDataConvertableFrom<Api
         };
     }
 
-    public static IEnumerable<ApiUserPermissionsResponse> FromOldList(IEnumerable<GameUser> oldList, DataContext dataContext)
+    public static IEnumerable<ApiUserRestrictionsResponse> FromOldList(IEnumerable<GameUser> oldList, DataContext dataContext)
         => oldList.Select(old => FromOld(old, dataContext)).ToList()!;
 }

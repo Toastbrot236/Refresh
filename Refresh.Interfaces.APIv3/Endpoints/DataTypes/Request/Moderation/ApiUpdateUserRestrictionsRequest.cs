@@ -3,7 +3,7 @@ using Refresh.Database.Query;
 namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request.Moderation;
 
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-public class ApiUpdateUserPermissionsRequest : ApiModerationRequest, IApiEditUserPermissions
+public class ApiUpdateUserRestrictionsRequest : ApiModerationRequest, IApiEditUserPermissions
 {
     public bool? IsAssetUploadingBlocked { get; set; }
     public bool? IsLevelPublishingBlocked { get; set; }
