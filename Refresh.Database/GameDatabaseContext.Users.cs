@@ -340,6 +340,54 @@ public partial class GameDatabaseContext // Users
         this.SaveChanges();
     }
 
+    public void UpdateUserPermissions(GameUser user, IApiEditUserPermissions data)
+    {
+        if (data.IsAssetUploadingBlocked != null)
+            user.IsAssetUploadingBlocked = data.IsAssetUploadingBlocked.Value;
+
+        if (data.IsLevelPublishingBlocked != null)
+            user.IsLevelPublishingBlocked = data.IsLevelPublishingBlocked.Value;
+
+        if (data.IsLevelEditingBlocked != null)
+            user.IsLevelEditingBlocked = data.IsLevelEditingBlocked.Value;
+
+        if (data.IsLevelReattributingBlocked != null)
+            user.IsLevelReattributingBlocked = data.IsLevelReattributingBlocked.Value;
+
+        if (data.IsLevelScoreUploadingBlocked != null)
+            user.IsLevelScoreUploadingBlocked = data.IsLevelScoreUploadingBlocked.Value;
+
+        if (data.IsHeartingBlocked != null)
+            user.IsHeartingBlocked = data.IsHeartingBlocked.Value;
+
+        if (data.IsPhotoPublishingBlocked != null)
+            user.IsPhotoPublishingBlocked = data.IsPhotoPublishingBlocked.Value;
+
+        if (data.IsProfileUpdatingBlocked != null)
+            user.IsProfileUpdatingBlocked = data.IsProfileUpdatingBlocked.Value;
+
+        if (data.IsCommentPostingBlocked != null)
+            user.IsCommentPostingBlocked = data.IsCommentPostingBlocked.Value;
+
+        if (data.IsReviewPostingBlocked != null)
+            user.IsReviewPostingBlocked = data.IsReviewPostingBlocked.Value;
+
+        if (data.IsPlaylistUploadingBlocked != null)
+            user.IsPlaylistUploadingBlocked = data.IsPlaylistUploadingBlocked.Value;
+
+        if (data.IsPlaylistEditingBlocked != null)
+            user.IsPlaylistEditingBlocked = data.IsPlaylistEditingBlocked.Value;
+
+        if (data.IsChallengeUploadingBlocked != null)
+            user.IsChallengeUploadingBlocked = data.IsChallengeUploadingBlocked.Value;
+
+        if (data.IsChallengeUploadingBlocked != null)
+            user.IsChallengeUploadingBlocked = data.IsChallengeUploadingBlocked.Value;
+        
+        this.GameUsers.Update(user);
+        this.SaveChanges();
+    }
+
     public void UpdatePlanetModdedStatus(GameUser user)
     {
         user.AreLbp2PlanetsModded = this.GetPlanetModdedStatus(user.Lbp2PlanetsHash);

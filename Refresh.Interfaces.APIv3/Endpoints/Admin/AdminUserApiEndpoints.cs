@@ -17,6 +17,7 @@ using Refresh.Interfaces.APIv3.Documentation.Descriptions;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes;
 using Refresh.Interfaces.APIv3.Endpoints.ApiTypes.Errors;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request;
+using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Request.Moderation;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Admin;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Categories;
 using Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Users;
@@ -272,9 +273,7 @@ public class AdminUserApiEndpoints : EndpointGroup
         if (!user.MayModifyUser(targetUser))
             return ApiValidationError.MayNotModifyUserDueToLowRoleError;
 
-        
-
-        database.UpdateUserData(targetUser, body);
+        database.UpdateUserPermissions(targetUser, body);
         // TODO: log this as moderation action
 
         return ApiExtendedGameUserResponse.FromOld(targetUser, dataContext);
