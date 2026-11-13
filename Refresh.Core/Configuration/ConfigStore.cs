@@ -15,13 +15,17 @@ public class ConfigStore
 
     public DryArchiveConfig DryArchive { get; }
     public EndpointRateLimitConfig EndpointRateLimits { get; }
+    public UserRoleConfig UserRoles { get; }
 
     private static readonly Lock ConfigLock = new();
     public ConfigStore(Logger logger)
     {
         lock (ConfigLock)
         {
-            this.GameServer = Config.LoadFromJsonFile<GameServerConfig>("refreshGameServer.json", logger);
+            // Has to be loaded first so GameServerConfig could migrate its stuff over to it
+            this.UserRoles = Config.LoadFromJsonFile<UserRoleConfig>("userRoleSettings.json", logger);
+
+            this.GameServer = Config.LoadFromJsonFile<GameServerConfig>("refreshGameServer.json", logger, [this.UserRoles]);
             this.Database = Config.LoadFromJsonFile<DatabaseConfig>("db.json", logger);
         
             this.ContactInfo = Config.LoadFromJsonFile<ContactInfoConfig>("contactInfo.json", logger);
@@ -44,6 +48,7 @@ public class ConfigStore
 
         this.DryArchive = new DryArchiveConfig();
         this.EndpointRateLimits = new EndpointRateLimitConfig();
+        this.UserRoles = new UserRoleConfig();
     }
 
     public void AddToBunkum(BunkumServer server)
@@ -55,5 +60,6 @@ public class ConfigStore
         server.AddConfig(this.RichPresence);
         server.AddConfig(this.DryArchive);
         server.AddConfig(this.EndpointRateLimits);
+        server.AddConfig(this.UserRoles);
     }
 }
