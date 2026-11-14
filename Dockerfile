@@ -3,10 +3,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 WORKDIR /build
 
-COPY . .
-
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish Refresh.GameServer -c ${BUILD_CONFIGURATION} --property:OutputPath=/build/publish/ --no-self-contained
+
+# The same as what dotnet would use if nothing was specified at all. Refresh knows to ignore the version if it's 1.0.0.
+ARG VERSION=1.0.0
+RUN echo Refresh semantic version to use: ${VERSION}
+
+COPY . .
+RUN dotnet publish Refresh.GameServer -c ${BUILD_CONFIGURATION} --property:OutputPath=/build/publish/ --no-self-contained /p:Version=${VERSION}
 
 # Final running container
 
