@@ -5,9 +5,9 @@ using Refresh.GameServer;
 BunkumConsole.AllocateConsole();
 
 #if DEBUG
-Console.WriteLine($"Starting Refresh (DEBUG build, version {VersionInformation.Version})");
+Console.WriteLine($"Starting the Refresh Game server (DEBUG build, version {VersionInformation.Version})");
 #else
-Console.WriteLine($"Starting Refresh (RELEASE build, version {VersionInformation.Version})");
+Console.WriteLine($"Starting the Refresh Game server (RELEASE build, version {VersionInformation.Version})");
 #endif
 
 using RefreshGameServer server = new();

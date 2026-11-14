@@ -17,9 +17,9 @@ internal class Program
     public static async Task Main()
     {
         #if DEBUG
-        Console.WriteLine($"Starting the presence server (DEBUG build, version {VersionInformation.Version})");
+        Console.WriteLine($"Starting the Refresh Presence server (DEBUG build, version {VersionInformation.Version})");
         #else
-        Console.WriteLine($"Starting the presence server (RELEASE build, version {VersionInformation.Version})");
+        Console.WriteLine($"Starting the Refresh Presence server (RELEASE build, version {VersionInformation.Version})");
         #endif
 
         LoggerConfiguration loggerConfiguration = new()
