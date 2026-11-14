@@ -5,7 +5,12 @@ WORKDIR /build
 COPY . .
 
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish Refresh.PresenceServer -c ${BUILD_CONFIGURATION} --property:OutputPath=/build/publish/ --no-self-contained
+
+# The same as what dotnet would use if nothing was specified at all. Refresh knows to ignore the version if it's 1.0.0.
+ARG VERSION=1.0.0
+RUN echo Using the following VERSION value for PresenceServer: ${VERSION}
+
+RUN dotnet publish Refresh.PresenceServer -c ${BUILD_CONFIGURATION} --property:OutputPath=/build/publish/ --no-self-contained /p:Version=${VERSION}
 
 # Final running container
 
