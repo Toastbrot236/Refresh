@@ -34,7 +34,7 @@ logger.LogInfo(BunkumCategory.Startup, "Warming up database...");
 database.Warmup();
 
 logger.LogInfo(BunkumCategory.Startup, "Starting worker manager!");
-WorkerManager manager = RefreshWorkerManager.Create(logger, new FileSystemDataStore(), database, new SystemDateTimeProvider());
+WorkerManager manager = RefreshWorkerManager.Create(logger, new FileSystemDataStore(), database, new SystemDateTimeProvider(), configStore);
 
 manager.Start();
 manager.WaitForExit();

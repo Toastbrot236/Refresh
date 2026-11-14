@@ -1,6 +1,7 @@
 ﻿using Bunkum.Core.Storage;
 using NotEnoughLogs;
 using Refresh.Common.Time;
+using Refresh.Core.Configuration;
 using Refresh.Database;
 using Refresh.Interfaces.Workers.Migrations;
 using Refresh.Interfaces.Workers.Repeating;
@@ -10,7 +11,7 @@ namespace Refresh.Interfaces.Workers;
 
 public static class RefreshWorkerManager
 {
-    public static WorkerManager Create(Logger logger, IDataStore dataStore, GameDatabaseProvider databaseProvider, IDateTimeProvider timeProvider)
+    public static WorkerManager Create(Logger logger, IDataStore dataStore, GameDatabaseProvider databaseProvider, IDateTimeProvider timeProvider, ConfigStore configs)
     {
         WorkerManager manager = new(logger, dataStore, databaseProvider, timeProvider);
         
