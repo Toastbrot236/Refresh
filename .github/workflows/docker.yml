@@ -38,7 +38,7 @@ jobs:
         run: echo "VERSION=0.0.0" >> $GITHUB_ENV
 
       - name: Print VERSION variable for debugging
-        run: echo ${{ github.env.version }}
+        run: echo ${{ github.env.VERSION }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
@@ -65,4 +65,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.env.version }}
+            VERSION=${{ github.env.VERSION }}
