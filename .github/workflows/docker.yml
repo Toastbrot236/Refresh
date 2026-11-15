@@ -61,4 +61,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: VERSION=${{ VERSION }}
+          # https://forums.docker.com/t/how-to-pass-github-actions-variable-into-dockerfile/146630/3
+          build-args: |
+            VERSION=${{ VERSION }}
