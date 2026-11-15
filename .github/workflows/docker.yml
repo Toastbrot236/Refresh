@@ -20,22 +20,19 @@ jobs:
           - name: GameServer
             dockerfile: Dockerfile
             container_id: refresh
-            build_args: ""
+            build_args: "VERSION=${GITHUB_REF/refs\/tags\/v/}"
           - name: PresenceServer
             dockerfile: PresenceServer.Dockerfile
             container_id: refresh-presenceserver
-            build_args: ""
+            build_args: "VERSION=${GITHUB_REF/refs\/tags\/v/}"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
-      - name: Set VERSION variable from tag (for tag pushes)
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
-
-      - name: Print VERSION variable for debugging
-        run: echo "$VERSION"
+      - name: Print build_args variable for debugging
+        run: echo "${{ matrix.service.build_args }}"
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
@@ -55,14 +52,10 @@ jobs:
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6.18.0
-        env: 
-          version: $VERSION
         with:
           context: .
           file: ${{ matrix.service.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # https://forums.docker.com/t/how-to-pass-github-actions-variable-into-dockerfile/146630/3
-          build-args: |
-            VERSION=${{ env.version }}
+          build-args: ${{ matrix.service.build_args }}
