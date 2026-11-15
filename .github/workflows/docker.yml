@@ -31,14 +31,14 @@ jobs:
 
       - name: Set VERSION variable from tag (for tag pushes)
         if: ${{ contains(github.ref, 'refs/tags') }}
-        run: echo "${GITHUB_REF/refs\/tags\/v/}" >> ${{ vars.VERSION }}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
 
-      - name: Set VERSION variable to default (for normal commits)
+      - name: Set VERSION variable from tag (for normal commits)
         if: ${{ !contains(github.ref, 'refs/tags') }}
-        run: echo "0.0.0" >> ${{ vars.VERSION }}
+        run: echo "VERSION=0.0.0" >> $GITHUB_ENV
 
       - name: Print VERSION variable for debugging
-        run: echo "$VERSION"
+        run: echo "${{ env.VERSION }}"
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
@@ -65,4 +65,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ vars.VERSION }}
+            VERSION=${{ env.VERSION }}
