@@ -49,9 +49,9 @@ public class ApiNotFoundError : ApiError
     public const string SubPlaylistMissingErrorWhen = "The sub-playlist could not be found";
     public static readonly ApiNotFoundError SubPlaylistMissingError = new(SubPlaylistMissingErrorWhen);
 
-    private ApiNotFoundError() : base("The requested resource was not found", NotFound)
+    public ApiNotFoundError() : base("The requested resource was not found", NotFound)
     {}
     
-    private ApiNotFoundError(string message) : base(message, NotFound)
+    public ApiNotFoundError(string message) : base(message, NotFound)
     {}
 }
