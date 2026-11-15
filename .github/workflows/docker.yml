@@ -32,10 +32,10 @@ jobs:
           submodules: 'recursive'
 
       - name: Set VERSION variable from tag (for tag pushes)
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $matrix.service.build_args
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
 
-      - name: Print matrix.service.build_args variables for debugging
-        run: echo "$matrix.service.build_args"
+      - name: Print VERSION variable for debugging
+        run: echo "${{ VERSION }}"
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
@@ -61,5 +61,4 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            ${{ matrix.service.build_args }}
+          build-args: VERSION=${{ VERSION }}
