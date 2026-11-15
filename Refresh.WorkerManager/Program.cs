@@ -3,6 +3,7 @@ using Bunkum.Core.Storage;
 using NotEnoughLogs;
 using NotEnoughLogs.Behaviour;
 using Refresh.Common.Time;
+using Refresh.Core;
 using Refresh.Core.Configuration;
 using Refresh.Database;
 using Refresh.Database.Configuration;
@@ -21,7 +22,13 @@ LoggerConfiguration loggerConfiguration = new()
 
 using Logger logger = new(loggerConfiguration);
 
-logger.LogInfo(BunkumCategory.Startup, "Starting up worker manager...");
+
+#if DEBUG
+logger.LogInfo(BunkumCategory.Startup, $"Starting up the Refresh worker manager (DEBUG build, version {VersionInformation.Version})...");
+#else
+logger.LogInfo(BunkumCategory.Startup, $"Starting up the Refresh worker manager (RELEASE build, version {VersionInformation.Version})...");
+#endif
+
 logger.LogCritical(BunkumCategory.Startup, "The dedicated worker manager isn't complete yet! It will work in a debug setting, but do not use this in production yet.");
 
 logger.LogInfo(BunkumCategory.Startup, "Initializing configs...");
