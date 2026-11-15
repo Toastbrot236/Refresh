@@ -32,6 +32,11 @@ public class UserApiEndpoints : EndpointGroup
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType, DataContext dataContext)
     {
+        // If ID type is "me", then the client likely tried calling something like /users/me/previousUsernames,
+        // but had a typo in its endpoint route. In that case return a different 404, instead of a user not found error.
+        if (idType == "me")
+            return new ApiNotFoundError($"Unknown route {context.Url.AbsolutePath}");
+
         GameUser? user = database.GetUserByIdAndType(idType, id);
         if(user == null) return ApiNotFoundError.UserMissingError;
         
