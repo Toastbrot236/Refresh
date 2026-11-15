@@ -55,6 +55,8 @@ jobs:
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6.18.0
+        env: 
+          version: $VERSION
         with:
           context: .
           file: ${{ matrix.service.dockerfile }}
@@ -63,4 +65,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # https://forums.docker.com/t/how-to-pass-github-actions-variable-into-dockerfile/146630/3
           build-args: |
-            VERSION=${VERSION}
+            VERSION=${{ env.version }}
