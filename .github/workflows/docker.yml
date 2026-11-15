@@ -20,19 +20,23 @@ jobs:
           - name: GameServer
             dockerfile: Dockerfile
             container_id: refresh
-            build_args: "VERSION=${GITHUB_REF/refs\/tags\/v/}"
           - name: PresenceServer
             dockerfile: PresenceServer.Dockerfile
             container_id: refresh-presenceserver
-            build_args: "VERSION=${GITHUB_REF/refs\/tags\/v/}"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
-      - name: Print build_args variable for debugging
-        run: echo "${{ matrix.service.build_args }}"
+      - name: Set VERSION variable from tag (for tag pushes)
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+
+      - name: Print VERSION variable for debugging
+        run: echo "$VERSION"
+
+      - name: Print github.env.VERSION variable for debugging
+        run: echo ${{ github.env.VERSION }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
@@ -58,4 +62,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ matrix.service.build_args }}
+          build-args: |
+            VERSION=${{ github.env.VERSION }}
