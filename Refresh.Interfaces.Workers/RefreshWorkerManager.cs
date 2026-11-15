@@ -31,6 +31,14 @@ public static class RefreshWorkerManager
         manager.AddJob<CalculateScoreRanksMigration>();
         manager.AddJob<MoveSubjectsOutOfGamePhotosMigration>();
         manager.AddJob<CorrectLevelModdedStatusMigration>();
+        
+        // config-dependant jobs
+        if (configs.Integration.DiscordWebhookEnabled && configs.GameServer.PermitShowingOnlineUsers)
+        {
+            manager.AddJob(new DiscordIntegrationJob(configs.Integration, configs.GameServer));
+        }
+
+        manager.AddJob(new NewUserJob(configs.GameServer.HoursUntilNewAccountNoLongerNew));
 
         return manager;
     }

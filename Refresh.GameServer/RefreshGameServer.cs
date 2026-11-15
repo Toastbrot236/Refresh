@@ -186,13 +186,6 @@ public class RefreshGameServer : RefreshServer
     protected virtual void SetupWorkers()
     {
         this.WorkerManager = RefreshWorkerManager.Create(this.Logger, this._dataStore, this._databaseProvider, this.GetTimeProvider(), this._configStore);
-        
-        if (this._configStore.Integration.DiscordWebhookEnabled && this._configStore.GameServer.PermitShowingOnlineUsers)
-        {
-            this.WorkerManager.AddJob(new DiscordIntegrationJob(this._configStore.Integration, this._configStore.GameServer));
-        }
-        
-        this.WorkerManager.AddJob(new NewUserJob(this._configStore.GameServer.HoursUntilNewAccountNoLongerNew));
     }
 
     /// <inheritdoc/>
