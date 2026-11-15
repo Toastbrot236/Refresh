@@ -31,11 +31,11 @@ jobs:
 
       - name: Set VERSION variable from tag (for tag pushes)
         if: ${{ contains(github.ref, 'refs/tags') }}
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+        run: echo "${GITHUB_REF/refs\/tags\/v/}" >> ${{ vars.VERSION }}
 
-      - name: Set VERSION variable from tag (for normal commits)
+      - name: Set VERSION variable to default (for normal commits)
         if: ${{ !contains(github.ref, 'refs/tags') }}
-        run: echo "VERSION=0.0.0" >> $GITHUB_ENV
+        run: echo "0.0.0" >> ${{ vars.VERSION }}
 
       - name: Print VERSION variable for debugging
         run: echo "$VERSION"
@@ -58,8 +58,6 @@ jobs:
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6.18.0
-        env:
-          VERSION: $VERSION
         with:
           context: .
           file: ${{ matrix.service.dockerfile }}
@@ -67,4 +65,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ env.VERSION }}
+            VERSION=${{ vars.VERSION }}
