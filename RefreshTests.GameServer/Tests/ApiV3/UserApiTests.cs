@@ -397,4 +397,34 @@ public class UserApiTests : GameServerTest
         Assert.That(response?.Data, Is.Not.Null);
         Assert.That(response!.Data!.OwnRelations, Is.Not.Null);
     }
+
+    [Test]
+    public void CanGetOwnPreviousUsernames()
+    {
+        using TestContext context = this.GetServer();
+        GameUser me = context.CreateUser("ogName");
+
+        // change it a few times
+        context.Database.RenameUser(me, "Renamed1", true);
+        context.Database.RenameUser(me, "Renamed2", true);
+        context.Database.RenameUser(me, "Renamed3", true);
+
+        // Sign in and then get previous names
+        using HttpClient client = context.GetAuthenticatedClient(TokenType.Api, me);
+        ApiListResponse<ApiExtendedPreviousUsernameResponse>? response = client.GetList<ApiExtendedPreviousUsernameResponse>($"/api/v3/users/me/previousUsernames?count=10&skip=0");
+        Assert.That(response?.Data, Is.Not.Null);
+        Assert.That(response!.Data!.Count(), Is.EqualTo(3));
+        Assert.That(response!.ListInfo, Is.Not.Null);
+        Assert.That(response!.ListInfo!.TotalItems, Is.EqualTo(3));
+
+        // Assert the names are sorted so that the most recent one is first
+        Assert.That(response!.Data![0].Username, Is.EqualTo("Renamed2"));
+        Assert.That(response!.Data![1].Username, Is.EqualTo("Renamed1"));
+        Assert.That(response!.Data![2].Username, Is.EqualTo("ogName"));
+
+        // Assert the user data is included
+        Assert.That(response!.Data![0].User.UserId, Is.EqualTo(me.UserId.ToString()));
+        Assert.That(response!.Data![1].User.UserId, Is.EqualTo(me.UserId.ToString()));
+        Assert.That(response!.Data![2].User.UserId, Is.EqualTo(me.UserId.ToString()));
+    }
 }
