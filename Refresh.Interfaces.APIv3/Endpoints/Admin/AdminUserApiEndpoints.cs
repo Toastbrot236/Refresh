@@ -256,12 +256,35 @@ public class AdminUserApiEndpoints : EndpointGroup
         return ApiExtendedGameUserResponse.FromOld(targetUser, dataContext);
     }
 
+    [ApiV3Endpoint("admin/users/{idType}/{id}/permissions"), MinimumRole(GameUserRole.Moderator)]
+    [DocSummary("Gets the permissions of a given user")]
+    [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
+    [DocError(typeof(ApiValidationError), ApiValidationError.MayNotModifyUserDueToLowRoleErrorWhen)]
+    public ApiResponse<ApiExtendedGameUserResponse> UpdateUserPermissions(RequestContext context, GameDatabaseContext database,
+        GameUser user, ApiUpdateUserPermissionsRequest body, DataContext dataContext,
+        [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
+        [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
+    {
+        GameUser? targetUser = database.GetUserByIdAndType(idType, id);
+
+        if (targetUser == null)
+            return ApiNotFoundError.UserMissingError;
+
+        if (!user.MayModifyUser(targetUser))
+            return ApiValidationError.MayNotModifyUserDueToLowRoleError;
+
+        database.UpdateUserPermissions(targetUser, body);
+        // TODO: log this as moderation action
+
+        return ApiExtendedGameUserResponse.FromOld(targetUser, dataContext);
+    }
+
     [ApiV3Endpoint("admin/users/{idType}/{id}/permissions", HttpMethods.Patch), MinimumRole(GameUserRole.Moderator)]
     [DocSummary("Updates the specified user's permissions")]
     [DocError(typeof(ApiNotFoundError), ApiNotFoundError.UserMissingErrorWhen)]
     [DocError(typeof(ApiValidationError), ApiValidationError.MayNotModifyUserDueToLowRoleErrorWhen)]
     public ApiResponse<ApiExtendedGameUserResponse> UpdateUserPermissions(RequestContext context, GameDatabaseContext database,
-        GameUser user, ApiUpdateUserRestrictionsRequest body, DataContext dataContext,
+        GameUser user, ApiUpdateUserPermissionsRequest body, DataContext dataContext,
         [DocSummary(SharedParamDescriptions.UserIdParam)] string id, 
         [DocSummary(SharedParamDescriptions.UserIdTypeParam)] string idType)
     {

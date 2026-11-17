@@ -2,18 +2,18 @@ namespace Refresh.Database.Query;
 
 public interface IApiEditUserPermissions
 {
-    bool? MayUploadAssets { get; set; }
-    bool? MayPublishNewLevels { get; set; }
-    bool? MayEditLevels { get; set; }
-    bool? MaySetLevelReuploadData { get; set; }
-    bool? MayUploadLevelScores { get; set; }
-    bool? MayHeartEntities { get; set; }
-    bool? MayPublishPhotos { get; set; }
-    bool? MayEditProfile { get; set; }
-    bool? MayUploadComments { get; set; }
-    bool? MayUploadReviews { get; set; }
-    bool? MayUploadPlaylists { get; set; }
-    bool? MayEditPlaylists { get; set; }
-    bool? MayUploadChallenges { get; set; }
-    bool? MayUploadChallengeScores { get; set; }
+    UserPermissionSetting? UploadAssetsPermission { get; set; }
+    UserPermissionSetting? PublishNewLevelsPermission { get; set; }
+    UserPermissionSetting? EditLevelsPermission { get; set; }
+    UserPermissionSetting? SetLevelReuploadDataPermission { get; set; }
+    UserPermissionSetting? UploadLevelScoresPermission { get; set; }
+    UserPermissionSetting? HeartEntitiesPermission { get; set; }
+    UserPermissionSetting? PublishPhotosPermission { get; set; }
+    UserPermissionSetting? EditProfilePermission { get; set; }
+    UserPermissionSetting? UploadCommentsPermission { get; set; }
+    UserPermissionSetting? UploadReviewsPermission { get; set; }
+    UserPermissionSetting? UploadPlaylistsPermission { get; set; }
+    UserPermissionSetting? EditPlaylistsPermission { get; set; }
+    UserPermissionSetting? UploadChallengesPermission { get; set; }
+    UserPermissionSetting? UploadChallengeScoresPermission { get; set; }
 }

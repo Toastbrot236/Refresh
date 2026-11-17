@@ -342,47 +342,47 @@ public partial class GameDatabaseContext // Users
 
     public void UpdateUserPermissions(GameUser user, IApiEditUserPermissions data)
     {
-        if (data.MayUploadAssets != null)
-            user.MayUploadAssets = data.MayUploadAssets.Value;
+        if (data.UploadAssetsPermission != null)
+            user.UploadAssetsPermission = data.UploadAssetsPermission.Value;
 
-        if (data.MayPublishNewLevels != null)
-            user.MayPublishNewLevels = data.MayPublishNewLevels.Value;
+        if (data.PublishNewLevelsPermission != null)
+            user.PublishNewLevelsPermission = data.PublishNewLevelsPermission.Value;
 
-        if (data.MayEditLevels != null)
-            user.MayEditLevels = data.MayEditLevels.Value;
+        if (data.EditLevelsPermission != null)
+            user.EditLevelsPermission = data.EditLevelsPermission.Value;
 
-        if (data.MaySetLevelReuploadData != null)
-            user.MaySetLevelReuploadData = data.MaySetLevelReuploadData.Value;
+        if (data.SetLevelReuploadDataPermission != null)
+            user.SetLevelReuploadDataPermission = data.SetLevelReuploadDataPermission.Value;
 
-        if (data.MayUploadLevelScores != null)
-            user.MayUploadLevelScores = data.MayUploadLevelScores.Value;
+        if (data.UploadLevelScoresPermission != null)
+            user.UploadLevelScoresPermission = data.UploadLevelScoresPermission.Value;
 
-        if (data.MayHeartEntities != null)
-            user.MayHeartEntities = data.MayHeartEntities.Value;
+        if (data.HeartEntitiesPermission != null)
+            user.HeartEntitiesPermission = data.HeartEntitiesPermission.Value;
 
-        if (data.MayPublishPhotos != null)
-            user.MayPublishPhotos = data.MayPublishPhotos.Value;
+        if (data.PublishPhotosPermission != null)
+            user.PublishPhotosPermission = data.PublishPhotosPermission.Value;
 
-        if (data.MayEditProfile != null)
-            user.MayEditProfile = data.MayEditProfile.Value;
+        if (data.EditProfilePermission != null)
+            user.EditProfilePermission = data.EditProfilePermission.Value;
 
-        if (data.MayUploadComments != null)
-            user.MayUploadComments = data.MayUploadComments.Value;
+        if (data.UploadCommentsPermission != null)
+            user.UploadCommentsPermission = data.UploadCommentsPermission.Value;
 
-        if (data.MayUploadReviews != null)
-            user.MayUploadReviews = data.MayUploadReviews.Value;
+        if (data.UploadReviewsPermission != null)
+            user.UploadReviewsPermission = data.UploadReviewsPermission.Value;
 
-        if (data.MayUploadPlaylists != null)
-            user.MayUploadPlaylists = data.MayUploadPlaylists.Value;
+        if (data.UploadPlaylistsPermission != null)
+            user.UploadPlaylistsPermission = data.UploadPlaylistsPermission.Value;
 
-        if (data.MayEditPlaylists != null)
-            user.MayEditPlaylists = data.MayEditPlaylists.Value;
+        if (data.EditPlaylistsPermission != null)
+            user.EditPlaylistsPermission = data.EditPlaylistsPermission.Value;
 
-        if (data.MayUploadChallenges != null)
-            user.MayUploadChallenges = data.MayUploadChallenges.Value;
+        if (data.UploadChallengesPermission != null)
+            user.UploadChallengesPermission = data.UploadChallengesPermission.Value;
 
-        if (data.MayUploadChallengeScores != null)
-            user.MayUploadChallengeScores = data.MayUploadChallengeScores.Value;
+        if (data.UploadChallengeScoresPermission != null)
+            user.UploadChallengeScoresPermission = data.UploadChallengeScoresPermission.Value;
         
         this.GameUsers.Update(user);
         this.SaveChanges();

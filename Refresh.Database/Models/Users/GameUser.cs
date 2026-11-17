@@ -131,20 +131,20 @@ public partial class GameUser : IRateLimitUser
     }
 
     // User-specific-restrictions
-    public bool MayUploadAssets { get; set; }
-    public bool MayPublishNewLevels { get; set; }
-    public bool MayEditLevels { get; set; }
-    public bool MaySetLevelReuploadData { get; set; }
-    public bool MayUploadLevelScores { get; set; }
-    public bool MayHeartEntities { get; set; }
-    public bool MayPublishPhotos { get; set; }
-    public bool MayEditProfile { get; set; }
-    public bool MayUploadComments { get; set; }
-    public bool MayUploadReviews { get; set; }
-    public bool MayUploadPlaylists { get; set; }
-    public bool MayEditPlaylists { get; set; }
-    public bool MayUploadChallenges { get; set; }
-    public bool MayUploadChallengeScores { get; set; }
+    public UserPermissionSetting UploadAssetsPermission { get; set; }
+    public UserPermissionSetting PublishNewLevelsPermission { get; set; }
+    public UserPermissionSetting EditLevelsPermission { get; set; }
+    public UserPermissionSetting SetLevelReuploadDataPermission { get; set; }
+    public UserPermissionSetting UploadLevelScoresPermission { get; set; }
+    public UserPermissionSetting HeartEntitiesPermission { get; set; }
+    public UserPermissionSetting PublishPhotosPermission { get; set; }
+    public UserPermissionSetting EditProfilePermission { get; set; }
+    public UserPermissionSetting UploadCommentsPermission { get; set; }
+    public UserPermissionSetting UploadReviewsPermission { get; set; }
+    public UserPermissionSetting UploadPlaylistsPermission { get; set; }
+    public UserPermissionSetting EditPlaylistsPermission { get; set; }
+    public UserPermissionSetting UploadChallengesPermission { get; set; }
+    public UserPermissionSetting UploadChallengeScoresPermission { get; set; }
 
     public override string ToString() => $"{this.Username} ({this.Role})";
 
