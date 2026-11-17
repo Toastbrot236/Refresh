@@ -342,47 +342,47 @@ public partial class GameDatabaseContext // Users
 
     public void UpdateUserPermissions(GameUser user, IApiEditUserPermissions data)
     {
-        if (data.IsAssetUploadingBlocked != null)
-            user.IsAssetUploadingBlocked = data.IsAssetUploadingBlocked.Value;
+        if (data.MayUploadAssets != null)
+            user.MayUploadAssets = data.MayUploadAssets.Value;
 
-        if (data.IsLevelPublishingBlocked != null)
-            user.IsLevelPublishingBlocked = data.IsLevelPublishingBlocked.Value;
+        if (data.MayPublishNewLevels != null)
+            user.MayPublishNewLevels = data.MayPublishNewLevels.Value;
 
-        if (data.IsLevelEditingBlocked != null)
-            user.IsLevelEditingBlocked = data.IsLevelEditingBlocked.Value;
+        if (data.MayEditLevels != null)
+            user.MayEditLevels = data.MayEditLevels.Value;
 
-        if (data.IsLevelReattributingBlocked != null)
-            user.IsLevelReattributingBlocked = data.IsLevelReattributingBlocked.Value;
+        if (data.MaySetLevelReuploadData != null)
+            user.MaySetLevelReuploadData = data.MaySetLevelReuploadData.Value;
 
-        if (data.IsLevelScoreUploadingBlocked != null)
-            user.IsLevelScoreUploadingBlocked = data.IsLevelScoreUploadingBlocked.Value;
+        if (data.MayUploadLevelScores != null)
+            user.MayUploadLevelScores = data.MayUploadLevelScores.Value;
 
-        if (data.IsHeartingBlocked != null)
-            user.IsHeartingBlocked = data.IsHeartingBlocked.Value;
+        if (data.MayHeartEntities != null)
+            user.MayHeartEntities = data.MayHeartEntities.Value;
 
-        if (data.IsPhotoPublishingBlocked != null)
-            user.IsPhotoPublishingBlocked = data.IsPhotoPublishingBlocked.Value;
+        if (data.MayPublishPhotos != null)
+            user.MayPublishPhotos = data.MayPublishPhotos.Value;
 
-        if (data.IsProfileUpdatingBlocked != null)
-            user.IsProfileUpdatingBlocked = data.IsProfileUpdatingBlocked.Value;
+        if (data.MayEditProfile != null)
+            user.MayEditProfile = data.MayEditProfile.Value;
 
-        if (data.IsCommentPostingBlocked != null)
-            user.IsCommentPostingBlocked = data.IsCommentPostingBlocked.Value;
+        if (data.MayUploadComments != null)
+            user.MayUploadComments = data.MayUploadComments.Value;
 
-        if (data.IsReviewPostingBlocked != null)
-            user.IsReviewPostingBlocked = data.IsReviewPostingBlocked.Value;
+        if (data.MayUploadReviews != null)
+            user.MayUploadReviews = data.MayUploadReviews.Value;
 
-        if (data.IsPlaylistUploadingBlocked != null)
-            user.IsPlaylistUploadingBlocked = data.IsPlaylistUploadingBlocked.Value;
+        if (data.MayUploadPlaylists != null)
+            user.MayUploadPlaylists = data.MayUploadPlaylists.Value;
 
-        if (data.IsPlaylistEditingBlocked != null)
-            user.IsPlaylistEditingBlocked = data.IsPlaylistEditingBlocked.Value;
+        if (data.MayEditPlaylists != null)
+            user.MayEditPlaylists = data.MayEditPlaylists.Value;
 
-        if (data.IsChallengeUploadingBlocked != null)
-            user.IsChallengeUploadingBlocked = data.IsChallengeUploadingBlocked.Value;
+        if (data.MayUploadChallenges != null)
+            user.MayUploadChallenges = data.MayUploadChallenges.Value;
 
-        if (data.IsChallengeUploadingBlocked != null)
-            user.IsChallengeUploadingBlocked = data.IsChallengeUploadingBlocked.Value;
+        if (data.MayUploadChallengeScores != null)
+            user.MayUploadChallengeScores = data.MayUploadChallengeScores.Value;
         
         this.GameUsers.Update(user);
         this.SaveChanges();

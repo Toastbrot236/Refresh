@@ -9,20 +9,20 @@ namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Users;
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class ApiUserRestrictionsResponse : IApiResponse, IDataConvertableFrom<ApiUserRestrictionsResponse, GameUser>
 {
-    public bool? IsAssetUploadingBlocked { get; set; }
-    public bool? IsLevelPublishingBlocked { get; set; }
-    public bool? IsLevelEditingBlocked { get; set; }
-    public bool? IsLevelReattributingBlocked { get; set; }
-    public bool? IsLevelScoreUploadingBlocked { get; set; }
-    public bool? IsHeartingBlocked { get; set; }
-    public bool? IsPhotoPublishingBlocked { get; set; }
-    public bool? IsProfileUpdatingBlocked { get; set; }
-    public bool? IsCommentPostingBlocked { get; set; }
-    public bool? IsReviewPostingBlocked { get; set; }
-    public bool? IsPlaylistUploadingBlocked { get; set; }
-    public bool? IsPlaylistEditingBlocked { get; set; }
-    public bool? IsChallengeUploadingBlocked { get; set; }
-    public bool? IsChallengeScoreUploadingBlocked { get; set; }
+    public bool? MayUploadAssets { get; set; }
+    public bool? MayPublishNewLevels { get; set; }
+    public bool? MayEditLevels { get; set; }
+    public bool? MaySetLevelReuploadData { get; set; }
+    public bool? MayUploadLevelScores { get; set; }
+    public bool? MayHeartEntities { get; set; }
+    public bool? MayPublishPhotos { get; set; }
+    public bool? MayEditProfile { get; set; }
+    public bool? MayUploadComments { get; set; }
+    public bool? MayUploadReviews { get; set; }
+    public bool? MayUploadPlaylists { get; set; }
+    public bool? MayEditPlaylists { get; set; }
+    public bool? MayUploadChallenges { get; set; }
+    public bool? MayUploadChallengeScores { get; set; }
     
     public static ApiUserRestrictionsResponse? FromOld(GameUser? user, DataContext dataContext)
     {
@@ -30,20 +30,20 @@ public class ApiUserRestrictionsResponse : IApiResponse, IDataConvertableFrom<Ap
         
         return new ApiUserRestrictionsResponse
         {
-            IsAssetUploadingBlocked = user.IsAssetUploadingBlocked,
-            IsLevelPublishingBlocked = user.IsLevelPublishingBlocked,
-            IsLevelEditingBlocked = user.IsLevelEditingBlocked,
-            IsLevelReattributingBlocked = user.IsLevelReattributingBlocked,
-            IsLevelScoreUploadingBlocked = user.IsLevelScoreUploadingBlocked,
-            IsHeartingBlocked = user.IsHeartingBlocked,
-            IsPhotoPublishingBlocked = user.IsPhotoPublishingBlocked,
-            IsProfileUpdatingBlocked = user.IsProfileUpdatingBlocked,
-            IsCommentPostingBlocked = user.IsCommentPostingBlocked,
-            IsReviewPostingBlocked = user.IsReviewPostingBlocked,
-            IsPlaylistUploadingBlocked = user.IsPlaylistUploadingBlocked,
-            IsPlaylistEditingBlocked = user.IsPlaylistEditingBlocked,
-            IsChallengeUploadingBlocked = user.IsChallengeUploadingBlocked,
-            IsChallengeScoreUploadingBlocked = user.IsChallengeScoreUploadingBlocked,
+            MayUploadAssets = user.MayUploadAssets,
+            MayPublishNewLevels = user.MayPublishNewLevels,
+            MayEditLevels = user.MayEditLevels,
+            MaySetLevelReuploadData = user.MaySetLevelReuploadData,
+            MayUploadLevelScores = user.MayUploadLevelScores,
+            MayHeartEntities = user.MayHeartEntities,
+            MayPublishPhotos = user.MayPublishPhotos,
+            MayEditProfile = user.MayEditProfile,
+            MayUploadComments = user.MayUploadComments,
+            MayUploadReviews = user.MayUploadReviews,
+            MayUploadPlaylists = user.MayUploadPlaylists,
+            MayEditPlaylists = user.MayEditPlaylists,
+            MayUploadChallenges = user.MayUploadChallenges,
+            MayUploadChallengeScores = user.MayUploadChallengeScores,
         };
     }
 
