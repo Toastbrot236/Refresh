@@ -23,6 +23,7 @@ using Refresh.Database.Models.Statistics;
 using Refresh.Database.Models.Workers;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Refresh.Database.Models.Moderation;
+using Refresh.Database.Models.Assets.CWLib;
 
 namespace Refresh.Database;
 
@@ -52,6 +53,7 @@ public partial class GameDatabaseContext : DbContext, IDatabaseContext
     internal DbSet<Event> Events { get; set; }
     internal DbSet<GameScore> GameScores { get; set; }
     internal DbSet<GameAsset> GameAssets { get; set; }
+    internal DbSet<FarcHashesData> FarcHashesData { get; set; }
     internal DbSet<GameNotification> GameNotifications { get; set; }
     internal DbSet<GamePhoto> GamePhotos { get; set; }
     internal DbSet<GamePhotoSubject> GamePhotoSubjects { get; set; }

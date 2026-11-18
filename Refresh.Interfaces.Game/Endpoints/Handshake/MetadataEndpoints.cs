@@ -162,12 +162,6 @@ public class MetadataEndpoints : EndpointGroup
         return promotions;
     }
     
-    // TODO apparently this can be used to send a farc and map containing custom pin, dlc pack, and translation data to lbp2/3
-    [GameEndpoint("farc_hashes")]
-    [MinimumRole(GameUserRole.Restricted)]
-    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
-    public Response FarcHashes(RequestContext context) => Gone;
-    
     //TODO: In the future this should allow you to have separate files per language since the game sends the language through the `language` query parameter.
     private static readonly Lazy<string?> DeveloperVideosFile
         = new(() =>

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Bunkum.Core;
 using Bunkum.Core.Endpoints;
+using Bunkum.Core.Endpoints.Debugging;
 using Bunkum.Core.Responses;
 using Bunkum.Core.Storage;
 using Bunkum.Listener.Protocol;
@@ -16,6 +17,7 @@ using Refresh.Core.Services;
 using Refresh.Core.Types.Data;
 using Refresh.Database;
 using Refresh.Database.Models.Assets;
+using Refresh.Database.Models.Assets.CWLib;
 using Refresh.Database.Models.Authentication;
 using Refresh.Database.Models.Levels;
 using Refresh.Database.Models.Users;
@@ -163,5 +165,57 @@ public class ResourceEndpoints : EndpointGroup
             return null;
 
         return new SerializedResourceList(body.Items.Where(r => !dataStore.ExistsInStore(context.IsPSP() ? $"psp/{r}" : r)));
+    }
+
+    [GameEndpoint("farc_hashes")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [NullStatusCode(Gone)]
+    [EndpointRateLimit(EndpointBucketId.GameGetGameConfig)]
+    [DebugResponseBody]
+    public string? GetFarcHashes(RequestContext context, DataContext dataContext)
+    {
+        FarcHashesData? hashes = dataContext.Database.GetNewestFarcHashes(dataContext.Game);
+        if (hashes == null) return null;
+
+        // Kinda lazy to make a separate class and serialize it for this
+        return $"<farc_hashes dlc_header=\"{hashes.DlcHeaderHash}\" pck_hash=\"{hashes.PackResourceHash}\" pin_hash=\"{hashes.PinResourceHash}\" />";
+    }
+
+    [GameEndpoint("pin_farc")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
+    [DebugResponseBody]
+    public Response GetPinFarc(RequestContext context, DataContext dataContext)
+    {
+        FarcHashesData? hashes = dataContext.Database.GetNewestFarcHashes(dataContext.Game);
+        if (hashes == null) return Gone; // should not happen normally, this isn't called if GetFarcHashes() returns an error
+
+        if (!dataContext.DataStore.ExistsInStore(hashes.PinFarcHash))
+            return NotFound;
+
+        if (!dataContext.DataStore.TryGetDataFromStore(hashes.PinFarcHash, out byte[]? farc))
+            return InternalServerError;
+
+        Debug.Assert(farc != null);
+        return new Response(farc, ContentType.BinaryData);
+    }
+
+    [GameEndpoint("pck_farc")]
+    [MinimumRole(GameUserRole.Restricted)]
+    [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
+    [DebugResponseBody]
+    public Response GetPackFarc(RequestContext context, DataContext dataContext)
+    {
+        FarcHashesData? hashes = dataContext.Database.GetNewestFarcHashes(dataContext.Game);
+        if (hashes == null) return Gone; // should not happen normally, this isn't called if GetFarcHashes() returns an error
+
+        if (!dataContext.DataStore.ExistsInStore(hashes.PackFarcHash))
+            return NotFound;
+
+        if (!dataContext.DataStore.TryGetDataFromStore(hashes.PackFarcHash, out byte[]? farc))
+            return InternalServerError;
+
+        Debug.Assert(farc != null);
+        return new Response(farc, ContentType.BinaryData);
     }
 }

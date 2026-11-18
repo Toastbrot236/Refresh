@@ -79,6 +79,53 @@ namespace Refresh.Database.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Assets.CWLib.FarcHashesData", b =>
+                {
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Version"));
+
+                    b.Property<string>("DlcHeaderHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EnglishTransTableHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("GeneratedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GeneratedUsingJobVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MapHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PackFarcHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PackResourceHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PinFarcHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PinResourceHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Version");
+
+                    b.ToTable("FarcHashesData");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Assets.GameAsset", b =>
                 {
                     b.Property<string>("AssetHash")
