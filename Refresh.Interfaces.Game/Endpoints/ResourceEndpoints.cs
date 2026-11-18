@@ -181,7 +181,7 @@ public class ResourceEndpoints : EndpointGroup
         return $"<farc_hashes dlc_header=\"{hashes.DlcHeaderHash}\" pck_hash=\"{hashes.PackResourceHash}\" pin_hash=\"{hashes.PinResourceHash}\" />";
     }
 
-    [GameEndpoint("pin_farc")]
+    [GameEndpoint("farc/pin")]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
     [DebugResponseBody]
@@ -200,7 +200,7 @@ public class ResourceEndpoints : EndpointGroup
         return new Response(farc, ContentType.BinaryData);
     }
 
-    [GameEndpoint("pck_farc")]
+    [GameEndpoint("farc/pck")]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
     [DebugResponseBody]

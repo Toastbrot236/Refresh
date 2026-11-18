@@ -90,6 +90,10 @@ namespace Refresh.Database.Migrations
                     b.Property<string>("DlcHeaderHash")
                         .IsRequired()
                         .HasColumnType("text");
+                    
+                    b.Property<string>("DlcResourceHash")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("EnglishTransTableHash")
                         .IsRequired()

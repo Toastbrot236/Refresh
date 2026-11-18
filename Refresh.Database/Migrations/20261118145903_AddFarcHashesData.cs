@@ -24,6 +24,7 @@ namespace Refresh.Database.Migrations
                     GeneratedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     GeneratedUsingJobVersion = table.Column<int>(type: "integer", nullable: false),
                     DlcHeaderHash = table.Column<string>(type: "text", nullable: false),
+                    DlcResourceHash = table.Column<string>(type: "text", nullable: false),
                     PinFarcHash = table.Column<string>(type: "text", nullable: false),
                     PackFarcHash = table.Column<string>(type: "text", nullable: false),
                     PinResourceHash = table.Column<string>(type: "text", nullable: false),

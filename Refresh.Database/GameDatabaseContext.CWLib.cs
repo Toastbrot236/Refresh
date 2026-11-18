@@ -7,6 +7,9 @@ public partial class GameDatabaseContext // CWLib
 {
     public FarcHashesData? GetNewestFarcHashes(TokenGame? specificGame)
     {
-        return this.FarcHashesData.MaxBy(f => f.Version);
+        return this.FarcHashesData
+            .Where(f => f.Version > 0)
+            .OrderByDescending(f => f.GeneratedAt)
+            .FirstOrDefault();
     }
 }

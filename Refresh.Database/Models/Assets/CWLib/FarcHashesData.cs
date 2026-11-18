@@ -6,6 +6,7 @@ public partial class FarcHashesData : ISequentialId
     public DateTimeOffset GeneratedAt { get; set; }
     public int GeneratedUsingJobVersion { get; set; }
     public string DlcHeaderHash { get; set; } = "0";
+    public string DlcResourceHash { get; set; } = "0";
     public string PinFarcHash { get; set; } = "0";
     public string PackFarcHash { get; set; } = "0";
     public string PinResourceHash { get; set; } = "0";
