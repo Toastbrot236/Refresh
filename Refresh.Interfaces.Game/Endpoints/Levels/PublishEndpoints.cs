@@ -173,6 +173,30 @@ public class PublishEndpoints : EndpointGroup
         return false;
     }
 
+    private static bool UserMayUploadOrEditLevels(GameServerConfig config, GameDatabaseContext database, GameUser user, GameLevelRequest body)
+    {
+        RolePermissions rolePerms = user.GetRolePermissionsForUser(config);
+
+        if (dataContext.User!.IsWriteBlocked(config))
+        {
+            dataContext.Database.AddPublishFailNotification($"You may not publish or edit levels because your user role ({user.Role}) is in read-only mode.", body.Title, dataContext.User!);
+            return Unauthorized;
+        }
+
+        if (body.LevelId != 0) // is this a republish/edit request?
+        {
+            if ()
+        }
+        else
+        {
+
+        }
+        
+        if (IsTimedLevelLimitReached(dataContext, dataContext.User!, body.Title, user.GetRolePermissionsForUser(config).LevelUploadRateLimit)) 
+            return Unauthorized;
+        }
+    }
+
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
     [RequireEmailVerified]
     [EndpointRateLimit(EndpointBucketId.GamePrepareLevelPublish)]
@@ -184,14 +208,6 @@ public class PublishEndpoints : EndpointGroup
         AipiService? aipi,
         GameUser user)
     {
-        if (dataContext.User!.IsWriteBlocked(config))
-        {
-            dataContext.Database.AddPublishFailNotification($"The server is in read-only mode.", body.Title, dataContext.User!);
-            return Unauthorized;
-        }
-        
-        if (IsTimedLevelLimitReached(dataContext, dataContext.User!, body.Title, user.GetRolePermissionsForUser(config).LevelUploadRateLimit)) 
-            return Unauthorized;
 
         HttpStatusCode validationResult = VerifyLevel(body, dataContext, importer, aipi, false);
         if (validationResult != OK)
@@ -249,6 +265,8 @@ public class PublishEndpoints : EndpointGroup
         if (body.LevelId != 0) // Republish requests contain the id of the old level
         {
             context.Logger.LogInfo(BunkumCategory.UserContent, "Republishing level id {0}", body.LevelId);
+
+            // Is the user allowed to edit levels?
 
             GameLevel? levelToUpdate = dataContext.Database.GetLevelById(body.LevelId);
             if (levelToUpdate == null) return NotFound;
