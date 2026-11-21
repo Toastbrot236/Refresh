@@ -178,13 +178,12 @@ public class ResourceEndpoints : EndpointGroup
         if (hashes == null) return null;
 
         // Kinda lazy to make a separate class and serialize it for this
-        return $"<farc_hashes dlc_header=\"{hashes.DlcHeaderHash}\" pck_hash=\"{hashes.PackResourceHash}\" pin_hash=\"{hashes.PinResourceHash}\" />";
+        return $"<farc_hashes dlc_header=\"{hashes.DlcHeaderHash}\" pck_hash=\"{hashes.PackFarcHash}\" pin_hash=\"{hashes.PinFarcHash}\" />";
     }
 
     [GameEndpoint("farc/pin")]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
-    [DebugResponseBody]
     public Response GetPinFarc(RequestContext context, DataContext dataContext)
     {
         FarcHashesData? hashes = dataContext.Database.GetNewestFarcHashes(dataContext.Game);
@@ -203,7 +202,6 @@ public class ResourceEndpoints : EndpointGroup
     [GameEndpoint("farc/pck")]
     [MinimumRole(GameUserRole.Restricted)]
     [EndpointRateLimit(EndpointBucketId.GameDownloadAsset)]
-    [DebugResponseBody]
     public Response GetPackFarc(RequestContext context, DataContext dataContext)
     {
         FarcHashesData? hashes = dataContext.Database.GetNewestFarcHashes(dataContext.Game);
