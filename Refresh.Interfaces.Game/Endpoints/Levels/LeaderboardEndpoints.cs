@@ -112,9 +112,6 @@ public class LeaderboardEndpoints : EndpointGroup
             return Unauthorized;
         }
 
-        // Add the uploader to the list of player GameUsers to not have to search for them in the database aswell
-        List<GameUser> players = [user];
-
         // LBP PSP doesn't have any score limits, and checking the score type and player list isn't really useful
         // since there is no multiplayer in that game
         if (!isPSP)
@@ -150,28 +147,14 @@ public class LeaderboardEndpoints : EndpointGroup
             {
                 body.ScoreType = (byte)body.PlayerUsernames.Count;
             }
-
-            if (body.PlayerUsernames.Count > 1)
-            {
-                // Only add participants who are on this server, and make sure to not unnessesarily
-                // get the uploader's GameUser from the database
-                body.PlayerUsernames.Remove(user.Username);
-
-                foreach (string username in body.PlayerUsernames)
-                {
-                    GameUser? player = database.GetUserByUsername(username, true);
-                    if (player == null) continue;
-
-                    players.Add(player);
-                }
-            }
         }
         else
         {
             body.ScoreType = 1;
+            body.PlayerUsernames = [user.Username];
         }
 
-        GameScore score = database.SubmitScore(body, token, level, players);
+        GameScore score = database.SubmitScore(body, token, level);
         DatabaseList<ScoreWithRank> scores = database.GetRankedScoresAroundScore(score, 5);
 
         this.AwardScoreboardPins(scores, dataContext, user, level);
@@ -191,8 +174,11 @@ public class LeaderboardEndpoints : EndpointGroup
         // This check also prevents dividing by 0 below.
         if (uniqueScoreCount < 50) return;
 
-        ScoreWithRank? ownScore = scores.Items.FirstOrDefault(s => s.score.PlayerIds.Contains(user.UserId));
-        if (ownScore == null) return; // Should never happen, incase it somehow does, skip this part
+        ScoreWithRank? ownScore = scores.Items.FirstOrDefault(s => s.score.PublisherId == user.UserId);
+
+        // Will happen incase the score the user just uploaded isn't their own high score,
+        // in that case we don't need to do anything anyway.
+        if (ownScore == null) return; 
 
         // Examples for rankingInPercent:
         // - rank 20 out of 40 = 50%

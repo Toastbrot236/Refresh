@@ -28,15 +28,19 @@ public partial class GameDatabaseContext // Leaderboard
         .Include(s => s.Score!.Level.Publisher)
         .Include(s => s.Score!.Level.Publisher!.Statistics);
     
-    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level, IList<IScoreParticipant> players)
-        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform, players);
+    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
+        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
 
-    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform, IList<IScoreParticipant> players)
+    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
     {
         // Throw incase the method directly gets called like this in a test
-        if (players.Count <= 0)
+        if (score.PlayerUsernames.Count <= 0)
         {
-            throw new ArgumentException("Player list is empty!", nameof(players));
+            throw new ArgumentException("Player list is empty!", nameof(score.PlayerUsernames));
+        }
+        if (!score.PlayerUsernames.Contains(user.Username))
+        {
+            throw new ArgumentException("Player list doesn't contain uploader's username!", nameof(score.PlayerUsernames));
         }
 
         GameScore newScore = new()
@@ -50,58 +54,33 @@ public partial class GameDatabaseContext // Leaderboard
             Platform = platform,
         };
 
-        GameScore? currentFirstPlace = this.GameScores
-            .Where(s => s.LevelId == level.LevelId && s.ScoreType == score.ScoreType)
-            .OrderByDescending(s => s.Score)
-            .FirstOrDefault();
-
-        // If the current first score is not 0, is lower than the new score and by a different first player,
-        // show the overtake notification. This way the #1 player will not spam the #2 player by repeatedly improving their own score.
-        IEnumerable<GameUser> currentNumberOnes = this.GetLeaderboardTopScorePublishersForLevel(level, score.ScoreType).ToArray();
-
         this.WriteEnsuringStatistics(level, () =>
         {
             this.GameScores.Add(newScore);
             level.Statistics!.CompletionCount++;
         });
 
+        List<GameScoreParticipant> participants = [];
         int playerNumber = 1;
-        foreach (IScoreParticipant participant in players)
+
+        // No need to get publisher's user, since we already have it.
+        // Insert separately, and then remove name from the list so we don't iterate over it below.
+        this.AddScoreParticipant(newScore, playerNumber, user.Username, user, false);
+        score.PlayerUsernames.Remove(user.Username);
+        playerNumber++;
+
+        // Unlike photo/report subjects, these are just names. They don't have any additional data uploaded by the game
+        // (e.g. boundaries), so we can safely only save distinct names without losing potentially useful data.
+        foreach (string username in score.PlayerUsernames.Distinct())
         {
-            this.GameScoreParticipants.Add(new GameScoreParticipant
-            {
-                ScoreId = newScore.ScoreId,
-                PlayerNumber = playerNumber,
-                UserId = participant.User?.UserId,
-                Username = participant.Username,
-            });
+            // From now on, we will also save usernames of users who we don't have a GameUser of (likely from a different server).
+            this.AddScoreParticipant(newScore, playerNumber, username, this.GetUserByUsername(username, true), false);
             playerNumber++;
         }
         this.SaveChanges();
 
         this.RecalculateScoreStatistics(level.LevelId, score.ScoreType);
         this.CreateLevelScoreEvent(user, newScore);
-
-        // TODO move this to worker job
-        // NOTE: If you want to change the notif text, make sure to adjust the respective Assert in 
-        // ScoreLeaderboardTests.OnlySendOvertakeNotifsToRelevantPlayers() aswell!
-        if (true)
-        {
-            // Below lines format the shown usernames to look like this: "UserA, UserB, UserC and UserD"
-            IEnumerable<string> usernames = players.Select(u => u.Username);
-
-            // players.Count is guaranteed to be equal to usernames.Count(), both are guaranteed to be > 0
-            string usernamesToShow = players.Count > 1 
-                ? $"{string.Join(", ", usernames.SkipLast(1))} and {usernames.Last()}"
-                : usernames.First();
-
-            foreach (GameUser player in currentNumberOnes)
-            {
-                this.AddNotification("Score overtaken", 
-                    $"Your #1 score on {level.Title} has been overtaken by {usernamesToShow} in {score.ScoreType}-player-mode!", 
-                    player, "medal");   
-            }
-        }
 
         return newScore;
     }
