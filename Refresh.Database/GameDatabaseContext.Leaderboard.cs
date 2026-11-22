@@ -6,6 +6,7 @@ using Refresh.Database.Models.Activity;
 using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Users;
 using Refresh.Database.Models.Levels;
+using Refresh.Common.Helpers;
 
 namespace Refresh.Database;
 
@@ -43,6 +44,23 @@ public partial class GameDatabaseContext // Leaderboard
             throw new ArgumentException("Player list doesn't contain uploader's username!", nameof(score.PlayerUsernames));
         }
 
+        // Get all current #1 holders, so we can know later who to send overtake notifications to.
+        // Only need the publishers, and not all participants, because all clients in a lobby will upload their score
+        // themselves when completing a level, not just the host, so they will all be publishers.
+        List<GameUser> currentNumberOnes = this.GameScores
+            .Include(s => s.Publisher)
+            // Ensure we only get scores from this exact leaderboard (they are identified by level ID + score type),
+            // and only get the current #1s.
+            .Where(s => s.LevelId == level.LevelId && s.ScoreType == score.ScoreType && s.Rank == 1)
+            // This makes sure that we don't send notifications if the current #1s have a score of 0 (or below if PSP),
+            // and that we only send the notif if our new score is actually greater than that of the current #1s
+            // (otherwise we'd end up with no scores, and therefore no users at all here).
+            .Where(s => s.Score > 0 && s.Score < score.Score)
+            // Don't notify any of these users if they've also participated in this score (which includes the publisher themselves)
+            .Where(s => !score.PlayerUsernames.Contains(s.Publisher.Username))
+            .Select(s => s.Publisher)
+            .ToList();
+
         GameScore newScore = new()
         {
             Score = score.Score,
@@ -79,8 +97,18 @@ public partial class GameDatabaseContext // Leaderboard
         }
         this.SaveChanges();
 
-        this.RecalculateScoreStatistics(level.LevelId, score.ScoreType);
+        this.RecalculateScoreStatistics(level.LevelId, score.ScoreType); // TODO move rank into own DB table, and have a job do this, like with other stats
         this.CreateLevelScoreEvent(user, newScore);
+
+        // Now we can take care of sending the notif. Could probably also do it right after the initial insertion, but whatever.
+        // NOTE: If you want to change the notif text, make sure to adjust the respective Assert in 
+        // ScoreLeaderboardTests.OnlySendOvertakeNotifsToRelevantPlayers() aswell!
+        foreach (GameUser overtakenUser in currentNumberOnes)
+        {
+            this.AddNotification("Score overtaken", 
+                $"Your #1 score on {level.Title} has been overtaken by {StringHelper.FormatListingOfStrings(score.PlayerUsernames)} in {score.ScoreType}-player-mode!", 
+                overtakenUser, "medal");
+        }
 
         return newScore;
     }
@@ -98,16 +126,6 @@ public partial class GameDatabaseContext // Leaderboard
         this.GameScoreParticipants.Add(participant);
         if (save) this.SaveChanges();
         return participant;
-    }
-
-    /// <summary>
-    /// Gets the publishers of all #1 level scores for a given level + score type
-    /// </summary>
-    internal IQueryable<GameUser> GetLeaderboardTopScorePublishersForLevel(GameLevel level, byte scoreType)
-    {
-        return this.GameScoresIncluded
-            .Where(s => s.LevelId == level.LevelId && s.ScoreType == scoreType && s.Rank == 1)
-            .Select(s => s.Publisher);
     }
 
     /// <param name="scoreType">0 = don't filter by type</param>
