@@ -17,12 +17,8 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
 
     protected override void Migrate(WorkContext context, GameScore[] batch)
     {
-        context.Logger.LogInfo(RefreshContext.Worker, $"Migrating {batch.Length} scores");
-
         foreach (GameScore score in batch)
         {
-            context.Logger.LogInfo(RefreshContext.Worker, $"Migrating score {score.ScoreId} for level {score.LevelId}/type {score.ScoreType} and publisher {score.Publisher}, legacy player count {score.PlayerIdsRaw.Count}");
-
             // Extra check to be sure
             if (context.Database.GetTotalPlayersFromScoreCount(score) > 0)
                 continue;
