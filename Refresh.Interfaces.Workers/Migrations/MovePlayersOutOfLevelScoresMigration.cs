@@ -12,7 +12,6 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
     {
         return query
             .Include(s => s.Publisher)
-            .Where(p => p.Players.Count == 0)
             .OrderBy(p => p.ScoreId);
     }
 
