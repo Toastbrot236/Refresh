@@ -10,8 +10,8 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
 {
     public required string ScoreId { get; set; }
     public required ApiGameLevelResponse Level { get; set; }
-    public required IEnumerable<ApiGameUserResponse> Players { get; set; } // TODO remove in APIv4, rename AllPlayers to just Players
-    public required IEnumerable<ApiGameScorePlayerResponse> AllPlayers { get; set; }
+    // TODO allow showing players with name but no GameUser in APIv4
+    public required IEnumerable<ApiGameUserResponse> Players { get; set; }
     public required ApiMinimalUserResponse Publisher { get; set; }
     public required DateTimeOffset ScoreSubmitted { get; set; }
     public required int Score { get; set; }
@@ -25,14 +25,11 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
     {
         if (old == null) return null;
 
-        IEnumerable<ApiGameScorePlayerResponse> players = ApiGameScorePlayerResponse.FromOldList(old.Players, dataContext);
-
         return new ApiGameScoreResponse
         {
             ScoreId = old.ScoreId.ToString()!,
             Level = ApiGameLevelResponse.FromOld(old.Level, dataContext)!,
-            AllPlayers = players,
-            Players = players.Where(p => p.User != null).Select(p => p.User!), // reuse to avoid duplicate DB lookups
+            Players = ApiGameUserResponse.FromOldList(old.Players.Where(p => p.User != null).Select(p => p.User!), dataContext),
             Publisher = ApiMinimalUserResponse.FromOld(old.Publisher, dataContext)!,
             ScoreSubmitted = old.ScoreSubmitted,
             Score = old.Score,
