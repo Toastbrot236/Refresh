@@ -621,6 +621,28 @@ namespace Refresh.Database.Migrations
                     b.ToTable("GameScores");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Levels.Scores.GameScorePlayer", b =>
+                {
+                    b.Property<string>("ScoreId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PlayerNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ScoreId", "PlayerNumber");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GameScorePlayers");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Moderation.ModerationAction", b =>
                 {
                     b.Property<string>("ActionId")
@@ -2076,6 +2098,23 @@ namespace Refresh.Database.Migrations
                     b.Navigation("Publisher");
                 });
 
+            modelBuilder.Entity("Refresh.Database.Models.Levels.Scores.GameScorePlayer", b =>
+                {
+                    b.HasOne("Refresh.Database.Models.Levels.Scores.GameScore", "Score")
+                        .WithMany("Players")
+                        .HasForeignKey("ScoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Refresh.Database.Models.Users.GameUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Score");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Refresh.Database.Models.Moderation.ModerationAction", b =>
                 {
                     b.HasOne("Refresh.Database.Models.Users.GameUser", "Actor")
@@ -2574,6 +2613,11 @@ namespace Refresh.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Refresh.Database.Models.Levels.Scores.GameScore", b =>
+                {
+                    b.Navigation("Players");
                 });
 
             modelBuilder.Entity("Refresh.Database.Models.Photos.GamePhoto", b =>
