@@ -47,7 +47,7 @@ public partial class GameDatabaseContext // Leaderboard
         // Get all current #1 holders, so we can know later who to send overtake notifications to.
         // Only need the publishers, and not all players, because all clients in a lobby will upload their score
         // themselves when completing a level, not just the host, so they will all be publishers.
-        List<GameUser> currentNumberOnes = this.GameScores
+        List<GameUser> usersToNotify = this.GameScores
             .Include(s => s.Publisher)
             // Ensure we only get scores from this exact leaderboard (they are identified by level ID + score type),
             // and only get the current #1s.
@@ -56,7 +56,7 @@ public partial class GameDatabaseContext // Leaderboard
             // and that we only send the notif if our new score is actually greater than that of the current #1s
             // (otherwise we'd end up with no scores, and therefore no users at all here).
             .Where(s => s.Score > 0 && s.Score < score.Score)
-            // Don't notify any of these users if they've also participated in this score (which includes the publisher themselves)
+            // Don't notify users who have also participated in this score (which includes the publisher themselves)
             .Where(s => !score.PlayerUsernames.Contains(s.Publisher.Username))
             .Select(s => s.Publisher)
             .ToList();
@@ -103,7 +103,7 @@ public partial class GameDatabaseContext // Leaderboard
         // Now we can take care of sending the notif. Could probably also do it right after the initial insertion, but whatever.
         // NOTE: If you want to change the notif text, make sure to adjust the respective Assert in 
         // ScoreLeaderboardTests.OnlySendOvertakeNotifsToRelevantPlayers() aswell!
-        foreach (GameUser overtakenUser in currentNumberOnes)
+        foreach (GameUser overtakenUser in usersToNotify)
         {
             this.AddNotification("Score overtaken", 
                 $"Your #1 score on {level.Title} has been overtaken by {StringHelper.FormatListingOfStrings(score.PlayerUsernames)} in {score.ScoreType}-player-mode!", 
