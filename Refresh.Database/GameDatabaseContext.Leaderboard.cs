@@ -105,6 +105,21 @@ public partial class GameDatabaseContext // Leaderboard
 
         return newScore;
     }
+    
+    public GameScoreParticipant AddScoreParticipant(GameScore score, int playerNumber, string username, GameUser? user, bool save = true)
+    {
+        GameScoreParticipant participant = new()
+        {
+            ScoreId = score.ScoreId,
+            PlayerNumber = playerNumber,
+            Username = username,
+            User = user,
+        };
+
+        this.GameScoreParticipants.Add(participant);
+        if (save) this.SaveChanges();
+        return participant;
+    }
 
     /// <summary>
     /// Gets the publishers of all #1 level scores for a given level + score type
@@ -256,9 +271,15 @@ public partial class GameDatabaseContext // Leaderboard
 
     public IEnumerable<GameUser> GetPlayersFromScore(GameScore score)
     {
-        return this.GameScoreParticipants
+        return this.GameScoreParticipantsIncluded
             .Where(s => s.ScoreId == score.ScoreId && s.User != null)
             .Select(s => s.User!);
+    }
+
+    public int GetTotalPlayersFromScoreCount(GameScore score)
+    {
+        return this.GameScoreParticipants
+            .Count(s => s.ScoreId == score.ScoreId);
     }
     
     public GameUser? GetSubmittingPlayerFromScore(GameScore score)
