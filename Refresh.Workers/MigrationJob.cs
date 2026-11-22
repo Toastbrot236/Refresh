@@ -40,12 +40,11 @@ public abstract class MigrationJob<TEntity> : WorkerJob, IJobStoresState where T
 
         TEntity[] batch = query.ToArray();
         
-        int entitiesLeftCount = Migrate(context, batch);
+        Migrate(context, batch);
         context.Database.SaveChanges();
         transaction.Commit();
 
-        state.Processed += entitiesLeftCount;
-        state.Total = state.Total - batch.Length + entitiesLeftCount;
+        state.Processed += batch.Length;
         context.Logger.LogInfo(RefreshContext.Database, $"{this.JobId} migrated {batch.Length} objects ({state.Processed}/{state.Total}, complete: {state.Complete})");
 
         context.Database.UpdateOrCreateJobState(this.GetType().Name, state, this.JobClass);
@@ -53,11 +52,5 @@ public abstract class MigrationJob<TEntity> : WorkerJob, IJobStoresState where T
     
     protected abstract IQueryable<TEntity> SortAndFilter(IQueryable<TEntity> query);
 
-    /// <returns>
-    /// The number of entities in the batch, minus the number of entities removed from DB during this migration.
-    /// E.g. if 1000 items are in the given batch, and 5 got removed from DB during migration, 
-    /// the returned number will be 1000 - 5 = 995.
-    /// This allows you to write migration jobs, which need to delete entities from the given batch, without breaking pagination done by the worker.
-    /// </returns>
-    protected abstract int Migrate(WorkContext context, TEntity[] batch);
+    protected abstract void Migrate(WorkContext context, TEntity[] batch);
 }

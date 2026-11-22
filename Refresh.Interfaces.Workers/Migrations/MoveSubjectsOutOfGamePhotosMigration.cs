@@ -12,7 +12,7 @@ public class MoveSubjectsOutOfGamePhotosMigration : MigrationJob<GamePhoto>
             .OrderBy(p => p.PhotoId);
     }
 
-    protected override int Migrate(WorkContext context, GamePhoto[] batch)
+    protected override void Migrate(WorkContext context, GamePhoto[] batch)
     {
         foreach (GamePhoto photo in batch)
         {
@@ -47,6 +47,5 @@ public class MoveSubjectsOutOfGamePhotosMigration : MigrationJob<GamePhoto>
         }
 
         context.Database.SaveChanges();
-        return batch.Length;
     }
 }

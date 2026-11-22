@@ -21,7 +21,7 @@ public class CorrectWebsitePinProgressPlatformMigration : MigrationJob<GameUser>
         return query.OrderBy(u => u.UserId);
     }
 
-    protected override int Migrate(WorkContext context, GameUser[] batch)
+    protected override void Migrate(WorkContext context, GameUser[] batch)
     {
         foreach (GameUser user in batch)
         {
@@ -54,6 +54,5 @@ public class CorrectWebsitePinProgressPlatformMigration : MigrationJob<GameUser>
         }
 
         context.Database.SaveChanges();
-        return batch.Length;
     }
 }

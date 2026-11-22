@@ -16,10 +16,14 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
             .OrderBy(p => p.ScoreId);
     }
 
-    protected override int Migrate(WorkContext context, GameScore[] batch)
+    protected override void Migrate(WorkContext context, GameScore[] batch)
     {
+        context.Logger.LogInfo(RefreshContext.Worker, $"Migrating {batch.Length} scores");
+
         foreach (GameScore score in batch)
         {
+            context.Logger.LogInfo(RefreshContext.Worker, $"Migrating score {score.ScoreId} for level {score.LevelId}/type {score.ScoreType} and publisher {score.Publisher}, legacy player count {score.PlayerIdsRaw.Count}");
+
             // Extra check to be sure
             if (context.Database.GetTotalPlayersFromScoreCount(score) > 0)
                 continue;
@@ -40,16 +44,16 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
                 if (player == null)
                 {
                     context.Logger.LogWarning(RefreshContext.Worker, $"Score #{score.ScoreId}: Could not find player by UUID {playerId} in database! Their participance on this score will not be migrated.");
-                    continue;
                 }
-
-                context.Database.AddScorePlayer(score, playerNumber, player.Username, player, false);
+                else
+                {
+                    context.Database.AddScorePlayer(score, playerNumber, player.Username, player, false);
+                }
             }
 
             #pragma warning restore CS0618
         }
 
         context.Database.SaveChanges();
-        return batch.Length;
     }
 }

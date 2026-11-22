@@ -16,7 +16,7 @@ public class CorrectLevelModdedStatusMigration : MigrationJob<GameLevel>
             .OrderBy(l => l.LevelId);
     }
 
-    protected override int Migrate(WorkContext context, GameLevel[] batch)
+    protected override void Migrate(WorkContext context, GameLevel[] batch)
     {
         foreach (GameLevel level in batch)
         {
@@ -24,6 +24,5 @@ public class CorrectLevelModdedStatusMigration : MigrationJob<GameLevel>
         }
 
         context.Database.SaveChanges();
-        return batch.Length;
     }
 }

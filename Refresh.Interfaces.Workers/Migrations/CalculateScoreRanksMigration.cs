@@ -12,13 +12,12 @@ public class CalculateScoreRanksMigration : MigrationJob<GameLevel>
         return query.OrderBy(l => l.LevelId);
     }
 
-    protected override int Migrate(WorkContext context, GameLevel[] batch)
+    protected override void Migrate(WorkContext context, GameLevel[] batch)
     {
         foreach (GameLevel level in batch)
         {
             context.Database.RecalculateScoreStatistics(level);
         }
         context.Database.SaveChanges();
-        return batch.Length;
     }
 }
