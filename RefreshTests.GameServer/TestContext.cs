@@ -217,17 +217,17 @@ public class TestContext : IDisposable
         }
     }
 
-    public GameScore SubmitScore(int score, byte type, GameLevel level, GameUser user, TokenGame game, TokenPlatform platform, IList<GameUser>? players = null)
+    public GameScore SubmitScore(int score, byte type, GameLevel level, GameUser user, TokenGame game, TokenPlatform platform, List<string>? playerUsernames = null)
     {
         SerializedScore scoreObject = new()
         {
             Host = true,
             Score = score,
             ScoreType = type,
+            PlayerUsernames = playerUsernames ?? [user.Username],
         };
-        
-        players ??= [user];
-        GameScore submittedScore = this.Database.SubmitScore(scoreObject, user, level, game, platform, players);
+
+        GameScore submittedScore = this.Database.SubmitScore(scoreObject, user, level, game, platform);
         Assert.That(submittedScore, Is.Not.Null);
 
         return submittedScore;

@@ -119,8 +119,9 @@ public class ScoreLeaderboardTests : GameServerTest
 
         ScoreWithRank? score = context.Database.GetTopScoresForLevel(level, 1000, 0, 2, false).Items.FirstOrDefault(s => s.score.PublisherId == user.UserId);
         Assert.That(score, Is.Not.Null);
-        Assert.That(score!.score.PlayerIds.Count, Is.EqualTo(1));
-        Assert.That(score!.score.PlayerIds.First(), Is.EqualTo(user.UserId));
+        Assert.That(score!.score.Players.Count, Is.EqualTo(1));
+        Assert.That(score!.score.Players.First().UserId, Is.Not.Null);
+        Assert.That(score!.score.Players.First().UserId, Is.EqualTo(user.UserId));
     }
 
     [Test]
@@ -149,8 +150,9 @@ public class ScoreLeaderboardTests : GameServerTest
 
         ScoreWithRank? score = context.Database.GetTopScoresForLevel(level, 1000, 0, 1, false).Items.FirstOrDefault(s => s.score.PublisherId == user.UserId);
         Assert.That(score, Is.Not.Null);
-        Assert.That(score!.score.PlayerIds.Count, Is.EqualTo(1));
-        Assert.That(score!.score.PlayerIds.First(), Is.EqualTo(user.UserId));
+        Assert.That(score!.score.Players.Count, Is.EqualTo(1));
+        Assert.That(score!.score.Players.First().UserId, Is.Not.Null);
+        Assert.That(score!.score.Players.First().UserId, Is.EqualTo(user.UserId));
     }
     
     [Test]
@@ -456,7 +458,7 @@ public class ScoreLeaderboardTests : GameServerTest
                 Score = 180,
                 ScoreType = i,
                 PlayerUsernames = [uploader.Username],
-            }, uploader, level, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, [uploader]);
+            }, uploader, level, TokenGame.LittleBigPlanet2, TokenPlatform.PS3);
         }
 
         using HttpClient client = context.GetAuthenticatedClient(TokenType.Game, user);
@@ -736,7 +738,7 @@ public class ScoreLeaderboardTests : GameServerTest
             // Check that notification was sent to the last #1 users
             if (lastBestScore == null) continue;
 
-            GameUser notificationRecipient = context.Database.GetSubmittingPlayerFromScore(lastBestScore)!;
+            GameUser notificationRecipient = lastBestScore.Publisher;
             GameNotification? notification = context.Database.GetNotificationsByUser(notificationRecipient, 1, 0).Items.FirstOrDefault();
 
             if (lastBestScore.Score <= 0)
@@ -777,7 +779,7 @@ public class ScoreLeaderboardTests : GameServerTest
             context.SubmitScore(20 * i + 20, 1, level, user1, TokenGame.LittleBigPlanet2, TokenPlatform.PS3);
 
             // Make sure that user1 is always #1
-            Assert.That(context.Database.GetTopScoresForLevel(level, 1, 0, 1, true).Items.FirstOrDefault()?.score.PlayerIds[0], Is.EqualTo(user1.UserId));
+            Assert.That(context.Database.GetTopScoresForLevel(level, 1, 0, 1, true).Items.FirstOrDefault()?.score.PublisherId, Is.EqualTo(user1.UserId));
         }
 
         // Make sure #2 only has one overtake notif
@@ -797,14 +799,14 @@ public class ScoreLeaderboardTests : GameServerTest
         GameLevel level = context.CreateLevel(both1);
 
         List<GameUser> lobby1 = [both1, both2, first3, first4];
-        GameScore score1 = context.SubmitScore(10, 4, level, both1, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1);
+        GameScore score1 = context.SubmitScore(10, 4, level, both1, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1.Select(p => p.Username).ToList());
 
         // Now overtake with half the players being new (also shuffled order)
         List<GameUser> lobby2 = [both2, second3, second4, both1];
-        GameScore score2 = context.SubmitScore(123456, 4, level, both2, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2);
+        GameScore score2 = context.SubmitScore(123456, 4, level, both2, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2.Select(p => p.Username).ToList());
 
-        Assert.That(score1.PlayerIds.All(p => lobby1.Select(u => u.UserId).Contains(p)));
-        Assert.That(score2.PlayerIds.All(p => lobby2.Select(u => u.UserId).Contains(p)));
+        Assert.That(score1.Players.Select(p => p.UserId).All(p => p != null && lobby1.Any(u => u.UserId == p.Value)));
+        Assert.That(score2.Players.Select(p => p.UserId).All(p => p != null && lobby2.Any(u => u.UserId == p.Value)));
 
         // Make sure that first3 and first4 have received a notification (since they haven't been overtaken by themselves),
         // but the others have not. Also make sure there are now 2 scores on the leaderboard.
@@ -844,13 +846,13 @@ public class ScoreLeaderboardTests : GameServerTest
         // Every player in the lobby uploads the score themselves, as that's how the game does it
         foreach (GameUser player in lobby1)
         {
-            GameScore score1 = context.SubmitScore(10, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1);
+            GameScore score1 = context.SubmitScore(10, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1.Select(p => p.Username).ToList());
         }
 
         // Now overtake
         foreach (GameUser player in lobby2)
         {
-            GameScore score2 = context.SubmitScore(123456, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2);
+            GameScore score2 = context.SubmitScore(123456, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2.Select(p => p.Username).ToList());
         }
 
         // All 6 players have now uploaded atleast one score, so show their own highscores on the leaderboard

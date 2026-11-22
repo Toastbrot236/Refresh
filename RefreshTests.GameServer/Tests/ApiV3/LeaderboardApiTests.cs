@@ -20,14 +20,14 @@ public class LeaderboardApiTests : GameServerTest
         HttpClient client = context.GetAuthenticatedClient(TokenType.Api, mod);
 
         // UUID
-        context.SubmitScore(4000001, 1, level, publisher, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [publisher]);
+        context.SubmitScore(4000001, 1, level, publisher, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
         Assert.That(context.Database.GetTopScoresForLevel(level, 100, 0, 1).TotalItems, Is.EqualTo(1)); // TODO: Use total score by publisher
         HttpResponseMessage resetResponse = await client.DeleteAsync($"/api/v3/admin/users/uuid/{publisher.UserId}/scores");
         Assert.That(resetResponse.IsSuccessStatusCode, Is.True);
         Assert.That(context.Database.GetTopScoresForLevel(level, 100, 0, 1).TotalItems, Is.Zero);
 
         // name
-        context.SubmitScore(4000001, 1, level, publisher, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [publisher]);
+        context.SubmitScore(4000001, 1, level, publisher, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
         Assert.That(context.Database.GetTopScoresForLevel(level, 100, 0, 1).TotalItems, Is.EqualTo(1));
         resetResponse = await client.DeleteAsync($"/api/v3/admin/users/name/{publisher.Username}/scores");
         Assert.That(resetResponse.IsSuccessStatusCode, Is.True);
@@ -61,7 +61,7 @@ public class LeaderboardApiTests : GameServerTest
                     Score = 434834,
                     PlayerUsernames = [uploader.Username],
                 };
-                context.Database.SubmitScore(score, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [uploader]);
+                context.Database.SubmitScore(score, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
             }
         }
 
@@ -106,7 +106,7 @@ public class LeaderboardApiTests : GameServerTest
                     Score = 434834 + i,
                     PlayerUsernames = [uploader.Username],
                 };
-                context.Database.SubmitScore(score, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [uploader]);
+                context.Database.SubmitScore(score, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
             }
         }
 
@@ -150,7 +150,7 @@ public class LeaderboardApiTests : GameServerTest
                 Score = 2344,
                 PlayerUsernames = [uploader.Username],
             };
-            context.Database.SubmitScore(ogScore, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [uploader]);
+            context.Database.SubmitScore(ogScore, uploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
         }
 
         // Post 1 score per extra user per mode to the same level, each score is slightly higher than the previous one,
@@ -167,7 +167,7 @@ public class LeaderboardApiTests : GameServerTest
                     Score = 434834 + i,
                     PlayerUsernames = [anotherUploader.Username],
                 };
-                context.Database.SubmitScore(score, anotherUploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [anotherUploader]);
+                context.Database.SubmitScore(score, anotherUploader, level, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
             }
         }
 
@@ -206,7 +206,7 @@ public class LeaderboardApiTests : GameServerTest
                 Score = i,
                 PlayerUsernames = [uploader.Username],
             };
-            context.Database.SubmitScore(score, uploader, anotherLevel, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [uploader]);
+            context.Database.SubmitScore(score, uploader, anotherLevel, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
             
             // Also put scores by others there, so the uploader has a score per level, and these scores all have different ranks
             for (int u = 0; u < 10; u++)
@@ -219,7 +219,7 @@ public class LeaderboardApiTests : GameServerTest
                     Score = u,
                     PlayerUsernames = [anotherUploader.Username],
                 };
-                context.Database.SubmitScore(anotherScore, anotherUploader, anotherLevel, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3, [anotherUploader]);
+                context.Database.SubmitScore(anotherScore, anotherUploader, anotherLevel, TokenGame.LittleBigPlanet1, TokenPlatform.RPCS3);
             }
         }
         
