@@ -4,7 +4,7 @@ using Refresh.Database.Models.Users;
 namespace Refresh.Database.Models.Levels.Scores;
 
 [PrimaryKey(nameof(ScoreId), nameof(PlayerNumber))]
-public partial class GameScoreParticipant
+public partial class GameScorePlayer
 {
     [Required]
     public ObjectId ScoreId { get; set; }

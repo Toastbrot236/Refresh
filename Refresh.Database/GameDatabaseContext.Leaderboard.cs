@@ -16,9 +16,9 @@ public partial class GameDatabaseContext // Leaderboard
         .Include(s => s.Publisher)
         .Include(s => s.Level)
         .Include(s => s.Level.Publisher)
-        .Include(s => s.Participants.OrderBy(s => s.PlayerNumber));
+        .Include(s => s.Players.OrderBy(s => s.PlayerNumber));
 
-    private IQueryable<GameScoreParticipant> GameScoreParticipantsIncluded => this.GameScoreParticipants
+    private IQueryable<GameScorePlayer> GameScorePlayersIncluded => this.GameScorePlayers
         .Include(s => s.User)
         .Include(s => s.User!.Statistics)
         .Include(s => s.Score)
@@ -45,7 +45,7 @@ public partial class GameDatabaseContext // Leaderboard
         }
 
         // Get all current #1 holders, so we can know later who to send overtake notifications to.
-        // Only need the publishers, and not all participants, because all clients in a lobby will upload their score
+        // Only need the publishers, and not all players, because all clients in a lobby will upload their score
         // themselves when completing a level, not just the host, so they will all be publishers.
         List<GameUser> currentNumberOnes = this.GameScores
             .Include(s => s.Publisher)
@@ -78,24 +78,24 @@ public partial class GameDatabaseContext // Leaderboard
             level.Statistics!.CompletionCount++;
         });
 
-        List<GameScoreParticipant> participants = [];
+        #region Insert Score Players
         int playerNumber = 1;
 
         // No need to get publisher's user, since we already have it.
         // Insert separately, and then remove name from the list so we don't iterate over it below.
-        this.AddScoreParticipant(newScore, playerNumber, user.Username, user, false);
+        this.AddScorePlayer(newScore, playerNumber, user.Username, user, false);
         score.PlayerUsernames.Remove(user.Username);
-        playerNumber++;
 
-        // Unlike photo/report subjects, these are just names. They don't have any additional data uploaded by the game
-        // (e.g. boundaries), so we can safely only save distinct names without losing potentially useful data.
-        foreach (string username in score.PlayerUsernames.Distinct())
+        foreach (string username in score.PlayerUsernames)
         {
-            // From now on, we will also save usernames of users who we don't have a GameUser of (likely from a different server).
-            this.AddScoreParticipant(newScore, playerNumber, username, this.GetUserByUsername(username, true), false);
             playerNumber++;
+
+            // From now on, we will also save usernames of users who we don't have a GameUser of (likely from a different server).
+            this.AddScorePlayer(newScore, playerNumber, username, this.GetUserByUsername(username, true), false);
         }
+
         this.SaveChanges();
+        #endregion
 
         this.RecalculateScoreStatistics(level.LevelId, score.ScoreType); // TODO move rank into own DB table, and have a job do this, like with other stats
         this.CreateLevelScoreEvent(user, newScore);
@@ -113,9 +113,9 @@ public partial class GameDatabaseContext // Leaderboard
         return newScore;
     }
     
-    public GameScoreParticipant AddScoreParticipant(GameScore score, int playerNumber, string username, GameUser? user, bool save = true)
+    public GameScorePlayer AddScorePlayer(GameScore score, int playerNumber, string username, GameUser? user, bool save = true)
     {
-        GameScoreParticipant participant = new()
+        GameScorePlayer player = new()
         {
             ScoreId = score.ScoreId,
             PlayerNumber = playerNumber,
@@ -123,9 +123,9 @@ public partial class GameDatabaseContext // Leaderboard
             User = user,
         };
 
-        this.GameScoreParticipants.Add(participant);
+        this.GameScorePlayers.Add(player);
         if (save) this.SaveChanges();
-        return participant;
+        return player;
     }
 
     /// <param name="scoreType">0 = don't filter by type</param>
@@ -268,14 +268,14 @@ public partial class GameDatabaseContext // Leaderboard
 
     public IEnumerable<GameUser> GetPlayersFromScore(GameScore score)
     {
-        return this.GameScoreParticipantsIncluded
+        return this.GameScorePlayersIncluded
             .Where(s => s.ScoreId == score.ScoreId && s.User != null)
             .Select(s => s.User!);
     }
 
     public int GetTotalPlayersFromScoreCount(GameScore score)
     {
-        return this.GameScoreParticipants
+        return this.GameScorePlayers
             .Count(s => s.ScoreId == score.ScoreId);
     }
     

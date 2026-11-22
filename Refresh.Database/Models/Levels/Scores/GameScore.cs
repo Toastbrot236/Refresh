@@ -35,10 +35,10 @@ public partial class GameScore
     public int Rank { get; set; }
 
     /// <summary>
-    /// A list of participants, initialized using Include()
+    /// A list of players who participated in this score, initialized using Include()
     /// </summary>
-    public List<GameScoreParticipant> Participants { get; set; }
+    public List<GameScorePlayer> Players { get; set; }
     
-    [Obsolete("GameScoreParticipants are now in their own DB table. This attribute only exists to allow migration.")]
+    [Obsolete("GameScorePlayers are now in their own DB table. This attribute only exists to allow migration.")]
     public List<string> PlayerIdsRaw { get; set; } = [];
 }
