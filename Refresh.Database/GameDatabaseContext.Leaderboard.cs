@@ -14,12 +14,24 @@ public partial class GameDatabaseContext // Leaderboard
     private IQueryable<GameScore> GameScoresIncluded => this.GameScores
         .Include(s => s.Publisher)
         .Include(s => s.Level)
-        .Include(s => s.Level.Publisher);
+        .Include(s => s.Level.Publisher)
+        .Include(s => s.Participants.OrderBy(s => s.PlayerNumber));
+
+    private IQueryable<GameScoreParticipant> GameScoreParticipantsIncluded => this.GameScoreParticipants
+        .Include(s => s.User)
+        .Include(s => s.User!.Statistics)
+        .Include(s => s.Score)
+        .Include(s => s.Score!.Publisher)
+        .Include(s => s.Score!.Publisher!.Statistics)
+        .Include(s => s.Score!.Level)
+        .Include(s => s.Score!.Level.Statistics)
+        .Include(s => s.Score!.Level.Publisher)
+        .Include(s => s.Score!.Level.Publisher!.Statistics);
     
-    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level, IList<GameUser> players)
+    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level, IList<IScoreParticipant> players)
         => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform, players);
 
-    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform, IList<GameUser> players)
+    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform, IList<IScoreParticipant> players)
     {
         // Throw incase the method directly gets called like this in a test
         if (players.Count <= 0)
@@ -27,14 +39,11 @@ public partial class GameDatabaseContext // Leaderboard
             throw new ArgumentException("Player list is empty!", nameof(players));
         }
 
-        IEnumerable<ObjectId> playerIds = players.Select(u => u.UserId);
-
         GameScore newScore = new()
         {
             Score = score.Score,
             ScoreType = score.ScoreType,
             Level = level,
-            PlayerIdsRaw = playerIds.Select(p => p.ToString()).ToList(),
             Publisher = user,
             ScoreSubmitted = this._time.Now,
             Game = game,
@@ -48,10 +57,7 @@ public partial class GameDatabaseContext // Leaderboard
 
         // If the current first score is not 0, is lower than the new score and by a different first player,
         // show the overtake notification. This way the #1 player will not spam the #2 player by repeatedly improving their own score.
-        bool showOvertakeNotification = currentFirstPlace != null
-            && currentFirstPlace.Score > 0
-            && currentFirstPlace.Score < score.Score 
-            && currentFirstPlace.PublisherId != user.UserId;
+        IEnumerable<GameUser> currentNumberOnes = this.GetLeaderboardTopScorePublishersForLevel(level, score.ScoreType).ToArray();
 
         this.WriteEnsuringStatistics(level, () =>
         {
@@ -59,14 +65,27 @@ public partial class GameDatabaseContext // Leaderboard
             level.Statistics!.CompletionCount++;
         });
 
+        int playerNumber = 1;
+        foreach (IScoreParticipant participant in players)
+        {
+            this.GameScoreParticipants.Add(new GameScoreParticipant
+            {
+                ScoreId = newScore.ScoreId,
+                PlayerNumber = playerNumber,
+                UserId = participant.User?.UserId,
+                Username = participant.Username,
+            });
+            playerNumber++;
+        }
+        this.SaveChanges();
+
         this.RecalculateScoreStatistics(level.LevelId, score.ScoreType);
         this.CreateLevelScoreEvent(user, newScore);
 
-        // Notify the last #1 users that they've been overtaken
-        // Only do this part of notifying after actually adding the new score to the database incase that fails
+        // TODO move this to worker job
         // NOTE: If you want to change the notif text, make sure to adjust the respective Assert in 
         // ScoreLeaderboardTests.OnlySendOvertakeNotifsToRelevantPlayers() aswell!
-        if (showOvertakeNotification)
+        if (true)
         {
             // Below lines format the shown usernames to look like this: "UserA, UserB, UserC and UserD"
             IEnumerable<string> usernames = players.Select(u => u.Username);
@@ -76,12 +95,7 @@ public partial class GameDatabaseContext // Leaderboard
                 ? $"{string.Join(", ", usernames.SkipLast(1))} and {usernames.Last()}"
                 : usernames.First();
 
-            // Don't notify users who have participated in both the overtaken and the new score
-            IEnumerable<GameUser> usersToNotify = this.GetPlayersFromScore(currentFirstPlace!)
-                .Where(p => !playerIds.Contains(p.UserId))
-                .ToArray();
-            
-            foreach (GameUser player in usersToNotify)
+            foreach (GameUser player in currentNumberOnes)
             {
                 this.AddNotification("Score overtaken", 
                     $"Your #1 score on {level.Title} has been overtaken by {usernamesToShow} in {score.ScoreType}-player-mode!", 
@@ -90,6 +104,16 @@ public partial class GameDatabaseContext // Leaderboard
         }
 
         return newScore;
+    }
+
+    /// <summary>
+    /// Gets the publishers of all #1 level scores for a given level + score type
+    /// </summary>
+    internal IQueryable<GameUser> GetLeaderboardTopScorePublishersForLevel(GameLevel level, byte scoreType)
+    {
+        return this.GameScoresIncluded
+            .Where(s => s.LevelId == level.LevelId && s.ScoreType == scoreType && s.Rank == 1)
+            .Select(s => s.Publisher);
     }
 
     /// <param name="scoreType">0 = don't filter by type</param>
@@ -232,13 +256,13 @@ public partial class GameDatabaseContext // Leaderboard
 
     public IEnumerable<GameUser> GetPlayersFromScore(GameScore score)
     {
-        IEnumerable<ObjectId> playerIds = score.PlayerIds.Select(p => p);
-        return this.GameUsersIncluded
-            .Where(u => playerIds.Contains(u.UserId));
+        return this.GameScoreParticipants
+            .Where(s => s.ScoreId == score.ScoreId && s.User != null)
+            .Select(s => s.User!);
     }
     
     public GameUser? GetSubmittingPlayerFromScore(GameScore score)
     {
-        return this.GetUserByUuid(score.PlayerIdsRaw.FirstOrDefault());
+        return score.Publisher;
     }
 }

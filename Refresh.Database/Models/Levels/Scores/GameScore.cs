@@ -20,10 +20,6 @@ public partial class GameScore
     
     public int Score { get; set; }
     public byte ScoreType { get; set; }
-    
-    public List<string> PlayerIdsRaw { get; set; } = [];
-    [NotMapped] public List<ObjectId> PlayerIds => PlayerIdsRaw.Select(ObjectId.Parse).ToList();
-    // set => PlayerIdsRaw = value.Select(v => v.ToString()).ToList();
 
     /// <summary>
     /// The actual publisher of this particular score.
@@ -37,4 +33,12 @@ public partial class GameScore
     /// Scores which are no longer the high score of their publisher have a rank of 0.
     /// </summary>
     public int Rank { get; set; }
+
+    /// <summary>
+    /// A list of participants, initialized using Include()
+    /// </summary>
+    public List<GameScoreParticipant> Participants { get; set; }
+    
+    [Obsolete("GameScoreParticipants are now in their own DB table. This attribute only exists to allow migration.")]
+    public List<string> PlayerIdsRaw { get; set; } = [];
 }
