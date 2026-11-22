@@ -9,8 +9,9 @@ namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Levels;
 public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameScoreResponse, GameScore>, IDataConvertableFrom<ApiGameScoreResponse, ScoreWithRank>
 {
     public required string ScoreId { get; set; }
-    public required ApiGameLevelResponse Level { get; set; } // TODO: use ApiMinimalLevelResponse in APIv4
-    public required IEnumerable<ApiGameUserResponse> Players { get; set; } // TODO: use ApiMinimalUserResponses in APIv4
+    public required ApiGameLevelResponse Level { get; set; }
+    public required IEnumerable<ApiGameUserResponse> Players { get; set; } // TODO remove in APIv4, rename AllPlayers to just Players
+    public required IEnumerable<ApiGameScorePlayerResponse> AllPlayers { get; set; }
     public required ApiMinimalUserResponse Publisher { get; set; }
     public required DateTimeOffset ScoreSubmitted { get; set; }
     public required int Score { get; set; }
@@ -24,11 +25,14 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
     {
         if (old == null) return null;
 
+        IEnumerable<ApiGameScorePlayerResponse> players = ApiGameScorePlayerResponse.FromOldList(old.Players, dataContext);
+
         return new ApiGameScoreResponse
         {
             ScoreId = old.ScoreId.ToString()!,
             Level = ApiGameLevelResponse.FromOld(old.Level, dataContext)!,
-            Players = ApiGameUserResponse.FromOldList(dataContext.Database.GetPlayersFromScore(old).ToArray(), dataContext),
+            AllPlayers = players,
+            Players = players.Where(p => p.User != null).Select(p => p.User!), // reuse to avoid duplicate DB lookups
             Publisher = ApiMinimalUserResponse.FromOld(old.Publisher, dataContext)!,
             ScoreSubmitted = old.ScoreSubmitted,
             Score = old.Score,

@@ -266,21 +266,9 @@ public partial class GameDatabaseContext // Leaderboard
         this.SaveChanges();
     }
 
-    public IEnumerable<GameUser> GetPlayersFromScore(GameScore score)
-    {
-        return this.GameScorePlayersIncluded
-            .Where(s => s.ScoreId == score.ScoreId && s.User != null)
-            .Select(s => s.User!);
-    }
-
     public int GetTotalPlayersFromScoreCount(GameScore score)
     {
         return this.GameScorePlayers
             .Count(s => s.ScoreId == score.ScoreId);
-    }
-    
-    public GameUser? GetSubmittingPlayerFromScore(GameScore score)
-    {
-        return score.Publisher;
     }
 }
