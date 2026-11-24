@@ -177,24 +177,57 @@ public class PublishEndpoints : EndpointGroup
     {
         RolePermissions rolePerms = user.GetRolePermissionsForUser(config);
 
-        if (dataContext.User!.IsWriteBlocked(config))
+        if (user.IsWriteBlocked(config))
         {
-            dataContext.Database.AddPublishFailNotification($"You may not publish or edit levels because your user role ({user.Role}) is in read-only mode.", body.Title, dataContext.User!);
-            return Unauthorized;
+            database.AddPublishFailNotification($"You may not publish or edit levels because your user role ({user.Role}) is currently in read-only mode.", body.Title, user);
+            return false;
         }
 
         if (body.LevelId != 0) // is this a republish/edit request?
         {
-            if ()
+            if (!rolePerms.MayEditLevels)
+            {
+                database.AddPublishFailNotification($"You may not edit your own levels because your user role ({user.Role}) currently doesn't allow it.", body.Title, user);
+                return false;
+            }
+            else if (user.EditLevelsPermission == UserPermissionSetting.ExplicitlyBlocked)
+            {
+                database.AddPublishFailNotification($"You may not edit your own levels because this permission is blocked for you specifically.", body.Title, user);
+                return false;
+            }
         }
         else
         {
+            if (!rolePerms.MayPublishNewLevels)
+            {
+                database.AddPublishFailNotification($"You may not publish new levels because your user role ({user.Role}) currently doesn't allow it.", body.Title, user);
+                return false;
+            }
+            else if (user.PublishNewLevelsPermission == UserPermissionSetting.ExplicitlyBlocked)
+            {
+                database.AddPublishFailNotification($"You may not publish new levels because this permission is blocked for you specifically.", body.Title, user);
+                return false;
+            }
 
+            EntityUploadRateLimitProperties uploadRateLimit = rolePerms.LevelUploadRateLimit;
+            if (uploadRateLimit.Enabled)
+            {
+                TimeSpan? rateLimitExpiresIn = database.GetRemainingTimeIfUploadRateLimitReached(user, GameDatabaseEntity.Level, uploadRateLimit.UploadQuota);
+                if (rateLimitExpiresIn != null)
+                {
+                    database.AddPublishFailNotification
+                    (
+                        $"You have published too many levels recently! Your limit is {uploadRateLimit.UploadQuota} levels per {uploadRateLimit.TimeSpanHours} hours. " +
+                        $"Try again in {rateLimitExpiresIn.Value.Hours} hours and {rateLimitExpiresIn.Value.Minutes} minutes.", 
+                        body.Title,
+                        user
+                    );
+                    return false;
+                }
+            }
         }
-        
-        if (IsTimedLevelLimitReached(dataContext, dataContext.User!, body.Title, user.GetRolePermissionsForUser(config).LevelUploadRateLimit)) 
-            return Unauthorized;
-        }
+
+        return true;
     }
 
     [GameEndpoint("startPublish", ContentType.Xml, HttpMethods.Post)]
@@ -208,6 +241,10 @@ public class PublishEndpoints : EndpointGroup
         AipiService? aipi,
         GameUser user)
     {
+        if (!UserMayUploadOrEditLevels(config, dataContext.Database, user, body))
+        {
+            return Unauthorized;
+        }
 
         HttpStatusCode validationResult = VerifyLevel(body, dataContext, importer, aipi, false);
         if (validationResult != OK)
@@ -248,12 +285,10 @@ public class PublishEndpoints : EndpointGroup
         AipiService? aipi,
         GameServerConfig config)
     {
-        if (user.IsWriteBlocked(config))
+        if (!UserMayUploadOrEditLevels(config, dataContext.Database, user, body))
+        {
             return Unauthorized;
-        
-        EntityUploadRateLimitProperties timedLevelLimit = user.GetRolePermissionsForUser(config).LevelUploadRateLimit;
-        if (IsTimedLevelLimitReached(dataContext, user, body.Title, timedLevelLimit))
-            return Unauthorized;
+        }
 
         HttpStatusCode validationResult = VerifyLevel(body, dataContext, importer, aipi, true);
         if (validationResult != OK)
@@ -304,11 +339,13 @@ public class PublishEndpoints : EndpointGroup
 
         context.Logger.LogInfo(BunkumCategory.UserContent, "User {0} (id: {1}) uploaded level id {2}", user.Username, user.UserId, newLevel.LevelId);
 
+        EntityUploadRateLimitProperties uploadRateLimit = user.GetRolePermissionsForUser(config).LevelUploadRateLimit;
+
         // Only increment if the level can be uploaded (right after the previous checks + adding the level),
         // don't want to increment for failed uploads
-        if (timedLevelLimit.Enabled)
+        if (uploadRateLimit.Enabled)
         {
-            dataContext.Database.IncrementUploadRateLimitForEntity(user, GameDatabaseEntity.Level, timedLevelLimit.TimeSpanHours);
+            dataContext.Database.IncrementUploadRateLimitForEntity(user, GameDatabaseEntity.Level, uploadRateLimit.TimeSpanHours);
         }
 
         // Update the modded status of the level
