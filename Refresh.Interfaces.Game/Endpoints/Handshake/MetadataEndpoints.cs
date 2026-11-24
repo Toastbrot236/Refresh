@@ -49,6 +49,11 @@ public class MetadataEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return OK; // else the game will send a new request for this every minute
+            
+        if (!user.GetRolePermissionsForUser(config).MayHeartEntities || user.HeartEntitiesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return OK;
+        }
 
         IEnumerable<GameUser> friends = body.FriendsList.Names
             .Take(128) // should be way more than enough - we'll see if this becomes a problem

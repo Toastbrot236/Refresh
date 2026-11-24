@@ -34,6 +34,11 @@ public class ChallengeEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadChallenges || user.UploadChallengesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         // Using the level specified in the request body is unreliable, since Hub allows users to create challenges in moon levels, in which case their
         // slot type is wrongly set to user instead of local, and the ID is that of the moon slot. This would cause the server to attribute these challenges
@@ -190,6 +195,11 @@ public class ChallengeEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadChallengeScores || user.UploadChallengeScoresPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         ghostService.RemoveUserFromRateLimit(user.UserId);
 

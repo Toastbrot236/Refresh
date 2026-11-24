@@ -102,6 +102,11 @@ public class LeaderboardEndpoints : EndpointGroup
 
         if (user.IsWriteBlocked(config))
             return isPSP ? OK : Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadLevelScores || user.UploadLevelScoresPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
         if (level == null) return isPSP ? OK : NotFound;

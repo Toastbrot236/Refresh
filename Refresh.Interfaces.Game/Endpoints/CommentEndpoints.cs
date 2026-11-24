@@ -27,6 +27,11 @@ public class CommentEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadComments || user.UploadCommentsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         GameUser? profile = database.GetUserByUsername(username);
         if (profile == null) return NotFound;
@@ -94,6 +99,11 @@ public class CommentEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadComments || user.UploadCommentsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
         if (level == null) return NotFound;

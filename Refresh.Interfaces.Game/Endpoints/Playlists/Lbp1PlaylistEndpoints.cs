@@ -59,12 +59,18 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
         
         GamePlaylist? parent = null;
         GamePlaylist? rootPlaylist = dataContext.Database.GetUserRootPlaylist(user);
-        EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(config).PlaylistUploadRateLimit;
+        RolePermissions rolePerms = user.GetRolePermissionsForUser(config);
+        EntityUploadRateLimitProperties uploadLimit = rolePerms.PlaylistUploadRateLimit;
 
         // Don't block root playlist creation, as the game will otherwise spam requests and softlock
         if (rootPlaylist != null)
         {
             if (user.IsWriteBlocked(config)) return Unauthorized;
+
+            if (!rolePerms.MayUploadPlaylists || user.UploadPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+            {
+                return Unauthorized;
+            }
 
             if (uploadLimit.Enabled)
             {
@@ -210,6 +216,11 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
         if (playlist == null)
@@ -257,6 +268,11 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         string? slotType = context.QueryString["slot_type"];
         if (slotType == null)
@@ -339,6 +355,11 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         string? slotType = context.QueryString["slot_type"];
         if (slotType == null)
@@ -390,6 +411,11 @@ public class Lbp1PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         if (!int.TryParse(context.QueryString["to"], out int to))
             return BadRequest;

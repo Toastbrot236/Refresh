@@ -64,6 +64,13 @@ public class ReportingEndpoints : EndpointGroup
         
         if (user.RedirectGriefReportsToPhotos)
         {
+            if (!user.GetRolePermissionsForUser(config).MayPublishPhotos || user.PublishPhotosPermission == UserPermissionSetting.ExplicitlyBlocked)
+            {
+                return Unauthorized;
+            }
+
+            // TODO apply photo upload rate-limit
+
             List<SerializedPhotoSubject> subjects = new();
             if (body.Players != null)
                 subjects.AddRange(body.Players.Select(player => new SerializedPhotoSubject

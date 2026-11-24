@@ -72,6 +72,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (user.IsWriteBlocked(config))
             return Unauthorized;
 
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
+
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) 
             return NotFound;
@@ -136,6 +141,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (user.IsWriteBlocked(config))
             return Unauthorized;
 
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
+
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) 
             return NotFound;
@@ -160,6 +170,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
         if (user.IsWriteBlocked(config))
             return Unauthorized;
 
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
+
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null)
             return NotFound;
@@ -179,6 +194,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) 
@@ -240,6 +260,11 @@ public class Lbp3PlaylistEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayHeartEntities || user.HeartEntitiesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
 
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) 

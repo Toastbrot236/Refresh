@@ -75,8 +75,16 @@ public class UserEndpoints : EndpointGroup
     [NullStatusCode(BadRequest)]
     [EndpointRateLimit(EndpointBucketId.UpdateUser)]
     public Response UpdateUser(RequestContext context, DataContext dataContext, GameUser user, string body, GuidCheckerService guidChecker, 
-        AssetImporter importer, AipiService? aipi)
+        AssetImporter importer, AipiService? aipi, GameServerConfig config)
     {
+        if (user.IsWriteBlocked(config))
+            return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayEditProfile || user.EditProfilePermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
+
         SerializedUpdateData? data = null;
         
         // This stupid shit is caused by LBP sending two different root elements for this endpoint

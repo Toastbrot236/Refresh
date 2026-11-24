@@ -34,6 +34,11 @@ public class PhotoEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+            
+        if (!user.GetRolePermissionsForUser(config).MayPublishPhotos || user.PublishPhotosPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(config).PhotoUploadRateLimit;
         if (uploadLimit.Enabled)

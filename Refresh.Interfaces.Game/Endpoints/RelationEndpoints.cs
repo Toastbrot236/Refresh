@@ -25,6 +25,11 @@ public class RelationEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
+
+        if (!user.GetRolePermissionsForUser(config).MayHeartEntities || user.HeartEntitiesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return context.IsPSP() ? OK : Unauthorized;
+        }
         
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
         // On PSP, we have to lie or else the client will begin spamming the server
@@ -61,6 +66,11 @@ public class RelationEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return context.IsPSP() ? OK : Unauthorized; // See comment below
+
+        if (!user.GetRolePermissionsForUser(config).MayHeartEntities || user.HeartEntitiesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return context.IsPSP() ? OK : Unauthorized;
+        }
         
         GameUser? userToFavourite = database.GetUserByUsername(username);
         // On PSP, we have to lie or else the client will begin spamming the server

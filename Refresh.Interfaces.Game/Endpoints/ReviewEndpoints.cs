@@ -145,6 +145,12 @@ public class ReviewEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayUploadReviews || user.UploadReviewsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
+
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
 
         if (level == null)

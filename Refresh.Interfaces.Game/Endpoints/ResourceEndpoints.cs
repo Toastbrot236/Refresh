@@ -37,6 +37,11 @@ public class ResourceEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config))
             return Unauthorized;
+
+        if (!user.GetRolePermissionsForUser(config).MayUploadAssets || user.UploadAssetsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return Unauthorized;
+        }
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return BadRequest;
         
