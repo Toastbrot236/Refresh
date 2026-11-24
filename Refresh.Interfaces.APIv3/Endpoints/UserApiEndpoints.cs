@@ -48,6 +48,11 @@ public class UserApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayHeartEntities || user.HeartEntitiesPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GameUser? target = database.GetUserByIdAndType(idType, id);
         if(target == null) return ApiNotFoundError.UserMissingError;
@@ -95,9 +100,15 @@ public class UserApiEndpoints : EndpointGroup
     [DocSummary("Updates your profile with the given data")]
     [EndpointRateLimit(EndpointBucketId.UpdateUser)]
     public ApiResponse<ApiExtendedGameUserResponse> UpdateUser(RequestContext context, GameDatabaseContext database,
-        GameUser user, ApiUpdateUserRequest body, IDataStore dataStore, DataContext dataContext, IntegrationConfig integrationConfig,
+        GameUser user, ApiUpdateUserRequest body, IDataStore dataStore, DataContext dataContext, GameServerConfig config,
         SmtpService smtpService)
     {
+        // TODO update email address separately so we could keep compatibility, while also being able to block purely profile-related updates
+        if (!user.GetRolePermissionsForUser(config).MayEditProfile || user.EditProfilePermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
+
         (body.IconHash, ApiError? mainIconError) = body.IconHash.ValidateIcon(dataContext);
         if (mainIconError != null) return mainIconError;
 

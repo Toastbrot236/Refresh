@@ -58,6 +58,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadPlaylists || user.UploadPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
         
         EntityUploadRateLimitProperties uploadLimit = user.GetRolePermissionsForUser(config).PlaylistUploadRateLimit;
         if (uploadLimit.Enabled)
@@ -120,6 +125,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(id);
         if (playlist == null) return ApiNotFoundError.PlaylistMissingError;
@@ -175,6 +185,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) return ApiNotFoundError.ParentPlaylistMissingError;
@@ -200,6 +215,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GamePlaylist? playlist = dataContext.Database.GetPlaylistById(playlistId);
         if (playlist == null) return ApiNotFoundError.ParentPlaylistMissingError;
@@ -225,6 +245,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GamePlaylist? parent = dataContext.Database.GetPlaylistById(playlistId);
         if (parent == null) return ApiNotFoundError.ParentPlaylistMissingError;
@@ -250,6 +275,11 @@ public class PlaylistApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditPlaylists || user.EditPlaylistsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GamePlaylist? parent = dataContext.Database.GetPlaylistById(playlistId);
         if (parent == null) return ApiNotFoundError.ParentPlaylistMissingError;

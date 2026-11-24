@@ -63,6 +63,11 @@ public class LevelApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayEditLevels || user.EditLevelsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GameLevel? level = dataContext.Database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;

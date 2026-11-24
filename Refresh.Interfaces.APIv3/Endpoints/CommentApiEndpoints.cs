@@ -52,6 +52,11 @@ public class CommentApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadComments || user.UploadCommentsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
         
         GameUser? profile = dataContext.Database.GetUserByIdAndType(idType, id);
         if (profile == null) return ApiNotFoundError.UserMissingError;
@@ -142,6 +147,11 @@ public class CommentApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadComments || user.UploadCommentsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
         
         GameLevel? level = dataContext.Database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;

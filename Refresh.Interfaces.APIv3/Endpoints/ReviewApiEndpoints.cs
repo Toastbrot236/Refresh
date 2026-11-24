@@ -101,6 +101,11 @@ public class ReviewApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadReviews || user.UploadReviewsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GameLevel? level = database.GetLevelById(id);
         if (level == null) return ApiNotFoundError.LevelMissingError;
@@ -148,6 +153,11 @@ public class ReviewApiEndpoints : EndpointGroup
     {
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadReviews || user.UploadReviewsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
 
         GameReview? review = database.GetReviewById(id);
         if (review == null) return ApiNotFoundError.ReviewMissingError;

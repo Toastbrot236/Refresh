@@ -167,6 +167,11 @@ public class ResourceApiEndpoints : EndpointGroup
         // We also have the ability to block asset uploads for trusted users (when they would normally bypass this)
         if (user.IsWriteBlocked(config)) 
             return ApiAuthenticationError.ReadOnlyError;
+            
+        if (!user.GetRolePermissionsForUser(config).MayUploadAssets || user.UploadAssetsPermission == UserPermissionSetting.ExplicitlyBlocked)
+        {
+            return ApiAuthenticationError.NoPermissionsForCreation; // TODO proper error message
+        }
         
         if (!CommonPatterns.Sha1Regex().IsMatch(hash)) return ApiValidationError.HashInvalidError;
 
