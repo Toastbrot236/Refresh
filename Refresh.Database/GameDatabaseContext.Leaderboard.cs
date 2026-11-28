@@ -39,15 +39,16 @@ public partial class GameDatabaseContext // Leaderboard
         {
             throw new ArgumentException("Player list is empty!", nameof(score.PlayerUsernames));
         }
-
-        IEnumerable<ObjectId> playerIds = players.Select(u => u.UserId);
+        if (!score.PlayerUsernames.Contains(user.Username))
+        {
+            throw new ArgumentException("Player list doesn't contain uploader's username!", nameof(score.PlayerUsernames));
+        }
 
         GameScore newScore = new()
         {
             Score = score.Score,
             ScoreType = score.ScoreType,
             Level = level,
-            PlayerIdsRaw = playerIds.Select(p => p.ToString()).ToList(),
             Publisher = user,
             ScoreSubmitted = this._time.Now,
             Game = game,
@@ -71,6 +72,33 @@ public partial class GameDatabaseContext // Leaderboard
             this.GameScores.Add(newScore);
             level.Statistics!.CompletionCount++;
         });
+
+        #region Insert Score Players
+        int playerNumber = 1;
+
+        foreach (string username in score.PlayerUsernames.Distinct())
+        {
+            // No need to look up player's user if it's the publisher.
+            // Also, from now on, we will also save usernames of users who we don't have a GameUser of
+            // (likely from a different server).
+            // Publisher will not always be the first player in the list, so we should not just assign #1 to them.
+            GameUser? playerUser = username == user.Username
+                ? user
+                : this.GetUserByUsername(username, true);
+            
+            // For preservation purposes, we increment the player number anyway. Such a gap would
+            // indicate that there is a missing user, and we would also preserve the original player numbers,
+            // incase we want to show them in APIv4 later.
+            if (playerUser != null)
+            {
+                this.AddScorePlayer(newScore, playerNumber, playerUser, false);
+            }
+
+            playerNumber++;
+        }
+
+        this.SaveChanges();
+        #endregion
 
         this.RecalculateScoreStatistics(level.LevelId, score.ScoreType);
         this.CreateLevelScoreEvent(user, newScore);
@@ -103,6 +131,20 @@ public partial class GameDatabaseContext // Leaderboard
         }
 
         return newScore;
+    }
+
+    public GameScorePlayer AddScorePlayer(GameScore score, int playerNumber, GameUser user, bool save = true)
+    {
+        GameScorePlayer player = new()
+        {
+            ScoreId = score.ScoreId,
+            PlayerNumber = playerNumber,
+            User = user,
+        };
+
+        this.GameScorePlayers.Add(player);
+        if (save) this.SaveChanges();
+        return player;
     }
 
     /// <param name="scoreType">0 = don't filter by type</param>
