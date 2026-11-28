@@ -8,7 +8,7 @@ public class TestMigrationJobDeletingLevels : MigrationJob<GameLevel>
     protected override int BatchCount => 6;
 
     // Deletes every second level
-    protected override int Migrate(WorkContext context, GameLevel[] batch)
+    protected override void Migrate(WorkContext context, GameLevel[] batch)
     {
         int entitiesLeft = batch.Length;
         int index = 0;
@@ -26,8 +26,6 @@ public class TestMigrationJobDeletingLevels : MigrationJob<GameLevel>
 
             index++;
         }
-
-        return entitiesLeft;
     }
 
     protected override IQueryable<GameLevel> SortAndFilter(IQueryable<GameLevel> query)
