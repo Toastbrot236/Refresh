@@ -174,8 +174,11 @@ public class LeaderboardEndpoints : EndpointGroup
         // This check also prevents dividing by 0 below.
         if (uniqueScoreCount < 50) return;
 
-        ScoreWithRank? ownScore = scores.Items.FirstOrDefault(s => s.score.PlayerIds.Contains(user.UserId));
-        if (ownScore == null) return; // Should never happen, incase it somehow does, skip this part
+        ScoreWithRank? ownScore = scores.Items.FirstOrDefault(s => s.score.PublisherId == user.UserId);
+
+        // Will happen incase the score the user just uploaded isn't their own high score,
+        // in that case we don't need to do anything anyway.
+        if (ownScore == null) return;
 
         // Examples for rankingInPercent:
         // - rank 20 out of 40 = 50%

@@ -12,7 +12,7 @@ public class DatabaseScoreList : DatabaseList<ScoreWithRank>
     {
         if (requestingUser != null)
         {
-            this.OwnScore = items.FirstOrDefault(s => s.score.PlayerIds.Contains(requestingUser.UserId));
+            this.OwnScore = items.FirstOrDefault(s => s.score.PublisherId == requestingUser.UserId);
         }
     }
 

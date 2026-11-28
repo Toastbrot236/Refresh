@@ -9,8 +9,8 @@ namespace Refresh.Interfaces.APIv3.Endpoints.DataTypes.Response.Levels;
 public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameScoreResponse, GameScore>, IDataConvertableFrom<ApiGameScoreResponse, ScoreWithRank>
 {
     public required string ScoreId { get; set; }
-    public required ApiGameLevelResponse Level { get; set; } // TODO: use ApiMinimalLevelResponse in APIv4
-    public required IEnumerable<ApiGameUserResponse> Players { get; set; } // TODO: use ApiMinimalUserResponses in APIv4
+    public required ApiGameLevelResponse Level { get; set; }
+    public required IEnumerable<ApiGameUserResponse> Players { get; set; }
     public required ApiMinimalUserResponse Publisher { get; set; }
     public required DateTimeOffset ScoreSubmitted { get; set; }
     public required int Score { get; set; }
@@ -28,7 +28,7 @@ public class ApiGameScoreResponse : IApiResponse, IDataConvertableFrom<ApiGameSc
         {
             ScoreId = old.ScoreId.ToString()!,
             Level = ApiGameLevelResponse.FromOld(old.Level, dataContext)!,
-            Players = ApiGameUserResponse.FromOldList(dataContext.Database.GetPlayersFromScore(old).ToArray(), dataContext),
+            Players = ApiGameUserResponse.FromOldList(old.Players.Select(p => p.User), dataContext),
             Publisher = ApiMinimalUserResponse.FromOld(old.Publisher, dataContext)!,
             ScoreSubmitted = old.ScoreSubmitted,
             Score = old.Score,
