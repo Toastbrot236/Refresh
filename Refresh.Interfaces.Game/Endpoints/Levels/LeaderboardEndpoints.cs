@@ -150,28 +150,13 @@ public class LeaderboardEndpoints : EndpointGroup
             {
                 body.ScoreType = (byte)body.PlayerUsernames.Count;
             }
-
-            if (body.PlayerUsernames.Count > 1)
-            {
-                // Only add participants who are on this server, and make sure to not unnessesarily
-                // get the uploader's GameUser from the database
-                body.PlayerUsernames.Remove(user.Username);
-
-                foreach (string username in body.PlayerUsernames)
-                {
-                    GameUser? player = database.GetUserByUsername(username, true);
-                    if (player == null) continue;
-
-                    players.Add(player);
-                }
-            }
         }
         else
         {
             body.ScoreType = 1;
         }
 
-        GameScore score = database.SubmitScore(body, token, level, players);
+        GameScore score = database.SubmitScore(body, token, level);
         DatabaseList<ScoreWithRank> scores = database.GetRankedScoresAroundScore(score, 5);
 
         this.AwardScoreboardPins(scores, dataContext, user, level);

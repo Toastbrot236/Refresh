@@ -16,15 +16,15 @@ public partial class GameDatabaseContext // Leaderboard
         .Include(s => s.Level)
         .Include(s => s.Level.Publisher);
     
-    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level, IList<GameUser> players)
-        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform, players);
+    public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
+        => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
 
-    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform, IList<GameUser> players)
+    public GameScore SubmitScore(ISerializedScore score, GameUser user, GameLevel level, TokenGame game, TokenPlatform platform)
     {
         // Throw incase the method directly gets called like this in a test
-        if (players.Count <= 0)
+        if (score.PlayerUsernames.Count <= 0)
         {
-            throw new ArgumentException("Player list is empty!", nameof(players));
+            throw new ArgumentException("Player list is empty!", nameof(score.PlayerUsernames));
         }
 
         IEnumerable<ObjectId> playerIds = players.Select(u => u.UserId);

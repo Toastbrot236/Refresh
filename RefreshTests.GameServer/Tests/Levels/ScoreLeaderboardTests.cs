@@ -456,7 +456,7 @@ public class ScoreLeaderboardTests : GameServerTest
                 Score = 180,
                 ScoreType = i,
                 PlayerUsernames = [uploader.Username],
-            }, uploader, level, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, [uploader]);
+            }, uploader, level, TokenGame.LittleBigPlanet2, TokenPlatform.PS3);
         }
 
         using HttpClient client = context.GetAuthenticatedClient(TokenType.Game, user);

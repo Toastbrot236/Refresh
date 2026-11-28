@@ -5,4 +5,5 @@ public interface ISerializedScore
     public bool Host { get; set; }
     public byte ScoreType { get; set; }
     public int Score { get; set; }
+    public List<string> PlayerUsernames { get; set; }
 }
