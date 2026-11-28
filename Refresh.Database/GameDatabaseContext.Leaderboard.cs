@@ -50,7 +50,7 @@ public partial class GameDatabaseContext // Leaderboard
         List<GameUser> usersToNotify = this.GameScores
             .Include(s => s.Publisher)
             // Ensure we only get scores from this exact leaderboard (they are identified by level ID + score type),
-            // and only get the current #1s.
+            // and only get the current #1s (can easily use our rank caches for this).
             .Where(s => s.LevelId == level.LevelId && s.ScoreType == score.ScoreType && s.Rank == 1)
             // This makes sure that we don't send notifications if the current #1s have a score of 0 (or below if PSP),
             // and that we only send the notif if our new score is actually greater than that of the current #1s
@@ -81,17 +81,18 @@ public partial class GameDatabaseContext // Leaderboard
         #region Insert Score Players
         int playerNumber = 1;
 
-        // No need to get publisher's user, since we already have it.
-        // Insert separately, and then remove name from the list so we don't iterate over it below.
-        this.AddScorePlayer(newScore, playerNumber, user.Username, user, false);
-        score.PlayerUsernames.Remove(user.Username);
-
         foreach (string username in score.PlayerUsernames)
         {
-            playerNumber++;
+            // No need to look up player's user if it's the publisher.
+            // Also, from now on, we will also save usernames of users who we don't have a GameUser of
+            // (likely from a different server).
+            // Publisher will not always be the first player in the list, so we should not just assign #1 to them.
+            GameUser? playerUser = username == user.Username
+                ? user
+                : this.GetUserByUsername(username, true);
 
-            // From now on, we will also save usernames of users who we don't have a GameUser of (likely from a different server).
-            this.AddScorePlayer(newScore, playerNumber, username, this.GetUserByUsername(username, true), false);
+            this.AddScorePlayer(newScore, playerNumber, username, playerUser, false);
+            playerNumber++;
         }
 
         this.SaveChanges();
@@ -148,7 +149,7 @@ public partial class GameDatabaseContext // Leaderboard
     }
     
     // TODO all these score-specific extra params should probably be passed in by a dedicated struct, like with level params.
-    public DatabaseList<ScoreWithRank> GetTopScoresByUser(GameUser user, int count, int skip, byte scoreType, uint minRank, uint maxRank, bool showDuplicates = false)
+    public DatabaseList<ScoreWithRank> GetTopScoresByUser(GameUser user, int count, int skip, byte scoreType, uint minRank = 0, uint maxRank = 0, bool showDuplicates = false)
     {
         IEnumerable<GameScore> scores = this.GameScoresIncluded
             .Where(s => s.PublisherId == user.UserId)

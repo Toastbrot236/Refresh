@@ -19,24 +19,18 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
     {
         foreach (GameScore score in batch)
         {
-            // Extra check to be sure
+            // Extra check to be sure, this check only uses the new table to count
             if (context.Database.GetTotalPlayersFromScoreCount(score) > 0)
                 continue;
             
-            // Until now we've always ensured that the publisher was also a score player/participant,
-            // so we can avoid looking them up in the database by using score.Publisher, which we include above.
             int playerNumber = 1;
-            context.Database.AddScorePlayer(score, playerNumber, score.Publisher.Username, score.Publisher, false);
 
             #pragma warning disable CS0618 // obsoletion
 
-            // Don't iterate over publisher's ID, since we've already handled them separately
             foreach (string playerId in score.PlayerIdsRaw)
             {
-                // Skip publisher, since we've already got them
-                if (playerId == score.PublisherId.ToString()) continue;
-                playerNumber++;
-
+                // Do iterate over publisher too, because they're not guaranteed to be the first player, and their GameUser isn't guaranteed
+                // to have been included in the batch score.
                 GameUser? player = context.Database.GetUserByUuid(playerId);
                 if (player == null)
                 {
@@ -46,6 +40,8 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
                 {
                     context.Database.AddScorePlayer(score, playerNumber, player.Username, player, false);
                 }
+
+                playerNumber++;
             }
 
             #pragma warning restore CS0618
