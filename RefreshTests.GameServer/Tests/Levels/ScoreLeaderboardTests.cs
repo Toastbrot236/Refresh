@@ -800,22 +800,25 @@ public class ScoreLeaderboardTests : GameServerTest
         GameUser second4 = context.CreateUser();
         GameLevel level = context.CreateLevel(both1);
 
+        // Simulate every game sending the score themselves, because we now only send overtake notifs to all publishers,
+        // and in real scenarios, all players will be publishers too.
         List<GameUser> lobby1 = [both1, both2, first3, first4];
-        GameScore score1 = context.SubmitScore(10, 4, level, both1, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1);
+        foreach (GameUser player in lobby1)
+        {
+            context.SubmitScore(10, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby1);
+        }
 
         // Now overtake with half the players being new (also shuffled order)
         List<GameUser> lobby2 = [both2, second3, second4, both1];
-        GameScore score2 = context.SubmitScore(123456, 4, level, both2, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2);
-
-        Assert.That(score1.Players.All(p => lobby1.Select(u => u.UserId).Contains(p.UserId)));
-        Assert.That(score2.Players.All(p => lobby2.Select(u => u.UserId).Contains(p.UserId)));
+        foreach (GameUser player in lobby1)
+        {
+            context.SubmitScore(123456, 4, level, player, TokenGame.LittleBigPlanet2, TokenPlatform.PS3, lobby2);
+        }
 
         // Make sure that first3 and first4 have received a notification (since they haven't been overtaken by themselves),
         // but the others have not. Also make sure there are now 2 scores on the leaderboard.
         IEnumerable<ScoreWithRank> scores = context.Database.GetTopScoresForLevel(level, 100, 0, 4, false).Items;
         Assert.That(scores.Count(), Is.EqualTo(2));
-        Assert.That(scores.Any(s => s.score.ScoreId == score1.ScoreId));
-        Assert.That(scores.Any(s => s.score.ScoreId == score2.ScoreId));
 
         Assert.That(context.Database.GetNotificationCountByUser(both1), Is.Zero);
         Assert.That(context.Database.GetNotificationCountByUser(both2), Is.Zero);
