@@ -112,9 +112,6 @@ public class LeaderboardEndpoints : EndpointGroup
             return Unauthorized;
         }
 
-        // Add the uploader to the list of player GameUsers to not have to search for them in the database aswell
-        List<GameUser> players = [user];
-
         // LBP PSP doesn't have any score limits, and checking the score type and player list isn't really useful
         // since there is no multiplayer in that game
         if (!isPSP)
@@ -154,6 +151,7 @@ public class LeaderboardEndpoints : EndpointGroup
         else
         {
             body.ScoreType = 1;
+            body.PlayerUsernames = [user.Username];
         }
 
         GameScore score = database.SubmitScore(body, token, level);
