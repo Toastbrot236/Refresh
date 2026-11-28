@@ -31,8 +31,10 @@ public class MovePlayersOutOfLevelScoresMigration : MigrationJob<GameScore>
             #pragma warning disable CS0618 // obsoletion
 
             // Don't iterate over publisher's ID, since we've already handled them separately
-            foreach (string playerId in score.PlayerIdsRaw.Where(u => u != score.PublisherId.ToString()))
+            foreach (string playerId in score.PlayerIdsRaw)
             {
+                // Skip publisher, since we've already got them
+                if (playerId == score.PublisherId.ToString()) continue;
                 playerNumber++;
 
                 GameUser? player = context.Database.GetUserByUuid(playerId);
