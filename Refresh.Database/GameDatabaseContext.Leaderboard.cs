@@ -14,7 +14,20 @@ public partial class GameDatabaseContext // Leaderboard
     private IQueryable<GameScore> GameScoresIncluded => this.GameScores
         .Include(s => s.Publisher)
         .Include(s => s.Level)
-        .Include(s => s.Level.Publisher);
+        .Include(s => s.Level.Publisher)
+        .Include(s => s.Level.Publisher)
+        .Include(s => s.Players.OrderBy(s => s.PlayerNumber));
+
+    private IQueryable<GameScorePlayer> GameScorePlayersIncluded => this.GameScorePlayers
+        .Include(s => s.User)
+        .Include(s => s.User!.Statistics)
+        .Include(s => s.Score)
+        .Include(s => s.Score!.Publisher)
+        .Include(s => s.Score!.Publisher!.Statistics)
+        .Include(s => s.Score!.Level)
+        .Include(s => s.Score!.Level.Statistics)
+        .Include(s => s.Score!.Level.Publisher)
+        .Include(s => s.Score!.Level.Publisher!.Statistics);
     
     public GameScore SubmitScore(ISerializedScore score, Token token, GameLevel level)
         => this.SubmitScore(score, token.User, level, token.TokenGame, token.TokenPlatform);
