@@ -29,6 +29,7 @@ public static class RefreshWorkerManager
         manager.AddJob<CorrectWebsitePinProgressPlatformMigration>();
         manager.AddJob<CalculateScoreRanksMigration>();
         manager.AddJob<MoveSubjectsOutOfGamePhotosMigration>();
+        manager.AddJob<MovePlayersOutOfLevelScoresMigration>();
         manager.AddJob<CorrectLevelModdedStatusMigration>();
 
         return manager;
