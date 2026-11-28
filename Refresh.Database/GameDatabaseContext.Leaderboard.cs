@@ -6,6 +6,7 @@ using Refresh.Database.Models.Activity;
 using Refresh.Database.Models.Levels.Scores;
 using Refresh.Database.Models.Users;
 using Refresh.Database.Models.Levels;
+using Refresh.Common.Helpers;
 
 namespace Refresh.Database;
 
@@ -43,6 +44,23 @@ public partial class GameDatabaseContext // Leaderboard
         {
             throw new ArgumentException("Player list doesn't contain uploader's username!", nameof(score.PlayerUsernames));
         }
+
+        // Get all current #1 holders, so we can know later who to send overtake notifications to.
+        // Only need the publishers, and not all players, because all clients in a lobby will upload their score
+        // themselves when completing a level, not just the host, so they will all be publishers.
+        List<GameUser> usersToNotify = this.GameScores
+            .Include(s => s.Publisher)
+            // Ensure we only get scores from this exact leaderboard (leaderboards are currently identified by level ID + score type),
+            // and only get the current #1s (can easily use our rank caches for this).
+            .Where(s => s.LevelId == level.LevelId && s.ScoreType == score.ScoreType && s.Rank == 1)
+            // This makes sure that we don't send notifications if the current #1s have a score of 0 (or below if PSP),
+            // and that we only send the notif if our new score is actually greater than that of the current #1s
+            // (otherwise we'd end up with no scores, and therefore no users at all here).
+            .Where(s => s.Score > 0 && s.Score < score.Score)
+            // Don't notify users who have also participated in this score (which includes the publisher themselves)
+            .Where(s => !score.PlayerUsernames.Contains(s.Publisher.Username))
+            .Select(s => s.Publisher)
+            .ToList();
 
         GameScore newScore = new()
         {
@@ -103,31 +121,14 @@ public partial class GameDatabaseContext // Leaderboard
         this.RecalculateScoreStatistics(level.LevelId, score.ScoreType);
         this.CreateLevelScoreEvent(user, newScore);
 
-        // Notify the last #1 users that they've been overtaken
-        // Only do this part of notifying after actually adding the new score to the database incase that fails
+        // Now we can take care of sending the notif. Could probably also do it right after the initial insertion, but whatever.
         // NOTE: If you want to change the notif text, make sure to adjust the respective Assert in 
         // ScoreLeaderboardTests.OnlySendOvertakeNotifsToRelevantPlayers() aswell!
-        if (showOvertakeNotification)
+        foreach (GameUser overtakenUser in usersToNotify)
         {
-            // Below lines format the shown usernames to look like this: "UserA, UserB, UserC and UserD"
-            IEnumerable<string> usernames = players.Select(u => u.Username);
-
-            // players.Count is guaranteed to be equal to usernames.Count(), both are guaranteed to be > 0
-            string usernamesToShow = players.Count > 1 
-                ? $"{string.Join(", ", usernames.SkipLast(1))} and {usernames.Last()}"
-                : usernames.First();
-
-            // Don't notify users who have participated in both the overtaken and the new score
-            IEnumerable<GameUser> usersToNotify = this.GetPlayersFromScore(currentFirstPlace!)
-                .Where(p => !playerIds.Contains(p.UserId))
-                .ToArray();
-            
-            foreach (GameUser player in usersToNotify)
-            {
-                this.AddNotification("Score overtaken", 
-                    $"Your #1 score on {level.Title} has been overtaken by {usernamesToShow} in {score.ScoreType}-player-mode!", 
-                    player, "medal");   
-            }
+            this.AddNotification("Score overtaken", 
+                $"Your #1 score on {level.Title} has been overtaken by {StringHelper.FormatListingOfStrings(score.PlayerUsernames)} in {score.ScoreType}-player-mode!", 
+                overtakenUser, "medal");
         }
 
         return newScore;
